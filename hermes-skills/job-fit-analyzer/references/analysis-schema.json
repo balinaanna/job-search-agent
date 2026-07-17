@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "JobFitAnalysis",
+  "type": "object",
+  "required": [
+    "job",
+    "recommendation",
+    "score",
+    "hiring_priorities",
+    "requirement_map",
+    "selected_evidence",
+    "gaps",
+    "hard_rejects",
+    "summary"
+  ],
+  "properties": {
+    "job": {
+      "type": "object",
+      "required": ["title", "company"],
+      "properties": {
+        "title": {"type": "string"},
+        "company": {"type": "string"},
+        "location": {"type": ["string", "null"]},
+        "work_arrangement": {"type": ["string", "null"]},
+        "employment_type": {"type": ["string", "null"]},
+        "compensation": {"type": ["string", "null"]},
+        "source": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "recommendation": {
+      "type": "string",
+      "enum": ["strong_apply", "apply", "selective_apply", "do_not_apply"]
+    },
+    "score": {
+      "type": "object",
+      "required": [
+        "responsibilities_match",
+        "evidence_strength",
+        "people_facing_alignment",
+        "technology_match",
+        "seniority_match",
+        "logistics_match",
+        "total_score"
+      ],
+      "properties": {
+        "responsibilities_match": {"type": "integer", "minimum": 0, "maximum": 35},
+        "evidence_strength": {"type": "integer", "minimum": 0, "maximum": 25},
+        "people_facing_alignment": {"type": "integer", "minimum": 0, "maximum": 15},
+        "technology_match": {"type": "integer", "minimum": 0, "maximum": 10},
+        "seniority_match": {"type": "integer", "minimum": 0, "maximum": 10},
+        "logistics_match": {"type": "integer", "minimum": 0, "maximum": 5},
+        "total_score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "rationale": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "hiring_priorities": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["priority", "importance", "reason"],
+        "properties": {
+          "priority": {"type": "string"},
+          "importance": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low"]
+          },
+          "reason": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "requirement_map": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "requirement",
+          "importance",
+          "match",
+          "evidence_ids",
+          "reasoning",
+          "risk"
+        ],
+        "properties": {
+          "requirement": {"type": "string"},
+          "importance": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low"]
+          },
+          "match": {
+            "type": "string",
+            "enum": ["direct", "transferable", "partial", "unsupported", "unknown"]
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "reasoning": {"type": "string"},
+          "risk": {
+            "type": "string",
+            "enum": ["none", "low", "medium", "high"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "selected_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["evidence_id", "why_relevant", "recommended_placement"],
+        "properties": {
+          "evidence_id": {"type": "string"},
+          "why_relevant": {"type": "string"},
+          "recommended_placement": {"type": "string"},
+          "recommended_variant": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "gaps": {
+      "type": "object",
+      "required": ["material_gaps", "trainable_gaps", "non_issues"],
+      "properties": {
+        "material_gaps": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/gap"}
+        },
+        "trainable_gaps": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/gap"}
+        },
+        "non_issues": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/gap"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "hard_rejects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["condition", "triggered", "reason"],
+        "properties": {
+          "condition": {"type": "string"},
+          "triggered": {"type": "boolean"},
+          "reason": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["strongest_reasons", "main_risk", "recommended_next_action"],
+      "properties": {
+        "strongest_reasons": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "items": {"type": "string"}
+        },
+        "main_risk": {"type": "string"},
+        "recommended_next_action": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "gap": {
+      "type": "object",
+      "required": ["gap", "handling"],
+      "properties": {
+        "gap": {"type": "string"},
+        "handling": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
