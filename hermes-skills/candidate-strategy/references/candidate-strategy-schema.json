@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CandidateStrategy",
+  "type": "object",
+  "required": [
+    "job",
+    "source_analysis",
+    "strategy_headline",
+    "hiring_manager_mindset",
+    "positioning",
+    "keyword_strategy",
+    "resume_strategy",
+    "cover_letter_strategy",
+    "application_answer_strategy",
+    "interview_strategy",
+    "risks",
+    "downstream_handoffs"
+  ],
+  "properties": {
+    "job": {
+      "type": "object",
+      "required": ["company", "title", "exploration_slug"],
+      "properties": {
+        "company": {"type": "string"},
+        "title": {"type": "string"},
+        "exploration_slug": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "source_analysis": {
+      "type": "object",
+      "required": ["recommendation", "total_score", "analysis_path"],
+      "properties": {
+        "recommendation": {
+          "type": "string",
+          "enum": ["strong_apply", "apply", "selective_apply", "do_not_apply"]
+        },
+        "total_score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "analysis_path": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "strategy_headline": {"type": "string"},
+    "hiring_manager_mindset": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 7,
+      "items": {"type": "string"}
+    },
+    "positioning": {
+      "type": "object",
+      "required": ["positioning_statement", "pillars", "differentiator", "career_path_logic"],
+      "properties": {
+        "positioning_statement": {"type": "string"},
+        "pillars": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 5,
+          "items": {"type": "string"}
+        },
+        "differentiator": {"type": "string"},
+        "career_path_logic": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "keyword_strategy": {
+      "type": "object",
+      "required": ["critical", "high", "supporting", "do_not_force"],
+      "properties": {
+        "critical": {"type": "array", "items": {"$ref": "#/$defs/keyword"}},
+        "high": {"type": "array", "items": {"$ref": "#/$defs/keyword"}},
+        "supporting": {"type": "array", "items": {"$ref": "#/$defs/keyword"}},
+        "do_not_force": {"type": "array", "items": {"$ref": "#/$defs/keyword"}}
+      },
+      "additionalProperties": false
+    },
+    "resume_strategy": {
+      "type": "object",
+      "required": [
+        "target_identity",
+        "summary_focus",
+        "top_skill_ids",
+        "role_treatments",
+        "project_treatments",
+        "evidence_order",
+        "title_notes",
+        "remove_or_deemphasize",
+        "length_recommendation"
+      ],
+      "properties": {
+        "target_identity": {"type": "string"},
+        "summary_focus": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 5,
+          "items": {"type": "string"}
+        },
+        "top_skill_ids": {"type": "array", "items": {"type": "string"}},
+        "role_treatments": {"type": "array", "items": {"$ref": "#/$defs/roleTreatment"}},
+        "project_treatments": {"type": "array", "items": {"$ref": "#/$defs/projectTreatment"}},
+        "evidence_order": {"type": "array", "items": {"type": "string"}},
+        "title_notes": {"type": "array", "items": {"type": "string"}},
+        "remove_or_deemphasize": {"type": "array", "items": {"type": "string"}},
+        "length_recommendation": {
+          "type": "string",
+          "enum": ["one_page", "two_pages"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "cover_letter_strategy": {
+      "type": "object",
+      "required": ["recommended", "opening_angle", "evidence_ids", "role_connection", "gap_handling", "avoid_repeating"],
+      "properties": {
+        "recommended": {"type": "boolean"},
+        "opening_angle": {"type": "string"},
+        "evidence_ids": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {"type": "string"}
+        },
+        "role_connection": {"type": "string"},
+        "gap_handling": {"type": "string"},
+        "avoid_repeating": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "application_answer_strategy": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["category", "recommended_ids", "central_message", "avoid"],
+        "properties": {
+          "category": {"type": "string"},
+          "recommended_ids": {"type": "array", "items": {"type": "string"}},
+          "central_message": {"type": "string"},
+          "avoid": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "interview_strategy": {
+      "type": "object",
+      "required": ["selected_stories", "most_likely_concern", "response_strategy", "verify_before_interview", "questions_to_ask"],
+      "properties": {
+        "selected_stories": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 6,
+          "items": {"$ref": "#/$defs/storySelection"}
+        },
+        "most_likely_concern": {"type": "string"},
+        "response_strategy": {"type": "string"},
+        "verify_before_interview": {"type": "array", "items": {"type": "string"}},
+        "questions_to_ask": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "risks": {
+      "type": "object",
+      "required": ["screening", "interview", "credibility", "logistics"],
+      "properties": {
+        "screening": {"type": "array", "items": {"$ref": "#/$defs/risk"}},
+        "interview": {"type": "array", "items": {"$ref": "#/$defs/risk"}},
+        "credibility": {"type": "array", "items": {"$ref": "#/$defs/risk"}},
+        "logistics": {"type": "array", "items": {"$ref": "#/$defs/risk"}}
+      },
+      "additionalProperties": false
+    },
+    "downstream_handoffs": {
+      "type": "object",
+      "required": ["resume", "cover_letter", "application_answers", "interview_preparation"],
+      "properties": {
+        "resume": {"$ref": "#/$defs/handoff"},
+        "cover_letter": {"$ref": "#/$defs/handoff"},
+        "application_answers": {"$ref": "#/$defs/handoff"},
+        "interview_preparation": {"$ref": "#/$defs/handoff"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "keyword": {
+      "type": "object",
+      "required": ["term", "reason", "supporting_ids", "placement"],
+      "properties": {
+        "term": {"type": "string"},
+        "reason": {"type": "string"},
+        "supporting_ids": {"type": "array", "items": {"type": "string"}},
+        "placement": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "roleTreatment": {
+      "type": "object",
+      "required": ["role_id", "treatment", "reason", "evidence_ids", "max_bullets"],
+      "properties": {
+        "role_id": {"type": "string"},
+        "treatment": {
+          "type": "string",
+          "enum": ["expand", "standard", "shorten", "omit"]
+        },
+        "reason": {"type": "string"},
+        "evidence_ids": {"type": "array", "items": {"type": "string"}},
+        "max_bullets": {"type": "integer", "minimum": 0, "maximum": 8}
+      },
+      "additionalProperties": false
+    },
+    "projectTreatment": {
+      "type": "object",
+      "required": ["project_id", "treatment", "reason", "evidence_ids"],
+      "properties": {
+        "project_id": {"type": "string"},
+        "treatment": {
+          "type": "string",
+          "enum": ["include", "optional", "omit"]
+        },
+        "reason": {"type": "string"},
+        "evidence_ids": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "storySelection": {
+      "type": "object",
+      "required": ["story_id", "question_types", "why_it_fits", "role_emphasis", "keep_concise"],
+      "properties": {
+        "story_id": {"type": "string"},
+        "question_types": {"type": "array", "items": {"type": "string"}},
+        "why_it_fits": {"type": "string"},
+        "role_emphasis": {"type": "string"},
+        "keep_concise": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "risk": {
+      "type": "object",
+      "required": ["risk", "severity", "mitigation"],
+      "properties": {
+        "risk": {"type": "string"},
+        "severity": {"type": "string", "enum": ["low", "medium", "high"]},
+        "mitigation": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "handoff": {
+      "type": "object",
+      "required": ["emphasize", "avoid", "ids", "tone"],
+      "properties": {
+        "emphasize": {"type": "array", "items": {"type": "string"}},
+        "avoid": {"type": "array", "items": {"type": "string"}},
+        "ids": {"type": "array", "items": {"type": "string"}},
+        "tone": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
