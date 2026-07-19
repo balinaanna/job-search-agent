@@ -1,0 +1,391 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CoverLetterReview",
+  "type": "object",
+  "required": [
+    "application_id",
+    "score",
+    "verdict",
+    "score_breakdown",
+    "first_impression",
+    "strengths",
+    "findings",
+    "plan_compliance",
+    "evidence_coverage",
+    "employer_relevance",
+    "revision_brief",
+    "manifest_status"
+  ],
+  "properties": {
+    "application_id": {
+      "type": "string"
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "verdict": {
+      "enum": [
+        "ready",
+        "minor_revision",
+        "major_revision",
+        "rewrite_required"
+      ]
+    },
+    "score_breakdown": {
+      "type": "object",
+      "required": [
+        "opening_first_impression",
+        "strategic_alignment",
+        "evidence_specificity",
+        "employer_relevance",
+        "clarity_readability",
+        "credibility_restraint"
+      ],
+      "properties": {
+        "opening_first_impression": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "strategic_alignment": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "evidence_specificity": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 25
+        },
+        "employer_relevance": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "clarity_readability": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "credibility_restraint": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        }
+      },
+      "additionalProperties": false
+    },
+    "first_impression": {
+      "type": "object",
+      "required": [
+        "summary",
+        "attention_strength",
+        "opening_effectiveness"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "attention_strength": {
+          "enum": [
+            "strong",
+            "adequate",
+            "weak"
+          ]
+        },
+        "opening_effectiveness": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "strengths": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "strength_id",
+          "paragraph_ids",
+          "description",
+          "why_it_matters",
+          "must_preserve"
+        ],
+        "properties": {
+          "strength_id": {
+            "type": "string",
+            "pattern": "^cls_[0-9]+$"
+          },
+          "paragraph_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^clp_[0-9]+$"
+            },
+            "uniqueItems": true
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "why_it_matters": {
+            "type": "string",
+            "minLength": 1
+          },
+          "must_preserve": {
+            "const": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "finding_id",
+          "severity",
+          "category",
+          "paragraph_id",
+          "issue",
+          "impact",
+          "revision_instruction",
+          "evidence_boundaries",
+          "must_preserve"
+        ],
+        "properties": {
+          "finding_id": {
+            "type": "string",
+            "pattern": "^clf_[0-9]+$"
+          },
+          "severity": {
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "category": {
+            "enum": [
+              "opening",
+              "strategy",
+              "evidence",
+              "employer_relevance",
+              "clarity",
+              "repetition",
+              "credibility",
+              "keywords",
+              "closing"
+            ]
+          },
+          "paragraph_id": {
+            "type": "string",
+            "pattern": "^clp_[0-9]+$"
+          },
+          "issue": {
+            "type": "string",
+            "minLength": 1
+          },
+          "impact": {
+            "type": "string",
+            "minLength": 1
+          },
+          "revision_instruction": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_boundaries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "must_preserve": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "plan_compliance": {
+      "type": "object",
+      "required": [
+        "paragraph_order",
+        "paragraph_count",
+        "word_count",
+        "required_claims",
+        "keywords",
+        "forbidden_phrases"
+      ],
+      "properties": {
+        "paragraph_order": {
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "paragraph_count": {
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "word_count": {
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "required_claims": {
+          "enum": [
+            "pass",
+            "partial",
+            "fail"
+          ]
+        },
+        "keywords": {
+          "enum": [
+            "pass",
+            "partial",
+            "fail"
+          ]
+        },
+        "forbidden_phrases": {
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence_coverage": {
+      "type": "object",
+      "required": [
+        "assessment",
+        "covered_evidence_ids",
+        "missing_evidence_ids",
+        "unsupported_claims"
+      ],
+      "properties": {
+        "assessment": {
+          "enum": [
+            "strong",
+            "adequate",
+            "weak"
+          ]
+        },
+        "covered_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "missing_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "unsupported_claims": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "employer_relevance": {
+      "type": "object",
+      "required": [
+        "assessment",
+        "specificity",
+        "unsupported_employer_claims"
+      ],
+      "properties": {
+        "assessment": {
+          "enum": [
+            "strong",
+            "adequate",
+            "weak"
+          ]
+        },
+        "specificity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unsupported_employer_claims": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "revision_brief": {
+      "type": "object",
+      "required": [
+        "authorized_paragraph_ids",
+        "priority_order",
+        "strengths_to_preserve",
+        "prohibited_changes",
+        "completion_criteria"
+      ],
+      "properties": {
+        "authorized_paragraph_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^clp_[0-9]+$"
+          },
+          "uniqueItems": true
+        },
+        "priority_order": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^clf_[0-9]+$"
+          },
+          "uniqueItems": true
+        },
+        "strengths_to_preserve": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "prohibited_changes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "completion_criteria": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "manifest_status": {
+      "const": "cover_letter_review"
+    }
+  },
+  "additionalProperties": false
+}
