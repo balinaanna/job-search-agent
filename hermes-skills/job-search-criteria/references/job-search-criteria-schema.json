@@ -1,0 +1,453 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "job-search-criteria-schema.json",
+  "title": "Job Search Criteria",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "strategy_version",
+    "candidate",
+    "search_strategy",
+    "locations",
+    "employment",
+    "company_preferences",
+    "technical_focus",
+    "customer_facing_preferences",
+    "hard_filters",
+    "ranking"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "strategy_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "career_profile_path",
+        "current_direction"
+      ],
+      "properties": {
+        "career_profile_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "current_direction": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "search_strategy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary_targets",
+        "secondary_targets",
+        "conditional_targets",
+        "excluded_titles"
+      ],
+      "properties": {
+        "primary_targets": {
+          "$ref": "#/$defs/targetList"
+        },
+        "secondary_targets": {
+          "$ref": "#/$defs/targetList"
+        },
+        "conditional_targets": {
+          "$ref": "#/$defs/conditionalTargetList"
+        },
+        "excluded_titles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "locations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "home_region",
+        "preferred",
+        "acceptable",
+        "excluded",
+        "remote_rules"
+      ],
+      "properties": {
+        "home_region": {
+          "type": "string",
+          "minLength": 1
+        },
+        "preferred": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "acceptable": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "excluded": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "remote_rules": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "canada_remote",
+            "us_remote"
+          ],
+          "properties": {
+            "canada_remote": {
+              "type": "string",
+              "enum": [
+                "preferred",
+                "acceptable",
+                "excluded"
+              ]
+            },
+            "us_remote": {
+              "type": "string",
+              "enum": [
+                "preferred",
+                "acceptable_if_canadian_hiring_supported",
+                "excluded"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "employment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preferred_types",
+        "acceptable_types",
+        "excluded_types",
+        "preferred_seniority",
+        "acceptable_seniority"
+      ],
+      "properties": {
+        "preferred_types": {
+          "$ref": "#/$defs/stringList"
+        },
+        "acceptable_types": {
+          "$ref": "#/$defs/stringList"
+        },
+        "excluded_types": {
+          "$ref": "#/$defs/stringList"
+        },
+        "preferred_seniority": {
+          "$ref": "#/$defs/stringList"
+        },
+        "acceptable_seniority": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "company_preferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preferred",
+        "acceptable",
+        "lower_priority",
+        "excluded"
+      ],
+      "properties": {
+        "preferred": {
+          "$ref": "#/$defs/scoredPreferenceList"
+        },
+        "acceptable": {
+          "$ref": "#/$defs/scoredPreferenceList"
+        },
+        "lower_priority": {
+          "$ref": "#/$defs/scoredPreferenceList"
+        },
+        "excluded": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "technical_focus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "high_priority",
+        "medium_priority",
+        "low_priority"
+      ],
+      "properties": {
+        "high_priority": {
+          "$ref": "#/$defs/scoredPreferenceList"
+        },
+        "medium_priority": {
+          "$ref": "#/$defs/scoredPreferenceList"
+        },
+        "low_priority": {
+          "$ref": "#/$defs/scoredPreferenceList"
+        }
+      }
+    },
+    "customer_facing_preferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preferred_level",
+        "acceptable_when",
+        "deprioritize_when"
+      ],
+      "properties": {
+        "preferred_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "moderate",
+            "high"
+          ]
+        },
+        "acceptable_when": {
+          "$ref": "#/$defs/stringList"
+        },
+        "deprioritize_when": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "hard_filters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "must_hire_in_canada",
+        "daily_on_site_required",
+        "driving_required",
+        "commission_primary_compensation",
+        "unpaid_role",
+        "security_clearance_not_currently_held"
+      ],
+      "properties": {
+        "must_hire_in_canada": {
+          "type": "boolean"
+        },
+        "daily_on_site_required": {
+          "type": "boolean"
+        },
+        "driving_required": {
+          "type": "boolean"
+        },
+        "commission_primary_compensation": {
+          "type": "boolean"
+        },
+        "unpaid_role": {
+          "type": "boolean"
+        },
+        "security_clearance_not_currently_held": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ranking": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum_discovery_score",
+        "minimum_full_analysis_score",
+        "weights",
+        "penalties"
+      ],
+      "properties": {
+        "minimum_discovery_score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "minimum_full_analysis_score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "weights": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title_alignment",
+            "ai_engineering_alignment",
+            "software_engineering_alignment",
+            "technical_stack_alignment",
+            "experience_alignment",
+            "location_alignment",
+            "company_alignment"
+          ],
+          "properties": {
+            "title_alignment": {
+              "$ref": "#/$defs/weight"
+            },
+            "ai_engineering_alignment": {
+              "$ref": "#/$defs/weight"
+            },
+            "software_engineering_alignment": {
+              "$ref": "#/$defs/weight"
+            },
+            "technical_stack_alignment": {
+              "$ref": "#/$defs/weight"
+            },
+            "experience_alignment": {
+              "$ref": "#/$defs/weight"
+            },
+            "location_alignment": {
+              "$ref": "#/$defs/weight"
+            },
+            "company_alignment": {
+              "$ref": "#/$defs/weight"
+            }
+          }
+        },
+        "penalties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "primarily_customer_facing",
+            "primarily_sales",
+            "primarily_support",
+            "primarily_administrative",
+            "requires_unavailable_location"
+          ],
+          "properties": {
+            "primarily_customer_facing": {
+              "$ref": "#/$defs/penalty"
+            },
+            "primarily_sales": {
+              "$ref": "#/$defs/penalty"
+            },
+            "primarily_support": {
+              "$ref": "#/$defs/penalty"
+            },
+            "primarily_administrative": {
+              "$ref": "#/$defs/penalty"
+            },
+            "requires_unavailable_location": {
+              "$ref": "#/$defs/penalty"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "weight": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "penalty": {
+      "type": "integer",
+      "minimum": -100,
+      "maximum": 0
+    },
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "targetList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "priority_score",
+          "reasons"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "priority_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "reasons": {
+            "$ref": "#/$defs/stringList"
+          }
+        }
+      }
+    },
+    "conditionalTargetList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "priority_score",
+          "conditions"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "priority_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "conditions": {
+            "$ref": "#/$defs/stringList"
+          }
+        }
+      }
+    },
+    "scoredPreferenceList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "score"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          }
+        }
+      }
+    }
+  }
+}
