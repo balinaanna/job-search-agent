@@ -1,0 +1,257 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CoverLetterFinalization",
+  "type": "object",
+  "required": [
+    "application_id",
+    "company",
+    "role",
+    "source_review",
+    "artifacts",
+    "release_hashes",
+    "paragraph_count",
+    "total_word_count",
+    "target_words_min",
+    "target_words_max",
+    "evidence_coverage",
+    "release_checks",
+    "manifest_status"
+  ],
+  "properties": {
+    "application_id": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string",
+      "minLength": 1
+    },
+    "role": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_review": {
+      "type": "object",
+      "required": [
+        "score",
+        "verdict",
+        "review_path"
+      ],
+      "properties": {
+        "score": {
+          "type": "integer",
+          "minimum": 90,
+          "maximum": 100
+        },
+        "verdict": {
+          "const": "ready"
+        },
+        "review_path": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "type": "object",
+      "required": [
+        "source_cover_letter",
+        "final_cover_letter",
+        "cover_letter_trace",
+        "cover_letter_plan",
+        "cover_letter_review",
+        "candidate_strategy",
+        "final_resume",
+        "resume_trace"
+      ],
+      "properties": {
+        "source_cover_letter": {
+          "type": "string",
+          "minLength": 1
+        },
+        "final_cover_letter": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cover_letter_trace": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cover_letter_plan": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cover_letter_review": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidate_strategy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "final_resume": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resume_trace": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "release_hashes": {
+      "type": "object",
+      "required": [
+        "source_cover_letter_sha256",
+        "final_cover_letter_sha256",
+        "cover_letter_trace_sha256",
+        "cover_letter_plan_sha256",
+        "cover_letter_review_sha256",
+        "candidate_strategy_sha256",
+        "final_resume_sha256",
+        "resume_trace_sha256"
+      ],
+      "properties": {
+        "source_cover_letter_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "final_cover_letter_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "cover_letter_trace_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "cover_letter_plan_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "cover_letter_review_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "candidate_strategy_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "final_resume_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "resume_trace_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "paragraph_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 6
+    },
+    "total_word_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "target_words_min": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "target_words_max": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "evidence_coverage": {
+      "type": "object",
+      "required": [
+        "covered_evidence_ids",
+        "covered_resume_element_ids",
+        "unsupported_claims"
+      ],
+      "properties": {
+        "covered_evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "covered_resume_element_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "unsupported_claims": {
+          "type": "array",
+          "maxItems": 0,
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "release_checks": {
+      "type": "object",
+      "required": [
+        "review_ready",
+        "score_threshold_met",
+        "no_blocking_findings",
+        "no_authorized_revisions",
+        "source_and_final_identical",
+        "paragraph_count_matches_plan",
+        "word_count_within_range",
+        "trace_matches_letter",
+        "evidence_grounded",
+        "hashes_verified",
+        "manifest_updated"
+      ],
+      "properties": {
+        "review_ready": {
+          "const": true
+        },
+        "score_threshold_met": {
+          "const": true
+        },
+        "no_blocking_findings": {
+          "const": true
+        },
+        "no_authorized_revisions": {
+          "const": true
+        },
+        "source_and_final_identical": {
+          "const": true
+        },
+        "paragraph_count_matches_plan": {
+          "const": true
+        },
+        "word_count_within_range": {
+          "const": true
+        },
+        "trace_matches_letter": {
+          "const": true
+        },
+        "evidence_grounded": {
+          "const": true
+        },
+        "hashes_verified": {
+          "const": true
+        },
+        "manifest_updated": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "manifest_status": {
+      "const": "cover_letter_ready"
+    }
+  },
+  "additionalProperties": false
+}
