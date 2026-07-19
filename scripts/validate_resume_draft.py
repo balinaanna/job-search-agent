@@ -56,6 +56,16 @@ def main():
     parser.add_argument("--profile-dir", type=Path, default=Path("profile"))
     parser.add_argument("--schema", type=Path,
         default=Path.home()/".hermes/skills/resume-writer/references/resume-trace-schema.json")
+    parser.add_argument(
+        "--expected-status",
+        choices=["drafting", "review", "ready"],
+        default="drafting",
+        help=(
+            "Manifest status expected during validation. "
+            "Use 'drafting' after writing or revision, 'review' during review or "
+            "finalization preflight, and 'ready' after finalization."
+        ),
+    )
     args = parser.parse_args()
 
     try:
@@ -77,8 +87,15 @@ def main():
     app_id = plan.get("application", {}).get("application_id")
     if manifest.get("application_id") != app_id or trace.get("application_id") != app_id:
         errors.append("application IDs do not match")
-    if manifest.get("status") != "drafting":
-        errors.append("manifest status must be drafting")
+
+    actual_status = manifest.get("status")
+
+    if actual_status != args.expected_status:
+        errors.append(
+            "Manifest status must be "
+            f"{args.expected_status!r} for this validation stage; "
+            f"found {actual_status!r}."
+        )
 
     resume_path = args.workspace/"resume.md"
     plan_path = args.workspace/"resume_plan.json"
