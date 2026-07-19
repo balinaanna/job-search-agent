@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ResumeTrace",
+  "type": "object",
+  "required": [
+    "application_id",
+    "resume_path",
+    "source_plan_path",
+    "generated_at",
+    "section_order",
+    "elements",
+    "validation_summary"
+  ],
+  "properties": {
+    "application_id": {
+      "type": "string"
+    },
+    "resume_path": {
+      "type": "string"
+    },
+    "source_plan_path": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "section_order": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "element_id",
+          "section",
+          "element_type",
+          "final_text",
+          "source_record_ids",
+          "evidence_ids",
+          "keywords_used",
+          "metrics_used",
+          "constraints_checked"
+        ],
+        "properties": {
+          "element_id": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          },
+          "element_type": {
+            "enum": [
+              "header",
+              "summary",
+              "skill_group",
+              "experience_heading",
+              "experience_bullet",
+              "project_heading",
+              "project_bullet",
+              "education",
+              "certification",
+              "additional_information"
+            ]
+          },
+          "final_text": {
+            "type": "string"
+          },
+          "planned_bullet_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_record_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "keywords_used": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "metrics_used": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "constraints_checked": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "validation_summary": {
+      "type": "object",
+      "required": [
+        "word_count",
+        "experience_bullet_count",
+        "project_bullet_count",
+        "unmapped_bullets",
+        "missing_planned_bullets",
+        "warnings"
+      ],
+      "properties": {
+        "word_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "experience_bullet_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "project_bullet_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unmapped_bullets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "missing_planned_bullets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
