@@ -33,3 +33,11 @@ Normalize a raw job-posting JSON file with:
 ```bash
 python3 scripts/normalize_job_lead.py path/to/raw-job-posting.json
 ```
+
+## Deduplication
+
+Run deduplication after new leads are normalized:
+
+```bash
+PYTHONPATH=scripts python3 scripts/deduplicate_job_leads.py
+```
