@@ -197,15 +197,36 @@ The validator checks:
 Record:
 
 - application ID;
+- company;
+- role;
 - final version;
-- source Markdown path and hash;
-- PDF paths and hashes;
+- source Markdown path;
+- resume finalization path;
+- final PDF path;
+- versioned PDF path;
+- source Markdown SHA-256;
+- resume finalization SHA-256;
+- final PDF SHA-256;
+- versioned PDF SHA-256;
 - page count;
 - renderer and font settings;
 - text-fidelity result;
 - visual inspection result;
-- manifest status;
+- manifest status transitions from `ready` to `rendered` only after textual and visual validation pass;
 - next permitted workflows.
+
+The canonical hash fields are:
+
+- `hashes.final_resume_markdown_sha256`
+- `hashes.resume_finalization_sha256`
+- `hashes.final_resume_pdf_sha256`
+- `hashes.versioned_resume_pdf_sha256`
+
+Do not use the legacy fields:
+
+- `hashes.source_markdown_sha256`
+- `hashes.pdf_sha256`
+- `hashes.snapshot_pdf_sha256`
 
 Create a readable Markdown summary.
 

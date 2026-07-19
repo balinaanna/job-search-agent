@@ -248,9 +248,48 @@ def main() -> int:
     reader = PdfReader(str(output_path))
     page_count = len(reader.pages)
 
+    application_id = manifest.get("application_id")
+    company = manifest.get("company")
+    role = manifest.get("role")
+
+    if not application_id:
+        raise ValueError("Manifest is missing application_id.")
+
+    if not company:
+        raise ValueError("Manifest is missing company.")
+
+    if not role:
+        raise ValueError("Manifest is missing role.")
+
     release = {
-        "application_id": manifest["application_id"],
+        "application_id": application_id,
+        "company": company,
+        "role": role,
         "final_version": final_version,
+        "artifacts": {
+            "final_resume_markdown": "final_resume.md",
+            "resume_finalization": "resume_finalization.json",
+            "final_resume_pdf": "final_resume.pdf",
+            "versioned_resume_pdf": (
+                f"versions/final_resume_v{final_version}.pdf"
+            ),
+        },
+        "hashes": {
+            "final_resume_markdown_sha256": sha256(
+                workspace / "final_resume.md"
+            ),
+            "resume_finalization_sha256": sha256(
+                workspace / "resume_finalization.json"
+            ),
+            "final_resume_pdf_sha256": sha256(
+                workspace / "final_resume.pdf"
+            ),
+            "versioned_resume_pdf_sha256": sha256(
+                workspace
+                / "versions"
+                / f"final_resume_v{final_version}.pdf"
+            ),
+        },
         "source": {
             "markdown_path": str(source_path),
             "finalization_path": str(finalization_path),
@@ -259,11 +298,6 @@ def main() -> int:
             "pdf_path": str(output_path),
             "snapshot_pdf_path": str(snapshot_path),
             "release_markdown_path": str(release_md_path),
-        },
-        "hashes": {
-            "source_markdown_sha256": actual_source_hash,
-            "pdf_sha256": sha256(output_path),
-            "snapshot_pdf_sha256": sha256(snapshot_path),
         },
         "pdf": {
             "page_count": page_count,

@@ -1,16 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Resume PDF Release",
+  "title": "ResumePdfRelease",
   "type": "object",
   "required": [
     "application_id",
-    "company",
-    "role",
     "final_version",
-    "artifacts",
-    "hashes",
     "source",
     "outputs",
+    "hashes",
     "pdf",
     "layout",
     "validation",
@@ -19,73 +16,11 @@
   ],
   "properties": {
     "application_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "company": {
-      "type": "string",
-      "minLength": 1
-    },
-    "role": {
-      "type": "string",
-      "minLength": 1
+      "type": "string"
     },
     "final_version": {
       "type": "integer",
       "minimum": 1
-    },
-    "artifacts": {
-      "type": "object",
-      "required": [
-        "final_resume_markdown",
-        "resume_finalization",
-        "final_resume_pdf",
-        "versioned_resume_pdf"
-      ],
-      "properties": {
-        "final_resume_markdown": {
-          "const": "final_resume.md"
-        },
-        "resume_finalization": {
-          "const": "resume_finalization.json"
-        },
-        "final_resume_pdf": {
-          "const": "final_resume.pdf"
-        },
-        "versioned_resume_pdf": {
-          "type": "string",
-          "pattern": "^versions/final_resume_v[1-9][0-9]*\\.pdf$"
-        }
-      },
-      "additionalProperties": false
-    },
-    "hashes": {
-      "type": "object",
-      "required": [
-        "final_resume_markdown_sha256",
-        "resume_finalization_sha256",
-        "final_resume_pdf_sha256",
-        "versioned_resume_pdf_sha256"
-      ],
-      "properties": {
-        "final_resume_markdown_sha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        },
-        "resume_finalization_sha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        },
-        "final_resume_pdf_sha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        },
-        "versioned_resume_pdf_sha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        }
-      },
-      "additionalProperties": false
     },
     "source": {
       "type": "object",
@@ -95,12 +30,10 @@
       ],
       "properties": {
         "markdown_path": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "finalization_path": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -114,16 +47,36 @@
       ],
       "properties": {
         "pdf_path": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "snapshot_pdf_path": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "release_markdown_path": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hashes": {
+      "type": "object",
+      "required": [
+        "source_markdown_sha256",
+        "pdf_sha256",
+        "snapshot_pdf_sha256"
+      ],
+      "properties": {
+        "source_markdown_sha256": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "pdf_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "snapshot_pdf_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
         }
       },
       "additionalProperties": false
@@ -139,7 +92,7 @@
         "page_count": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 5
+          "maximum": 4
         },
         "page_size": {
           "const": "LETTER"
@@ -166,40 +119,47 @@
       ],
       "properties": {
         "font_family": {
-          "type": "string",
-          "minLength": 1
+          "const": "Helvetica"
         },
         "name_font_size": {
           "type": "number",
-          "minimum": 8
+          "minimum": 12,
+          "maximum": 18
         },
         "contact_font_size": {
           "type": "number",
-          "minimum": 8
+          "minimum": 8,
+          "maximum": 10
         },
         "heading_font_size": {
           "type": "number",
-          "minimum": 8
+          "minimum": 9,
+          "maximum": 12
         },
         "body_font_size": {
           "type": "number",
-          "minimum": 8
+          "minimum": 8.5,
+          "maximum": 10
         },
         "left_margin_inches": {
           "type": "number",
-          "minimum": 0.35
+          "minimum": 0.4,
+          "maximum": 0.8
         },
         "right_margin_inches": {
           "type": "number",
-          "minimum": 0.35
+          "minimum": 0.4,
+          "maximum": 0.8
         },
         "top_margin_inches": {
           "type": "number",
-          "minimum": 0.35
+          "minimum": 0.4,
+          "maximum": 0.8
         },
         "bottom_margin_inches": {
           "type": "number",
-          "minimum": 0.35
+          "minimum": 0.4,
+          "maximum": 0.8
         },
         "single_column": {
           "const": true
@@ -233,16 +193,16 @@
           "const": true
         },
         "visual_inspection_passed": {
-          "const": true
+          "type": "boolean"
         },
         "no_clipping": {
-          "const": true
+          "type": "boolean"
         },
         "no_overlaps": {
-          "const": true
+          "type": "boolean"
         },
         "no_broken_glyphs": {
-          "const": true
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -252,11 +212,15 @@
     },
     "next_permitted_workflows": {
       "type": "array",
+      "minItems": 1,
       "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "uniqueItems": true
+        "enum": [
+          "cover-letter-planner",
+          "application-answer-planner",
+          "application-package-validator",
+          "interview-planner"
+        ]
+      }
     }
   },
   "additionalProperties": false
