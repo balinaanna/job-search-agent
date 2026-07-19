@@ -1,0 +1,34 @@
+{
+  "application_id": "replace-me",
+  "application_slug": "company-role",
+  "company": "Company",
+  "role": "Role",
+  "status": "planning",
+  "created_date": "YYYY-MM-DD",
+  "source": {
+    "exploration_slug": "company-exploration-role",
+    "analysis_path": "jobs/analyzed/company-exploration-role/analysis.json",
+    "strategy_path": "jobs/analyzed/company-exploration-role/candidate_strategy.json"
+  },
+  "fit": {
+    "recommendation": "apply",
+    "score": 0
+  },
+  "artifacts": {
+    "resume_plan_json": "applications/company-role/resume_plan.json",
+    "resume_plan_markdown": "applications/company-role/resume_plan.md",
+    "resume_markdown": "applications/company-role/resume.md",
+    "resume_review_json": "applications/company-role/resume_review.json",
+    "resume_review_markdown": "applications/company-role/resume_review.md",
+    "final_resume_pdf": "applications/company-role/final_resume.pdf",
+    "cover_letter_markdown": "applications/company-role/cover_letter.md",
+    "application_answers_markdown": "applications/company-role/application_answers.md",
+    "interview_package_markdown": "applications/company-role/interview_package.md"
+  },
+  "submission": {
+    "submitted": false,
+    "submitted_date": null,
+    "source_url": null,
+    "notes": ""
+  }
+}

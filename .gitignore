@@ -4,5 +4,11 @@
 __pycache__/
 *.pyc
 logs/
-applications/private/
 browser-profile/
+
+# Generated application data
+applications/*
+!applications/_template/
+
+jobs/analyzed/
+jobs/inbox/
