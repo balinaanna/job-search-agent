@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ResumeRevision",
+  "type": "object",
+  "required": [
+    "application_id",
+    "revision_number",
+    "source_review_path",
+    "backup_paths",
+    "output_paths",
+    "findings_disposition",
+    "changed_elements",
+    "removed_planned_bullet_ids",
+    "reordered_planned_bullet_ids",
+    "preserved_elements",
+    "unresolved_conflicts",
+    "word_counts",
+    "manifest_status"
+  ],
+  "properties": {
+    "application_id": {
+      "type": "string"
+    },
+    "revision_number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "source_review_path": {
+      "type": "string"
+    },
+    "backup_paths": {
+      "type": "object",
+      "required": [
+        "resume",
+        "trace",
+        "review_json",
+        "review_markdown"
+      ],
+      "properties": {
+        "resume": {
+          "type": "string"
+        },
+        "trace": {
+          "type": "string"
+        },
+        "review_json": {
+          "type": "string"
+        },
+        "review_markdown": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "output_paths": {
+      "type": "object",
+      "required": [
+        "resume",
+        "trace",
+        "revision_markdown"
+      ],
+      "properties": {
+        "resume": {
+          "type": "string"
+        },
+        "trace": {
+          "type": "string"
+        },
+        "revision_markdown": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "findings_disposition": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "finding_id",
+          "severity",
+          "status",
+          "action_taken",
+          "affected_element_ids",
+          "reason"
+        ],
+        "properties": {
+          "finding_id": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "status": {
+            "enum": [
+              "applied",
+              "partially_applied",
+              "not_applied",
+              "conflict"
+            ]
+          },
+          "action_taken": {
+            "type": "string"
+          },
+          "affected_element_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "changed_elements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "element_id",
+          "change_type",
+          "before_text",
+          "after_text",
+          "planned_bullet_id",
+          "finding_ids"
+        ],
+        "properties": {
+          "element_id": {
+            "type": "string"
+          },
+          "change_type": {
+            "enum": [
+              "revised",
+              "removed",
+              "reordered",
+              "unchanged_preserved"
+            ]
+          },
+          "before_text": {
+            "type": "string"
+          },
+          "after_text": {
+            "type": "string"
+          },
+          "planned_bullet_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "finding_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "removed_planned_bullet_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "reordered_planned_bullet_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "preserved_elements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unresolved_conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "instruction",
+          "conflict_with",
+          "resolution"
+        ],
+        "properties": {
+          "instruction": {
+            "type": "string"
+          },
+          "conflict_with": {
+            "type": "string"
+          },
+          "resolution": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "word_counts": {
+      "type": "object",
+      "required": [
+        "before",
+        "after"
+      ],
+      "properties": {
+        "before": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "after": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "manifest_status": {
+      "const": "drafting"
+    }
+  },
+  "additionalProperties": false
+}
