@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CoverLetterTrace",
+  "type": "object",
+  "required": [
+    "application_id",
+    "recommendation",
+    "plan_path",
+    "letter_path",
+    "paragraph_count",
+    "total_word_count",
+    "target_words_min",
+    "target_words_max",
+    "paragraphs",
+    "validation",
+    "manifest_status"
+  ],
+  "properties": {
+    "application_id": {
+      "type": "string"
+    },
+    "recommendation": {
+      "enum": [
+        "write",
+        "optional"
+      ]
+    },
+    "plan_path": {
+      "type": "string"
+    },
+    "letter_path": {
+      "type": "string"
+    },
+    "paragraph_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 6
+    },
+    "total_word_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "target_words_min": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "target_words_max": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "paragraphs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "paragraph_id",
+          "text",
+          "purpose",
+          "evidence_ids",
+          "resume_element_ids",
+          "keywords_used",
+          "required_claims_satisfied",
+          "prohibited_content_checked",
+          "word_count"
+        ],
+        "properties": {
+          "paragraph_id": {
+            "type": "string",
+            "pattern": "^clp_[0-9]+$"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "resume_element_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "keywords_used": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "required_claims_satisfied": {
+            "const": true
+          },
+          "prohibited_content_checked": {
+            "const": true
+          },
+          "word_count": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "paragraph_order_matches_plan",
+        "paragraph_count_matches_plan",
+        "word_count_within_range",
+        "all_required_claims_present",
+        "all_evidence_ids_resolve",
+        "all_resume_element_ids_resolve",
+        "no_forbidden_phrases",
+        "no_unapproved_claims",
+        "no_verbatim_resume_duplication"
+      ],
+      "properties": {
+        "paragraph_order_matches_plan": {
+          "const": true
+        },
+        "paragraph_count_matches_plan": {
+          "const": true
+        },
+        "word_count_within_range": {
+          "const": true
+        },
+        "all_required_claims_present": {
+          "const": true
+        },
+        "all_evidence_ids_resolve": {
+          "const": true
+        },
+        "all_resume_element_ids_resolve": {
+          "const": true
+        },
+        "no_forbidden_phrases": {
+          "const": true
+        },
+        "no_unapproved_claims": {
+          "const": true
+        },
+        "no_verbatim_resume_duplication": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "manifest_status": {
+      "const": "cover_letter_drafting"
+    }
+  },
+  "additionalProperties": false
+}
