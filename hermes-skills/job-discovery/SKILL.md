@@ -53,3 +53,16 @@ PYTHONPATH=scripts python3 scripts/filter_job_leads.py
 
 Confirmed hard failures are rejected. Missing information that prevents a safe
 eligibility decision is marked for manual review rather than guessed.
+
+## Preliminary scoring and ranking
+
+Score eligible and manual-review leads after hard filtering:
+
+```bash
+PYTHONPATH=scripts python3 scripts/score_job_leads.py
+```
+
+The scorer populates all seven discovery score components, applies configured
+penalties, calculates the weighted preliminary score, and prints leads in rank
+order. Only hard-filter passes at or above the full-analysis threshold are
+recommended for Job Fit Analysis.
