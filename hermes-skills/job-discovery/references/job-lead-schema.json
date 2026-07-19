@@ -1,0 +1,669 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "job-lead-schema.json",
+  "title": "Job Lead",
+  "description": "Normalized job opportunity collected by the Job Discovery subsystem.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "lead_id",
+    "identity",
+    "source",
+    "position",
+    "location",
+    "employment",
+    "content",
+    "requirements",
+    "application",
+    "discovery",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "lead_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "minLength": 3
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "company",
+        "role",
+        "normalized_company",
+        "normalized_role"
+      ],
+      "properties": {
+        "company": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "normalized_company": {
+          "type": "string",
+          "minLength": 1
+        },
+        "normalized_role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "external_job_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "platform",
+        "posting_url",
+        "canonical_url",
+        "collected_at"
+      ],
+      "properties": {
+        "platform": {
+          "type": "string",
+          "enum": [
+            "linkedin",
+            "indeed",
+            "greenhouse",
+            "lever",
+            "ashby",
+            "workday",
+            "company_careers",
+            "government_board",
+            "recruiter",
+            "referral",
+            "other"
+          ]
+        },
+        "posting_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "canonical_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "company_careers_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri"
+        },
+        "collected_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "first_seen_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "last_seen_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "department",
+        "seniority",
+        "primary_function"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "department": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "seniority": {
+          "type": "string",
+          "enum": [
+            "intern",
+            "entry",
+            "junior",
+            "intermediate",
+            "senior",
+            "staff",
+            "principal",
+            "lead",
+            "manager",
+            "director",
+            "executive",
+            "unspecified"
+          ]
+        },
+        "primary_function": {
+          "type": "string",
+          "enum": [
+            "ai_engineering",
+            "software_engineering",
+            "machine_learning",
+            "data_engineering",
+            "analytics_engineering",
+            "data_analytics",
+            "business_analysis",
+            "solutions_engineering",
+            "implementation",
+            "product",
+            "customer_success",
+            "support",
+            "sales",
+            "operations",
+            "administration",
+            "other"
+          ]
+        }
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "raw",
+        "country",
+        "region",
+        "city",
+        "workplace_type",
+        "can_hire_in_canada",
+        "relocation_required",
+        "travel_required"
+      ],
+      "properties": {
+        "raw": {
+          "type": "string",
+          "minLength": 1
+        },
+        "country": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "region": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "city": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "workplace_type": {
+          "type": "string",
+          "enum": [
+            "remote",
+            "hybrid",
+            "on_site",
+            "flexible",
+            "unspecified"
+          ]
+        },
+        "can_hire_in_canada": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "relocation_required": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "travel_required": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "travel_percentage": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "employment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "employment_type",
+        "schedule",
+        "salary"
+      ],
+      "properties": {
+        "employment_type": {
+          "type": "string",
+          "enum": [
+            "full_time_permanent",
+            "full_time_contract",
+            "temporary_full_time",
+            "part_time",
+            "internship",
+            "contractor",
+            "volunteer",
+            "unspecified"
+          ]
+        },
+        "schedule": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "salary": {
+          "$ref": "#/$defs/salary"
+        }
+      }
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description_text",
+        "description_hash",
+        "summary"
+      ],
+      "properties": {
+        "description_text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "summary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "responsibilities": {
+          "$ref": "#/$defs/stringList"
+        },
+        "qualifications": {
+          "$ref": "#/$defs/stringList"
+        },
+        "benefits": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "years_experience_min",
+        "education",
+        "technical_skills",
+        "domain_skills",
+        "clearance_required",
+        "driving_required",
+        "customer_facing_level"
+      ],
+      "properties": {
+        "years_experience_min": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "years_experience_max": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "education": {
+          "$ref": "#/$defs/stringList"
+        },
+        "technical_skills": {
+          "$ref": "#/$defs/stringList"
+        },
+        "domain_skills": {
+          "$ref": "#/$defs/stringList"
+        },
+        "clearance_required": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "driving_required": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "customer_facing_level": {
+          "type": "string",
+          "enum": [
+            "none",
+            "low",
+            "moderate",
+            "high",
+            "primary_responsibility",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "application": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "application_url",
+        "application_method",
+        "deadline",
+        "posting_status"
+      ],
+      "properties": {
+        "application_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "application_method": {
+          "type": "string",
+          "enum": [
+            "ats",
+            "company_form",
+            "email",
+            "linkedin_easy_apply",
+            "recruiter",
+            "unknown"
+          ]
+        },
+        "deadline": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "posted_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "posting_status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "closed",
+            "expired",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "discovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "search_query",
+        "criteria_strategy_version",
+        "preliminary_score",
+        "score_components",
+        "penalties",
+        "hard_filter_result",
+        "full_analysis_recommended"
+      ],
+      "properties": {
+        "search_query": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "criteria_strategy_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "preliminary_score": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "score_components": {
+          "$ref": "#/$defs/scoreComponents"
+        },
+        "penalties": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/appliedPenalty"
+          }
+        },
+        "hard_filter_result": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "manual_review",
+            "not_evaluated"
+          ]
+        },
+        "hard_filter_reasons": {
+          "$ref": "#/$defs/stringList"
+        },
+        "full_analysis_recommended": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lead_status",
+        "duplicate_of",
+        "reviewed"
+      ],
+      "properties": {
+        "lead_status": {
+          "type": "string",
+          "enum": [
+            "new",
+            "eligible",
+            "rejected",
+            "shortlisted",
+            "analysis_started",
+            "analysis_completed",
+            "application_started",
+            "applied",
+            "closed",
+            "archived"
+          ]
+        },
+        "duplicate_of": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reviewed": {
+          "type": "boolean"
+        },
+        "notes": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "salary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum",
+        "maximum",
+        "currency",
+        "period",
+        "source"
+      ],
+      "properties": {
+        "minimum": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "maximum": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "currency": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Z]{3}$"
+        },
+        "period": {
+          "type": "string",
+          "enum": [
+            "hour",
+            "month",
+            "year",
+            "project",
+            "unknown"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "employer",
+            "platform_estimate",
+            "inferred",
+            "not_provided"
+          ]
+        }
+      }
+    },
+    "scoreComponents": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title_alignment",
+        "ai_engineering_alignment",
+        "software_engineering_alignment",
+        "technical_stack_alignment",
+        "experience_alignment",
+        "location_alignment",
+        "company_alignment"
+      ],
+      "properties": {
+        "title_alignment": {
+          "$ref": "#/$defs/nullableScore"
+        },
+        "ai_engineering_alignment": {
+          "$ref": "#/$defs/nullableScore"
+        },
+        "software_engineering_alignment": {
+          "$ref": "#/$defs/nullableScore"
+        },
+        "technical_stack_alignment": {
+          "$ref": "#/$defs/nullableScore"
+        },
+        "experience_alignment": {
+          "$ref": "#/$defs/nullableScore"
+        },
+        "location_alignment": {
+          "$ref": "#/$defs/nullableScore"
+        },
+        "company_alignment": {
+          "$ref": "#/$defs/nullableScore"
+        }
+      }
+    },
+    "nullableScore": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100
+    },
+    "appliedPenalty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "value",
+        "reason"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "integer",
+          "minimum": -100,
+          "maximum": 0
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "lead_id": "example-ai-application-engineer",
+  "identity": {
+    "company": "Example AI",
+    "role": "AI Application Engineer",
+    "normalized_company": "example ai",
+    "normalized_role": "ai application engineer",
+    "external_job_id": "example-123"
+  },
+  "source": {
+    "platform": "company_careers",
+    "posting_url": "https://example.com/careers/example-123",
+    "canonical_url": "https://example.com/careers/example-123",
+    "company_careers_url": "https://example.com/careers",
+    "collected_at": "2026-07-19T12:00:00-07:00",
+    "first_seen_at": "2026-07-19T12:00:00-07:00",
+    "last_seen_at": "2026-07-19T12:00:00-07:00"
+  },
+  "position": {
+    "title": "AI Application Engineer",
+    "department": "Engineering",
+    "seniority": "intermediate",
+    "primary_function": "ai_engineering"
+  },
+  "location": {
+    "raw": "Remote, Canada",
+    "country": "Canada",
+    "region": null,
+    "city": null,
+    "workplace_type": "remote",
+    "can_hire_in_canada": true,
+    "relocation_required": false,
+    "travel_required": false,
+    "travel_percentage": 0
+  },
+  "employment": {
+    "employment_type": "full_time_permanent",
+    "schedule": "Full-time",
+    "salary": {
+      "minimum": 110000,
+      "maximum": 145000,
+      "currency": "CAD",
+      "period": "year",
+      "source": "employer"
+    }
+  },
+  "content": {
+    "description_text": "Example job description used to validate the normalized Job Lead contract.",
+    "description_hash": "9cd3cf8b44e8afa738b04a22cb51839d71337988b1492bd71d8aea6eae5d64a0",
+    "summary": "Build AI-enabled applications, APIs, and automated workflows.",
+    "responsibilities": [
+      "Develop AI-enabled product features",
+      "Integrate language models with backend services",
+      "Build APIs and workflow automation"
+    ],
+    "qualifications": [
+      "Professional software development experience",
+      "Python experience",
+      "Experience building applications with language models"
+    ],
+    "benefits": []
+  },
+  "requirements": {
+    "years_experience_min": 3,
+    "years_experience_max": null,
+    "education": [
+      "Bachelor's degree or equivalent practical experience"
+    ],
+    "technical_skills": [
+      "Python",
+      "REST APIs",
+      "Docker",
+      "LLM application development"
+    ],
+    "domain_skills": [
+      "AI-enabled product development"
+    ],
+    "clearance_required": false,
+    "driving_required": false,
+    "customer_facing_level": "low"
+  },
+  "application": {
+    "application_url": "https://example.com/careers/example-123/apply",
+    "application_method": "company_form",
+    "deadline": null,
+    "posted_date": "2026-07-18",
+    "posting_status": "open"
+  },
+  "discovery": {
+    "search_query": "AI Application Engineer remote Canada",
+    "criteria_strategy_version": 1,
+    "preliminary_score": 94,
+    "score_components": {
+      "title_alignment": 98,
+      "ai_engineering_alignment": 100,
+      "software_engineering_alignment": 95,
+      "technical_stack_alignment": 92,
+      "experience_alignment": 82,
+      "location_alignment": 100,
+      "company_alignment": 90
+    },
+    "penalties": [],
+    "hard_filter_result": "pass",
+    "hard_filter_reasons": [],
+    "full_analysis_recommended": true
+  },
+  "status": {
+    "lead_status": "eligible",
+    "duplicate_of": null,
+    "reviewed": false,
+    "notes": []
+  }
+}

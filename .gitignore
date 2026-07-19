@@ -12,3 +12,7 @@ applications/*
 
 jobs/analyzed/
 jobs/inbox/
+
+# Runtime job discovery data
+data/job-leads/*
+!data/job-leads/.gitkeep
