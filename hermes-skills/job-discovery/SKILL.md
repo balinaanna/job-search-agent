@@ -41,3 +41,15 @@ Run deduplication after new leads are normalized:
 ```bash
 PYTHONPATH=scripts python3 scripts/deduplicate_job_leads.py
 ```
+
+## Hard filtering
+
+Apply the candidate's deterministic eligibility rules after deduplication and
+before preliminary scoring:
+
+```bash
+PYTHONPATH=scripts python3 scripts/filter_job_leads.py
+```
+
+Confirmed hard failures are rejected. Missing information that prevents a safe
+eligibility decision is marked for manual review rather than guessed.
