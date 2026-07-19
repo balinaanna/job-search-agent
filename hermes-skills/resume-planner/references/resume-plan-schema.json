@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ResumePlan",
+  "type": "object",
+  "required": [
+    "application",
+    "source",
+    "resume_format",
+    "target_identity",
+    "section_plan",
+    "summary_plan",
+    "skills_plan",
+    "experience_plan",
+    "project_plan",
+    "education_plan",
+    "certification_plan",
+    "keyword_coverage",
+    "excluded_keywords",
+    "exclusions",
+    "writer_handoff"
+  ],
+  "properties": {
+    "application": {
+      "type": "object",
+      "required": [
+        "application_id",
+        "application_slug",
+        "workspace_path",
+        "mode"
+      ],
+      "properties": {
+        "application_id": {
+          "type": "string"
+        },
+        "application_slug": {
+          "type": "string"
+        },
+        "workspace_path": {
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "active_application",
+            "practice_only"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "company",
+        "role",
+        "exploration_slug",
+        "analysis_path",
+        "strategy_path",
+        "recommendation",
+        "fit_score"
+      ],
+      "properties": {
+        "company": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "exploration_slug": {
+          "type": "string"
+        },
+        "analysis_path": {
+          "type": "string"
+        },
+        "strategy_path": {
+          "type": "string"
+        },
+        "recommendation": {
+          "enum": [
+            "strong_apply",
+            "apply",
+            "selective_apply",
+            "do_not_apply"
+          ]
+        },
+        "fit_score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        }
+      },
+      "additionalProperties": false
+    },
+    "resume_format": {
+      "type": "object",
+      "required": [
+        "length",
+        "reason",
+        "target_word_range"
+      ],
+      "properties": {
+        "length": {
+          "enum": [
+            "one_page",
+            "two_pages"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "target_word_range": {
+          "type": "object",
+          "required": [
+            "minimum",
+            "maximum"
+          ],
+          "properties": {
+            "minimum": {
+              "type": "integer"
+            },
+            "maximum": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "target_identity": {
+      "type": "object",
+      "required": [
+        "headline",
+        "summary_purpose",
+        "messages",
+        "tone",
+        "avoid_claims"
+      ],
+      "properties": {
+        "headline": {
+          "type": "string"
+        },
+        "summary_purpose": {
+          "type": "string"
+        },
+        "messages": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 5,
+          "items": {
+            "type": "string"
+          }
+        },
+        "tone": {
+          "type": "string"
+        },
+        "avoid_claims": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "section_plan": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "section",
+          "order",
+          "included",
+          "purpose",
+          "space_budget",
+          "required_content",
+          "optional_content",
+          "exclusions"
+        ],
+        "properties": {
+          "section": {
+            "enum": [
+              "header",
+              "professional_summary",
+              "core_skills",
+              "professional_experience",
+              "selected_projects",
+              "education",
+              "certifications",
+              "additional_information"
+            ]
+          },
+          "order": {
+            "type": "integer"
+          },
+          "included": {
+            "type": "boolean"
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "space_budget": {
+            "type": "string"
+          },
+          "required_content": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "optional_content": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "exclusions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "summary_plan": {
+      "type": "object"
+    },
+    "skills_plan": {
+      "type": "array"
+    },
+    "experience_plan": {
+      "type": "array"
+    },
+    "project_plan": {
+      "type": "array"
+    },
+    "education_plan": {
+      "type": "array"
+    },
+    "certification_plan": {
+      "type": "array"
+    },
+    "keyword_coverage": {
+      "type": "array"
+    },
+    "excluded_keywords": {
+      "type": "array"
+    },
+    "exclusions": {
+      "type": "object"
+    },
+    "writer_handoff": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

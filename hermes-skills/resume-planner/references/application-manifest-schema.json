@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ApplicationManifest",
+  "type": "object",
+  "required": [
+    "application_id",
+    "application_slug",
+    "company",
+    "role",
+    "status",
+    "created_date",
+    "source",
+    "fit",
+    "artifacts",
+    "submission"
+  ],
+  "properties": {
+    "application_id": {
+      "type": "string"
+    },
+    "application_slug": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "planning",
+        "drafting",
+        "review",
+        "ready",
+        "submitted",
+        "interview",
+        "closed"
+      ]
+    },
+    "created_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "source": {
+      "type": "object"
+    },
+    "fit": {
+      "type": "object"
+    },
+    "artifacts": {
+      "type": "object"
+    },
+    "submission": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}
