@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CoverLetterPdfRelease",
+  "type": "object",
+  "required": [
+    "application_id",
+    "company",
+    "role",
+    "version",
+    "artifacts",
+    "hashes",
+    "page_count",
+    "text_verification",
+    "visual_inspection",
+    "release_checks",
+    "manifest_status"
+  ],
+  "properties": {
+    "application_id": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string",
+      "minLength": 1
+    },
+    "role": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "artifacts": {
+      "type": "object",
+      "required": [
+        "final_cover_letter_markdown",
+        "cover_letter_finalization",
+        "final_cover_letter_pdf",
+        "versioned_cover_letter_pdf"
+      ],
+      "properties": {
+        "final_cover_letter_markdown": {
+          "type": "string"
+        },
+        "cover_letter_finalization": {
+          "type": "string"
+        },
+        "final_cover_letter_pdf": {
+          "type": "string"
+        },
+        "versioned_cover_letter_pdf": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hashes": {
+      "type": "object",
+      "required": [
+        "final_cover_letter_markdown_sha256",
+        "cover_letter_finalization_sha256",
+        "final_cover_letter_pdf_sha256",
+        "versioned_cover_letter_pdf_sha256"
+      ],
+      "properties": {
+        "final_cover_letter_markdown_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "cover_letter_finalization_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "final_cover_letter_pdf_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "versioned_cover_letter_pdf_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "page_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "text_verification": {
+      "type": "object",
+      "required": [
+        "source_text_extracted",
+        "pdf_text_extracted",
+        "normalized_text_matches"
+      ],
+      "properties": {
+        "source_text_extracted": {
+          "const": true
+        },
+        "pdf_text_extracted": {
+          "const": true
+        },
+        "normalized_text_matches": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "visual_inspection": {
+      "type": "object",
+      "required": [
+        "completed",
+        "renderer",
+        "dpi",
+        "pages_inspected",
+        "no_clipping",
+        "no_overlap",
+        "no_broken_glyphs",
+        "no_black_boxes",
+        "margins_consistent",
+        "readability_passed",
+        "notes"
+      ],
+      "properties": {
+        "completed": {
+          "const": true
+        },
+        "renderer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dpi": {
+          "type": "integer",
+          "minimum": 150
+        },
+        "pages_inspected": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "no_clipping": {
+          "const": true
+        },
+        "no_overlap": {
+          "const": true
+        },
+        "no_broken_glyphs": {
+          "const": true
+        },
+        "no_black_boxes": {
+          "const": true
+        },
+        "margins_consistent": {
+          "const": true
+        },
+        "readability_passed": {
+          "const": true
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "release_checks": {
+      "type": "object",
+      "required": [
+        "finalization_valid",
+        "source_hash_matches_finalization",
+        "pdf_created",
+        "pdf_hash_verified",
+        "version_copy_verified",
+        "text_matches",
+        "visual_inspection_passed",
+        "manifest_updated"
+      ],
+      "properties": {
+        "finalization_valid": {
+          "const": true
+        },
+        "source_hash_matches_finalization": {
+          "const": true
+        },
+        "pdf_created": {
+          "const": true
+        },
+        "pdf_hash_verified": {
+          "const": true
+        },
+        "version_copy_verified": {
+          "const": true
+        },
+        "text_matches": {
+          "const": true
+        },
+        "visual_inspection_passed": {
+          "const": true
+        },
+        "manifest_updated": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "manifest_status": {
+      "const": "cover_letter_rendered"
+    }
+  },
+  "additionalProperties": false
+}
