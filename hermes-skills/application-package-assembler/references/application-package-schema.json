@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ApplicationPackage",
+  "type": "object",
+  "required": [
+    "application_id",
+    "company",
+    "role",
+    "package_version",
+    "created_at_utc",
+    "source_artifacts",
+    "packaged_artifacts",
+    "hashes",
+    "page_counts",
+    "release_references",
+    "identity_checks",
+    "readiness_checks",
+    "manifest_status"
+  ],
+  "properties": {
+    "application_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "company": {
+      "type": "string",
+      "minLength": 1
+    },
+    "role": {
+      "type": "string",
+      "minLength": 1
+    },
+    "package_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "created_at_utc": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "source_artifacts": {
+      "type": "object",
+      "required": [
+        "resume_pdf",
+        "cover_letter_pdf"
+      ],
+      "properties": {
+        "resume_pdf": {
+          "const": "final_resume.pdf"
+        },
+        "cover_letter_pdf": {
+          "const": "final_cover_letter.pdf"
+        }
+      },
+      "additionalProperties": false
+    },
+    "packaged_artifacts": {
+      "type": "object",
+      "required": [
+        "resume_pdf",
+        "cover_letter_pdf",
+        "package_json",
+        "package_markdown",
+        "submission_checklist"
+      ],
+      "properties": {
+        "resume_pdf": {
+          "const": "submission/resume.pdf"
+        },
+        "cover_letter_pdf": {
+          "const": "submission/cover_letter.pdf"
+        },
+        "package_json": {
+          "const": "submission/application_package.json"
+        },
+        "package_markdown": {
+          "const": "submission/application_package.md"
+        },
+        "submission_checklist": {
+          "const": "submission/submission_checklist.md"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hashes": {
+      "type": "object",
+      "required": [
+        "source_resume_sha256",
+        "packaged_resume_sha256",
+        "source_cover_letter_sha256",
+        "packaged_cover_letter_sha256"
+      ],
+      "properties": {
+        "source_resume_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "packaged_resume_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "source_cover_letter_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "packaged_cover_letter_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "page_counts": {
+      "type": "object",
+      "required": [
+        "resume",
+        "cover_letter"
+      ],
+      "properties": {
+        "resume": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "cover_letter": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        }
+      },
+      "additionalProperties": false
+    },
+    "release_references": {
+      "type": "object",
+      "required": [
+        "resume_pdf_release",
+        "cover_letter_pdf_release",
+        "resume_release_sha256",
+        "cover_letter_release_sha256"
+      ],
+      "properties": {
+        "resume_pdf_release": {
+          "const": "resume_pdf_release.json"
+        },
+        "cover_letter_pdf_release": {
+          "const": "cover_letter_pdf_release.json"
+        },
+        "resume_release_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "cover_letter_release_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "identity_checks": {
+      "type": "object",
+      "required": [
+        "application_ids_match",
+        "company_names_match",
+        "role_names_match",
+        "resume_copy_identical",
+        "cover_letter_copy_identical"
+      ],
+      "properties": {
+        "application_ids_match": {
+          "const": true
+        },
+        "company_names_match": {
+          "const": true
+        },
+        "role_names_match": {
+          "const": true
+        },
+        "resume_copy_identical": {
+          "const": true
+        },
+        "cover_letter_copy_identical": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "readiness_checks": {
+      "type": "object",
+      "required": [
+        "resume_release_valid",
+        "cover_letter_release_valid",
+        "source_hashes_verified",
+        "packaged_hashes_verified",
+        "pdfs_readable",
+        "submission_directory_complete",
+        "checklist_created",
+        "manifest_updated"
+      ],
+      "properties": {
+        "resume_release_valid": {
+          "const": true
+        },
+        "cover_letter_release_valid": {
+          "const": true
+        },
+        "source_hashes_verified": {
+          "const": true
+        },
+        "packaged_hashes_verified": {
+          "const": true
+        },
+        "pdfs_readable": {
+          "const": true
+        },
+        "submission_directory_complete": {
+          "const": true
+        },
+        "checklist_created": {
+          "const": true
+        },
+        "manifest_updated": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "manifest_status": {
+      "const": "application_packaged"
+    }
+  },
+  "additionalProperties": false
+}
