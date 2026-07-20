@@ -57,6 +57,25 @@ class JobLeadScorerTests(unittest.TestCase):
         ).preliminary_score
         self.assertGreater(ai_score, business_score)
 
+    def test_nontechnical_role_is_not_recommended_from_ai_boilerplate(self) -> None:
+        nontechnical = copy.deepcopy(self.lead)
+        nontechnical["position"]["title"] = "Marketing Analytics Director"
+        nontechnical["position"]["primary_function"] = "other"
+        nontechnical["content"]["description_text"] = (
+            "Our company builds generative AI and agentic products. "
+            "Lead marketing programs and campaign analytics."
+        )
+        result = calculate_score(nontechnical, self.criteria)
+        self.assertFalse(result.full_analysis_recommended)
+        self.assertLess(result.components["ai_engineering_alignment"], 50)
+
+    def test_product_manager_is_not_treated_as_product_engineer(self) -> None:
+        product = copy.deepcopy(self.lead)
+        product["position"]["title"] = "Product Manager"
+        product["position"]["primary_function"] = "product"
+        result = calculate_score(product, self.criteria)
+        self.assertFalse(result.full_analysis_recommended)
+
     def test_primary_customer_facing_work_receives_penalty(self) -> None:
         self.lead["requirements"]["customer_facing_level"] = (
             "primary_responsibility"

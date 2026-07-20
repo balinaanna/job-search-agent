@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "company": "Durable",
+      "platform": "greenhouse",
+      "board_token": "durable",
+      "enabled": true
+    },
+    {
+      "company": "Robots & Pencils",
+      "platform": "greenhouse",
+      "board_token": "robotsandpencils",
+      "enabled": true
+    },
+    {
+      "company": "Knak",
+      "platform": "greenhouse",
+      "board_token": "knak",
+      "enabled": true
+    },
+    {
+      "company": "Innodata",
+      "platform": "greenhouse",
+      "board_token": "innodatainc",
+      "enabled": true
+    },
+    {
+      "company": "NovoEd",
+      "platform": "greenhouse",
+      "board_token": "novoed",
+      "enabled": true
+    },
+    {
+      "company": "Affinity",
+      "platform": "greenhouse",
+      "board_token": "affinity",
+      "enabled": true
+    },
+    {
+      "company": "Grafana Labs",
+      "platform": "greenhouse",
+      "board_token": "grafanalabs",
+      "enabled": true
+    }
+  ]
+}

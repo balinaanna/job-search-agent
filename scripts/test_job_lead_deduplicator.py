@@ -9,6 +9,7 @@ from pathlib import Path
 from deduplicate_job_leads import (
     choose_canonical,
     detect_duplicate,
+    is_duplicate_candidate,
     locations_compatible,
     normalized_similarity,
     source_priority,
@@ -87,6 +88,15 @@ class JobLeadDeduplicatorTests(unittest.TestCase):
         match = detect_duplicate(first, second)
 
         self.assertIsNone(match)
+        self.assertFalse(is_duplicate_candidate(first, second))
+
+    def test_same_company_is_a_duplicate_candidate(self) -> None:
+        first = self.build_example()
+        second = copy.deepcopy(first)
+        second["lead_id"] = "second-lead"
+        second["source"]["canonical_url"] = "https://example.com/jobs/other"
+
+        self.assertTrue(is_duplicate_candidate(first, second))
 
     def test_company_source_has_higher_priority(self) -> None:
         self.assertGreater(
@@ -184,6 +194,26 @@ class JobLeadDeduplicatorTests(unittest.TestCase):
         match = detect_duplicate(first, second)
 
         self.assertIsNone(match)
+
+    def test_same_description_different_roles_are_not_exact_duplicates(self) -> None:
+        first = self.build_example()
+        second = copy.deepcopy(first)
+        second["lead_id"] = "marketing-opening"
+        second["identity"]["role"] = "Marketing Director"
+        second["identity"]["normalized_role"] = "marketing director"
+        second["identity"]["external_job_id"] = "marketing-123"
+        second["source"]["canonical_url"] = "https://example.com/jobs/marketing"
+        second["source"]["posting_url"] = second["source"]["canonical_url"]
+
+        self.assertIsNone(detect_duplicate(first, second))
+
+    def test_different_explicit_locations_are_incompatible(self) -> None:
+        first = self.build_example()
+        second = copy.deepcopy(first)
+        first["location"]["raw"] = "Canada (Remote)"
+        second["location"]["raw"] = "United States (Remote)"
+
+        self.assertFalse(locations_compatible(first, second))
 
 
 if __name__ == "__main__":

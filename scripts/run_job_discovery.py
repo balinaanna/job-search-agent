@@ -54,8 +54,40 @@ def refreshed_lead(
         existing["source"].get("first_seen_at")
         or existing["source"]["collected_at"]
     )
-    fresh["status"] = existing["status"]
+    status = copy_status_for_refresh(existing["status"])
+    fresh["status"] = status
     return fresh
+
+
+def copy_status_for_refresh(status: dict[str, Any]) -> dict[str, Any]:
+    copied = {
+        "lead_status": status["lead_status"],
+        "duplicate_of": status.get("duplicate_of"),
+        "reviewed": status["reviewed"],
+        "notes": [
+            note
+            for note in status.get("notes", [])
+            if not note.startswith(
+                (
+                    "Deduplicated automatically:",
+                    "Also discovered through ",
+                    "Possible duplicate of ",
+                )
+            )
+        ],
+    }
+    was_automatic_duplicate = (
+        copied["lead_status"] == "archived"
+        and copied["duplicate_of"] is not None
+        and any(
+            note.startswith("Deduplicated automatically:")
+            for note in status.get("notes", [])
+        )
+    )
+    if was_automatic_duplicate:
+        copied["lead_status"] = "new"
+        copied["duplicate_of"] = None
+    return copied
 
 
 def normalize_raw_directory(

@@ -9,7 +9,7 @@ import unittest
 from pathlib import Path
 
 from normalize_job_lead import build_job_lead
-from run_job_discovery import refreshed_lead, run_pipeline
+from run_job_discovery import copy_status_for_refresh, refreshed_lead, run_pipeline
 from validate_job_lead import load_json
 
 
@@ -71,6 +71,21 @@ class JobDiscoveryPipelineTests(unittest.TestCase):
             report = shortlist_path.read_text(encoding="utf-8")
             self.assertIn("Recommended for Full Job Fit Analysis", report)
             self.assertIn("Example AI", report)
+
+    def test_automatic_duplicate_is_reconsidered_on_refresh(self) -> None:
+        status = {
+            "lead_status": "archived",
+            "duplicate_of": "old-canonical",
+            "reviewed": False,
+            "notes": [
+                "Deduplicated automatically: old rule. Confidence=exact; score=1.0000.",
+                "Keep this user note.",
+            ],
+        }
+        refreshed = copy_status_for_refresh(status)
+        self.assertEqual(refreshed["lead_status"], "new")
+        self.assertIsNone(refreshed["duplicate_of"])
+        self.assertEqual(refreshed["notes"], ["Keep this user note."])
 
     def test_pipeline_refreshes_existing_lead(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

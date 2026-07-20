@@ -11,6 +11,7 @@ from normalize_job_lead import (
     canonicalize_url,
     description_hash,
     infer_customer_facing_level,
+    infer_location,
     infer_primary_function,
     infer_workplace_type,
 )
@@ -54,6 +55,13 @@ class JobLeadNormalizerTests(unittest.TestCase):
 
         self.assertEqual(result, "ai_engineering")
 
+    def test_company_ai_boilerplate_does_not_reclassify_marketing(self) -> None:
+        result = infer_primary_function(
+            "Demand Generation Program Manager",
+            "Our company builds generative AI products and AI agents.",
+        )
+        self.assertEqual(result, "other")
+
     def test_workplace_type_detects_remote(self) -> None:
         result = infer_workplace_type(
             "Remote",
@@ -61,6 +69,30 @@ class JobLeadNormalizerTests(unittest.TestCase):
         )
 
         self.assertEqual(result, "remote")
+
+    def test_vancouver_implies_british_columbia_and_canada(self) -> None:
+        result = infer_location("Vancouver", "unspecified", "")
+        self.assertEqual(result["city"], "Vancouver")
+        self.assertEqual(result["region"], "British Columbia")
+        self.assertEqual(result["country"], "Canada")
+        self.assertTrue(result["can_hire_in_canada"])
+
+    def test_location_reads_canada_signal_late_in_description(self) -> None:
+        description = "General role details. " * 200
+        description += "Candidates need to be based in Canada. Remote is fine."
+        workplace = infer_workplace_type(None, description)
+        result = infer_location("Vancouver", workplace, description)
+        self.assertEqual(workplace, "remote")
+        self.assertTrue(result["can_hire_in_canada"])
+
+    def test_explicit_us_location_overrides_canada_in_boilerplate(self) -> None:
+        result = infer_location(
+            "United States (Remote)",
+            "remote",
+            "Separate compensation ranges are available for Canada.",
+        )
+        self.assertEqual(result["country"], "United States")
+        self.assertFalse(result["can_hire_in_canada"])
 
     def test_customer_facing_level_detects_low(self) -> None:
         result = infer_customer_facing_level(

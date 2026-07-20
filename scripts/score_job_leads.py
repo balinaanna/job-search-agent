@@ -119,6 +119,20 @@ def score_ai_alignment(lead: dict[str, Any]) -> int:
         lead["position"]["primary_function"],
         5,
     )
+    function = lead["position"]["primary_function"]
+    technical_functions = {
+        "ai_engineering",
+        "machine_learning",
+        "software_engineering",
+        "data_engineering",
+        "analytics_engineering",
+        "solutions_engineering",
+        "implementation",
+    }
+    technical_title = any(
+        term in normalized_text(lead["position"]["title"])
+        for term in ("engineer", "developer", "architect")
+    )
     text = lead_text(lead)
 
     strong_signals = (
@@ -137,9 +151,13 @@ def score_ai_alignment(lead: dict[str, Any]) -> int:
         "artificial intelligence",
     )
 
-    if any(signal in text for signal in strong_signals):
+    if (
+        function in technical_functions or technical_title
+    ) and any(signal in text for signal in strong_signals):
         score = max(score, 92)
-    elif any(signal in text for signal in moderate_signals):
+    elif (
+        function in technical_functions or technical_title
+    ) and any(signal in text for signal in moderate_signals):
         score = max(score, 72)
 
     return min(100, score)
@@ -427,8 +445,22 @@ def calculate_score(
     preliminary_score = round(
         max(0, min(100, weighted_score + sum(p["value"] for p in penalties)))
     )
+    function = lead["position"]["primary_function"]
+    title = normalized_text(lead["position"]["title"])
+    recommendable_function = function in {
+        "ai_engineering",
+        "machine_learning",
+        "software_engineering",
+        "data_engineering",
+        "analytics_engineering",
+        "solutions_engineering",
+        "implementation",
+        "data_analytics",
+        "business_analysis",
+    } or (function == "product" and "engineer" in title)
     full_analysis_recommended = (
         lead["discovery"]["hard_filter_result"] == "pass"
+        and recommendable_function
         and preliminary_score
         >= criteria["ranking"]["minimum_full_analysis_score"]
     )

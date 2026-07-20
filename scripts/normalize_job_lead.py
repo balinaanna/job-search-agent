@@ -510,9 +510,9 @@ def infer_primary_function(role: str, description: str) -> str:
         or "generative ai" in text
         or "ai agent" in text
     ) and (
-        "build" in text
-        or "develop" in text
-        or "engineer" in text
+        "engineer" in title
+        or "developer" in title
+        or "architect" in title
     ):
         return "ai_engineering"
 
@@ -520,7 +520,7 @@ def infer_primary_function(role: str, description: str) -> str:
 
 
 def infer_workplace_type(raw_value: str | None, description: str) -> str:
-    text = f"{raw_value or ''} {description[:2000]}".casefold()
+    text = f"{raw_value or ''} {description}".casefold()
 
     if "hybrid" in text:
         return "hybrid"
@@ -592,13 +592,35 @@ def infer_location(
     description: str,
 ) -> dict[str, Any]:
     raw = location_raw or "Unspecified"
-    text = f"{raw} {description[:2500]}".casefold()
+    text = f"{raw} {description}".casefold()
+    raw_text = raw.casefold()
 
     country: str | None = None
     region: str | None = None
     city: str | None = None
 
-    if "canada" in text or re.search(r"\bcanadian\b", text):
+    explicit_foreign_countries = {
+        "united states": "United States",
+        "usa": "United States",
+        "germany": "Germany",
+        "ireland": "Ireland",
+        "spain": "Spain",
+        "united kingdom": "United Kingdom",
+        "uk": "United Kingdom",
+        "colombia": "Colombia",
+        "israel": "Israel",
+    }
+    if "canada" in raw_text:
+        country = "Canada"
+    else:
+        for signal, country_name in explicit_foreign_countries.items():
+            if re.search(rf"\b{re.escape(signal)}\b", raw_text):
+                country = country_name
+                break
+
+    if country is None and (
+        "canada" in text or re.search(r"\bcanadian\b", text)
+    ):
         country = "Canada"
 
     if (
@@ -628,6 +650,24 @@ def infer_location(
             city = known_city
             break
 
+    canadian_city_regions = {
+        "Richmond": "British Columbia",
+        "Vancouver": "British Columbia",
+        "Burnaby": "British Columbia",
+        "Surrey": "British Columbia",
+        "New Westminster": "British Columbia",
+        "Coquitlam": "British Columbia",
+        "Victoria": "British Columbia",
+        "Toronto": "Ontario",
+        "Ottawa": "Ontario",
+        "Calgary": "Alberta",
+        "Edmonton": "Alberta",
+        "Montreal": "Quebec",
+    }
+    if city in canadian_city_regions:
+        country = "Canada"
+        region = region or canadian_city_regions[city]
+
     can_hire_in_canada: bool | None = None
 
     positive_canada_patterns = (
@@ -646,12 +686,14 @@ def infer_location(
         "cannot hire in canada",
     )
 
-    if any(pattern in text for pattern in positive_canada_patterns):
-        can_hire_in_canada = True
-    elif any(pattern in text for pattern in negative_canada_patterns):
+    if country is not None and country != "Canada":
         can_hire_in_canada = False
     elif country == "Canada":
         can_hire_in_canada = True
+    elif any(pattern in text for pattern in positive_canada_patterns):
+        can_hire_in_canada = True
+    elif any(pattern in text for pattern in negative_canada_patterns):
+        can_hire_in_canada = False
 
     relocation_required: bool | None = None
 

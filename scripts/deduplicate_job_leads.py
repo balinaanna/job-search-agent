@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from dataclasses import dataclass
 from datetime import datetime
@@ -103,6 +104,16 @@ def locations_compatible(
 ) -> bool:
     first_location = first["location"]
     second_location = second["location"]
+
+    def raw_signature(location: dict[str, Any]) -> tuple[str, ...]:
+        raw = str(location.get("raw") or "").casefold()
+        tokens = re.findall(r"[a-z0-9]+", raw)
+        return tuple(sorted(token for token in tokens if token != "unspecified"))
+
+    first_raw = raw_signature(first_location)
+    second_raw = raw_signature(second_location)
+    if first_raw and second_raw and first_raw != second_raw:
+        return False
 
     first_country = first_location.get("country")
     second_country = second_location.get("country")
@@ -284,7 +295,15 @@ def detect_duplicate(
             score=1.0,
         )
 
-    if company_matches and same_description_hash(first, second):
+    if (
+        company_matches
+        and same_description_hash(first, second)
+        and normalized_similarity(
+            first["identity"]["normalized_role"],
+            second["identity"]["normalized_role"],
+        ) >= 0.92
+        and locations_compatible(first, second)
+    ):
         canonical, duplicate = choose_canonical(first, second)
 
         return DuplicateMatch(
@@ -304,6 +323,9 @@ def detect_duplicate(
         first["identity"]["normalized_role"],
         second["identity"]["normalized_role"],
     )
+
+    if role_similarity < 0.82:
+        return None
 
     text_similarity = description_similarity(first, second)
 
@@ -354,6 +376,16 @@ def detect_duplicate(
         )
 
     return None
+
+
+def is_duplicate_candidate(
+    first: dict[str, Any],
+    second: dict[str, Any],
+) -> bool:
+    return (
+        same_company(first, second)
+        or same_canonical_url(first, second)
+    )
 
 
 def load_lead_files(
@@ -472,6 +504,9 @@ def deduplicate(
             second_path, second = lead_values[second_index]
 
             if second["status"]["duplicate_of"] is not None:
+                continue
+
+            if not is_duplicate_candidate(first, second):
                 continue
 
             match = detect_duplicate(first, second)
@@ -605,6 +640,9 @@ def main() -> int:
                     len(leads),
                 ):
                     _, second = leads[second_index]
+
+                    if not is_duplicate_candidate(first, second):
+                        continue
 
                     match = detect_duplicate(first, second)
 
