@@ -71,6 +71,19 @@ def validate_form_fill_confirmation(answers: dict, completed: object, documents_
     return sorted(expected)
 
 
+def validate_submission_authorization(payload: dict, answers: dict, session: dict) -> None:
+    required = ("answers_confirmed", "documents_confirmed", "commitments_confirmed", "authorize_now")
+    if any(payload.get(key) is not True for key in required):
+        raise ValueError("Complete every final-review confirmation before authorizing submission.")
+    if payload.get("authorization") != "authorize_submission":
+        raise ValueError("Explicit submission authorization is required.")
+    if not answers.get("answers_approved") or answers.get("submission_authorized"):
+        raise ValueError("The approved answer plan is not eligible for submission authorization.")
+    expected = {item["question_id"] for item in answers.get("answers", [])}
+    if session.get("status") != "submission_review_required" or set(session.get("completed_question_ids", [])) != expected or session.get("documents_checked") is not True or session.get("submit_clicked") is not False:
+        raise ValueError("The completed form must pass final review before authorization.")
+
+
 def prepare(lead_id: str) -> Path:
     workspace = find_workspace(lead_id)
     form = load_json(workspace / "application_form.json")

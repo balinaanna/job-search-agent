@@ -264,7 +264,8 @@ class WorkflowStoreTests(unittest.TestCase):
             "form_questions_saved", "application_answers_requested", "application_answers_running",
             "application_answers_completed", "application_answers_approved", "form_filling_started",
             "submission_review_required",
+            "submission_authorized",
         ]
         for status in statuses:
             run = self.store.transition(run["id"], status, "user")
-        self.assertEqual(run["status"], "submission_review_required")
+        self.assertEqual(run["status"], "submission_authorized")

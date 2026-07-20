@@ -2,7 +2,7 @@
 
 import unittest
 
-from prepare_application_answers import apply_answer_review, classify, strategy_for, validate_form_fill_confirmation
+from prepare_application_answers import apply_answer_review, classify, strategy_for, validate_form_fill_confirmation, validate_submission_authorization
 
 
 class ApplicationAnswerPreparationTests(unittest.TestCase):
@@ -46,6 +46,16 @@ class ApplicationAnswerPreparationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Confirm every answer"):
             validate_form_fill_confirmation(answers, ["q_001", "q_002"], False)
         self.assertEqual(validate_form_fill_confirmation(answers, ["q_002", "q_001"], True), ["q_001", "q_002"])
+
+    def test_submission_authorization_is_explicit_and_scoped_to_reviewed_form(self) -> None:
+        answers = {"answers_approved": True, "submission_authorized": False, "answers": [{"question_id": "q_001"}]}
+        session = {"status": "submission_review_required", "completed_question_ids": ["q_001"], "documents_checked": True, "submit_clicked": False}
+        confirmations = {"answers_confirmed": True, "documents_confirmed": True, "commitments_confirmed": True, "authorize_now": True, "authorization": "authorize_submission"}
+        validate_submission_authorization(confirmations, answers, session)
+        with self.assertRaisesRegex(ValueError, "every final-review confirmation"):
+            validate_submission_authorization({**confirmations, "commitments_confirmed": False}, answers, session)
+        with self.assertRaisesRegex(ValueError, "Explicit submission authorization"):
+            validate_submission_authorization({**confirmations, "authorization": "review_only"}, answers, session)
 
 
 if __name__ == "__main__":

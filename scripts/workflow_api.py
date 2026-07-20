@@ -12,7 +12,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from write_resume_with_codex import find_workspace
-from prepare_application_answers import apply_answer_review, validate_form_fill_confirmation
+from prepare_application_answers import apply_answer_review, validate_form_fill_confirmation, validate_submission_authorization
 from run_resume_pdf_worker import PDF_SCHEMA, pdf_environment, pdf_python
 from surface_fit_queue import join_results, load_leads, load_valid_analyses
 from validate_job_lead import load_json
@@ -149,6 +149,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "form-fill-ready":
             self.complete_form_fill(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "submission-authorization":
+            self.authorize_submission(parts[2])
             return
         self.respond(404, {"error": "Not found."})
 
@@ -314,6 +317,26 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             session.update({"status": "submission_review_required", "completed_question_ids": confirmed_ids, "documents_checked": True, "submit_clicked": False})
             session_path.write_text(json.dumps(session, indent=2) + "\n", encoding="utf-8")
             run = self.store.transition(run["id"], "submission_review_required", "user", details={"all_fields_confirmed": True, "documents_checked": True, "submit_clicked": False, "submission_authorized": False})
+        except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
+            self.respond(409, {"error": str(exc)}); return
+        self.respond(200, run)
+
+    def authorize_submission(self, lead_id: str) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0")); payload = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self.respond(400, {"error": "Invalid submission-authorization request."}); return
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] != "submission_review_required":
+            self.respond(409, {"error": "A completed final review is required before submission authorization."}); return
+        try:
+            workspace = find_workspace(lead_id); answers_path = workspace / "application_answers.json"; session_path = workspace / "form_fill_session.json"
+            answers = load_json(answers_path); session = load_json(session_path)
+            validate_submission_authorization(payload, answers, session)
+            answers["submission_authorized"] = True; answers_path.write_text(json.dumps(answers, indent=2) + "\n", encoding="utf-8")
+            session.update({"status": "submission_authorized", "submission_authorized": True, "submit_clicked": False})
+            session_path.write_text(json.dumps(session, indent=2) + "\n", encoding="utf-8")
+            run = self.store.transition(run["id"], "submission_authorized", "user", details={"explicit_submission_authorization": True, "scope": lead_id, "submit_clicked": False})
         except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
             self.respond(409, {"error": str(exc)}); return
         self.respond(200, run)
