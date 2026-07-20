@@ -89,6 +89,9 @@ h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .queue-table small { color:var(--muted); font-size:10px; }
 .prelim { text-align:right; }
 .queue-table button { justify-self:end; }
+.analyze-control { justify-self:end; display:grid; justify-items:end; gap:5px; }
+.analyze-control button:disabled { cursor:wait; opacity:.65; }
+.analyze-control span { max-width:220px; color:var(--muted); font-size:9px; text-align:right; line-height:1.35; }
 .empty-state { padding:40px; text-align:center; color:var(--muted); background:#fff; border:1px solid var(--line); border-radius:13px; }
 footer { padding:28px 0 4px; color:#89928e; text-align:center; font-size:10px; }
 @media (max-width:950px) { .app-shell{grid-template-columns:1fr}.sidebar{position:static;height:auto;padding:18px 22px}.sidebar nav{display:flex;overflow:auto}.sidebar-note{display:none}.brand{padding-bottom:18px}.workspace{padding:28px 22px}.content-grid{grid-template-columns:1fr}.progress-ring{margin-right:0}.stats{grid-template-columns:repeat(2,1fr)}.stats article:nth-child(2){border-right:0}.stats article:nth-child(-n+2){border-bottom:1px solid var(--line)} }

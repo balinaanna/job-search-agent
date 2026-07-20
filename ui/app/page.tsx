@@ -1,4 +1,5 @@
 import data from "./dashboard-data.json";
+import { AnalyzeButton } from "./AnalyzeButton";
 
 const recommendationLabel: Record<string, string> = {
   strong_apply: "Strong match",
@@ -95,7 +96,7 @@ export default function Home() {
                 <span className="queue-number">{index + 1}</span>
                 <div><strong>{job.role}</strong><small>{job.company} · {job.location}</small></div>
                 <div className="prelim"><strong>{job.discoveryScore}</strong><small>preliminary</small></div>
-                <button type="button">Analyze</button>
+                <AnalyzeButton leadId={job.id} />
               </article>
             ))}
           </div>

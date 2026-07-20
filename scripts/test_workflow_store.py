@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import tempfile
+import unittest
+from pathlib import Path
+
+from workflow_store import WorkflowStore
+
+
+class WorkflowStoreTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.store = WorkflowStore(Path(self.temp.name) / "jobs.db")
+
+    def tearDown(self) -> None:
+        self.store.connection.close()
+        self.temp.cleanup()
+
+    def test_analysis_request_is_idempotent(self) -> None:
+        first = self.store.request_analysis("lead-1")
+        second = self.store.request_analysis("lead-1")
+        self.assertEqual(first["id"], second["id"])
+        self.assertEqual(len(self.store.events(first["id"])), 1)
+
+    def test_valid_analysis_lifecycle_is_audited(self) -> None:
+        run = self.store.request_analysis("lead-1")
+        self.store.transition(run["id"], "analysis_running", "worker")
+        finished = self.store.transition(
+            run["id"], "analysis_completed", "worker", result_path="analysis.json"
+        )
+        self.assertEqual(finished["status"], "analysis_completed")
+        self.assertEqual(finished["result_path"], "analysis.json")
+        self.assertEqual(len(self.store.events(run["id"])), 3)
+
+    def test_skipping_analysis_is_rejected(self) -> None:
+        run = self.store.request_analysis("lead-1")
+        with self.assertRaisesRegex(ValueError, "Invalid workflow transition"):
+            self.store.transition(run["id"], "pursue", "user")
+
+    def test_submission_state_does_not_exist(self) -> None:
+        run = self.store.request_analysis("lead-1")
+        with self.assertRaises(ValueError):
+            self.store.transition(run["id"], "applied", "user")
+
