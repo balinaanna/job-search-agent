@@ -12,7 +12,7 @@ const recommendationLabel: Record<string, string> = { strong_apply: "Strong matc
 function dateLabel(job: JobRow) {
   const value = job.postedDate || job.firstSeenAt;
   if (!value) return "Date unavailable";
-  const formatted = new Intl.DateTimeFormat("en-CA", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
+  const formatted = new Intl.DateTimeFormat("en-CA", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(value));
   return job.postedDate ? `Posted ${formatted}` : `First seen ${formatted}`;
 }
 
