@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-20T01:22:01.568953+00:00",
+  "generatedAt": "2026-07-20T01:48:44.556861+00:00",
   "summary": {
     "discovered": 225,
-    "awaitingAnalysis": 16,
+    "awaitingAnalysis": 15,
     "readyToPursue": 0,
     "stretch": 1,
     "applicationsInProgress": 0
@@ -24,17 +24,26 @@
       ],
       "risk": "Durable appears to want a senior engineer with deep current React/Next.js/TypeScript skills and AI patterns already shipped at production scale; the verified evidence does not support those claims.",
       "nextAction": "Treat this as a selective stretch application. Before preparing materials, Anna should decide whether she is comfortable with the quarterly attendance and a technical screen centered on current React/TypeScript and production AI systems."
-    }
-  ],
-  "awaitingAnalysis": [
+    },
     {
       "id": "grafana-labs-staff-ai-engineer-grafana-ai-ml-canada-remote-8d8aaad1e4",
       "company": "Grafana Labs",
       "role": "Staff AI Engineer - Grafana AI/ML | Canada | Remote",
       "location": "Canada (Remote)",
       "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6100673004",
-      "discoveryScore": 92
-    },
+      "discoveryScore": 92,
+      "fitScore": 41,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Verified full-stack engineering experience across frontend, backend, APIs, databases, testing, and integrated-system troubleshooting",
+        "Practical experience building and iterating on a GenAI-assisted Flask application",
+        "Strong cross-functional communication, requirements clarification, prototyping, and remote collaboration"
+      ],
+      "risk": "The role's core bar is staff-level production AI and observability engineering, while the verified profile shows a smaller AI application, general full-stack experience, and transferable troubleshooting without the required scale, cloud-native depth, or observability specialization.",
+      "nextAction": "Do not apply. Prioritize AI workflow, technical business analysis, systems analysis, implementation, or application-consulting roles where the verified AI application and software background are strong differentiators without requiring staff-level production AI ownership."
+    }
+  ],
+  "awaitingAnalysis": [
     {
       "id": "grafana-labs-staff-software-engineer-adaptive-telemetry-databases-ca-9e973f86e0",
       "company": "Grafana Labs",
@@ -89,6 +98,14 @@
       "role": "Principal AI Engineer",
       "location": "Lviv, Ukraine",
       "postingUrl": "https://job-boards.greenhouse.io/robotsandpencils/jobs/5254738008",
+      "discoveryScore": 81
+    },
+    {
+      "id": "robots-pencils-senior-ai-engineer-2b2385142c",
+      "company": "Robots & Pencils",
+      "role": "Senior AI Engineer",
+      "location": "Lviv, Ukraine",
+      "postingUrl": "https://job-boards.greenhouse.io/robotsandpencils/jobs/5254751008",
       "discoveryScore": 81
     }
   ]

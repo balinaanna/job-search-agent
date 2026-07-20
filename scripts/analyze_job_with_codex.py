@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import os
 import subprocess
@@ -34,6 +35,26 @@ def validate_analysis(analysis: dict) -> None:
         errors.append("Unknown evidence IDs: " + ", ".join(unknown))
     if errors:
         raise ValueError("; ".join(errors))
+
+
+def strict_output_schema(schema: dict) -> dict:
+    """Return an API-compatible strict schema without changing validation rules."""
+    strict = copy.deepcopy(schema)
+
+    def visit(node: object) -> None:
+        if isinstance(node, dict):
+            properties = node.get("properties")
+            if node.get("type") == "object" and isinstance(properties, dict):
+                node["required"] = list(properties)
+                node["additionalProperties"] = False
+            for value in node.values():
+                visit(value)
+        elif isinstance(node, list):
+            for value in node:
+                visit(value)
+
+    visit(strict)
+    return strict
 
 
 def render_markdown(analysis: dict) -> str:
@@ -96,6 +117,10 @@ score must supersede the preliminary discovery score.
 """.strip()
     with tempfile.TemporaryDirectory() as directory:
         result_path = Path(directory) / "analysis.json"
+        output_schema_path = Path(directory) / "strict-analysis-schema.json"
+        output_schema_path.write_text(
+            json.dumps(strict_output_schema(load_json(SCHEMA_PATH))), encoding="utf-8"
+        )
         subprocess.run(
             [
                 codex,
@@ -108,7 +133,7 @@ score must supersede the preliminary discovery score.
                 "--cd",
                 str(ROOT),
                 "--output-schema",
-                str(SCHEMA_PATH),
+                str(output_schema_path),
                 "--output-last-message",
                 str(result_path),
                 prompt,

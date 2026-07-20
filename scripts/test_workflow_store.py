@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 
 from workflow_store import WorkflowStore
+from analyze_job_with_codex import strict_output_schema
 
 
 class WorkflowStoreTests(unittest.TestCase):
@@ -44,3 +45,18 @@ class WorkflowStoreTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.store.transition(run["id"], "applied", "user")
 
+    def test_structured_output_schema_requires_every_object_property(self) -> None:
+        schema = {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+                "details": {
+                    "type": "object",
+                    "properties": {"note": {"type": ["string", "null"]}},
+                },
+            },
+        }
+        strict = strict_output_schema(schema)
+        self.assertEqual(strict["required"], ["name", "details"])
+        self.assertEqual(strict["properties"]["details"]["required"], ["note"])
+        self.assertNotIn("required", schema)
