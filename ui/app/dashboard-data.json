@@ -1,0 +1,95 @@
+{
+  "generatedAt": "2026-07-20T01:22:01.568953+00:00",
+  "summary": {
+    "discovered": 225,
+    "awaitingAnalysis": 16,
+    "readyToPursue": 0,
+    "stretch": 1,
+    "applicationsInProgress": 0
+  },
+  "analyzedJobs": [
+    {
+      "id": "durable-ai-engineer-cbcdae5f57",
+      "company": "Durable",
+      "role": "AI Engineer",
+      "location": "Vancouver",
+      "postingUrl": "https://job-boards.greenhouse.io/durable/jobs/5156304008",
+      "discoveryScore": 96,
+      "fitScore": 60,
+      "recommendation": "selective_apply",
+      "reasons": [
+        "Anna combines earlier professional full-stack engineering with a current AI-assisted application she can demonstrate.",
+        "Her verified experience spans user-facing interfaces, APIs, backend logic, data, testing, and integrated SaaS systems.",
+        "Richmond-based Canadian work authorization and quarterly Vancouver attendance align well with the stated logistics."
+      ],
+      "risk": "Durable appears to want a senior engineer with deep current React/Next.js/TypeScript skills and AI patterns already shipped at production scale; the verified evidence does not support those claims.",
+      "nextAction": "Treat this as a selective stretch application. Before preparing materials, Anna should decide whether she is comfortable with the quarterly attendance and a technical screen centered on current React/TypeScript and production AI systems."
+    }
+  ],
+  "awaitingAnalysis": [
+    {
+      "id": "grafana-labs-staff-ai-engineer-grafana-ai-ml-canada-remote-8d8aaad1e4",
+      "company": "Grafana Labs",
+      "role": "Staff AI Engineer - Grafana AI/ML | Canada | Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6100673004",
+      "discoveryScore": 92
+    },
+    {
+      "id": "grafana-labs-staff-software-engineer-adaptive-telemetry-databases-ca-9e973f86e0",
+      "company": "Grafana Labs",
+      "role": "Staff Software Engineer - Adaptive Telemetry, Databases | Canada | Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6108385004",
+      "discoveryScore": 90
+    },
+    {
+      "id": "grafana-labs-staff-software-engineer-platform-syseng-canada-remote-03736035f8",
+      "company": "Grafana Labs",
+      "role": "Staff Software Engineer - Platform, SysEng | Canada | Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6108293004",
+      "discoveryScore": 90
+    },
+    {
+      "id": "grafana-labs-staff-ai-engineer-canada-remote-29e9f95e05",
+      "company": "Grafana Labs",
+      "role": "Staff AI Engineer | Canada | Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/5839190004",
+      "discoveryScore": 89
+    },
+    {
+      "id": "grafana-labs-staff-ai-engineer-canada-remote-fe491b18cf",
+      "company": "Grafana Labs",
+      "role": "Staff AI Engineer | Canada | Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/5806327004",
+      "discoveryScore": 89
+    },
+    {
+      "id": "novoed-sr-ai-engineer-27b0ec4bd3",
+      "company": "NovoEd",
+      "role": "Sr. AI Engineer",
+      "location": "Remote - Canada",
+      "postingUrl": "https://job-boards.greenhouse.io/novoed/jobs/8055650",
+      "discoveryScore": 88
+    },
+    {
+      "id": "grafana-labs-senior-ai-engineer-canada-remote-9722d269a6",
+      "company": "Grafana Labs",
+      "role": "Senior AI Engineer | Canada | Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6092954004",
+      "discoveryScore": 87
+    },
+    {
+      "id": "robots-pencils-principal-ai-engineer-fedc15db90",
+      "company": "Robots & Pencils",
+      "role": "Principal AI Engineer",
+      "location": "Lviv, Ukraine",
+      "postingUrl": "https://job-boards.greenhouse.io/robotsandpencils/jobs/5254738008",
+      "discoveryScore": 81
+    }
+  ]
+}
