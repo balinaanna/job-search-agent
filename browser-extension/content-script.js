@@ -3,7 +3,7 @@
   window.dispatchEvent(new CustomEvent("job-agent-extension-ready", { detail: chrome.runtime.getManifest().version }));
   if (globalThis.JobAgentCapture?.sourceForUrl(location.href)) {
     const captureButton = document.createElement("button");
-    captureButton.type = "button"; captureButton.textContent = "Capture this job";
+    captureButton.type = "button"; captureButton.textContent = `Capture this job · v${chrome.runtime.getManifest().version}`;
     captureButton.style.cssText = "position:fixed;right:18px;bottom:18px;z-index:2147483646;padding:10px 14px;border:0;border-radius:8px;background:#1f684f;color:white;font:600 13px Arial,sans-serif;box-shadow:0 5px 18px #0003";
     captureButton.addEventListener("click", async () => {
       captureButton.disabled = true; captureButton.textContent = "Capturing…";

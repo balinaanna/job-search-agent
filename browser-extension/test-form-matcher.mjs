@@ -66,3 +66,10 @@ test("capture adapter supports only the approved alert sources", async () => {
   assert.equal(capture.default.sourceForUrl("https://www.linkedin.com/in/example"), null);
   assert.equal(capture.default.postingUrl("https://www.linkedin.com/jobs/search/?currentJobId=98765&origin=alerts"), "https://www.linkedin.com/jobs/view/98765");
 });
+
+test("capture runtime visibly identifies its installed version", () => {
+  const source = fs.readFileSync(new URL("./content-script.js", import.meta.url), "utf8");
+  const capture = fs.readFileSync(new URL("./job-capture.js", import.meta.url), "utf8");
+  assert.match(source, /Capture this job · v/);
+  assert.match(capture, /Adapter 0\.5\.2 could not identify/);
+});
