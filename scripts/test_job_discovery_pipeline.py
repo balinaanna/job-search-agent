@@ -51,6 +51,8 @@ class JobDiscoveryPipelineTests(unittest.TestCase):
             raw_directory = root / "raw"
             leads_directory = root / "leads"
             shortlist_path = leads_directory / "shortlist.md"
+            action_queue_path = leads_directory / "action-queue.md"
+            analyses_directory = root / "analyses"
             raw_directory.mkdir()
             raw = load_json(RAW_EXAMPLE_PATH)
             (raw_directory / "example.json").write_text(
@@ -63,11 +65,15 @@ class JobDiscoveryPipelineTests(unittest.TestCase):
                 shortlist_path,
                 CRITERIA_PATH,
                 SCHEMA_PATH,
+                action_queue_path,
+                analyses_directory,
+                ROOT / "profile/evidence.yaml",
             )
 
             self.assertEqual(summary["created"], 1)
             self.assertEqual(summary["full_analysis"], 1)
             self.assertTrue(shortlist_path.exists())
+            self.assertTrue(action_queue_path.exists())
             report = shortlist_path.read_text(encoding="utf-8")
             self.assertIn("Recommended for Full Job Fit Analysis", report)
             self.assertIn("Example AI", report)
@@ -93,6 +99,8 @@ class JobDiscoveryPipelineTests(unittest.TestCase):
             raw_directory = root / "raw"
             leads_directory = root / "leads"
             shortlist_path = leads_directory / "shortlist.md"
+            action_queue_path = leads_directory / "action-queue.md"
+            analyses_directory = root / "analyses"
             raw_directory.mkdir()
             raw = load_json(RAW_EXAMPLE_PATH)
             raw_path = raw_directory / "example.json"
@@ -104,6 +112,9 @@ class JobDiscoveryPipelineTests(unittest.TestCase):
                 shortlist_path,
                 CRITERIA_PATH,
                 SCHEMA_PATH,
+                action_queue_path,
+                analyses_directory,
+                ROOT / "profile/evidence.yaml",
             )
             summary = run_pipeline(
                 raw_directory,
@@ -111,6 +122,9 @@ class JobDiscoveryPipelineTests(unittest.TestCase):
                 shortlist_path,
                 CRITERIA_PATH,
                 SCHEMA_PATH,
+                action_queue_path,
+                analyses_directory,
+                ROOT / "profile/evidence.yaml",
             )
 
             self.assertEqual(summary["created"], 0)

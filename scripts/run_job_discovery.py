@@ -20,6 +20,7 @@ from filter_job_leads import filter_leads
 from normalize_job_lead import build_job_lead, strategy_version
 from score_job_leads import score_leads
 from surface_job_leads import render_shortlist
+from surface_fit_queue import join_results, load_valid_analyses, render_queue
 from validate_job_lead import (
     JobLeadValidationError,
     load_json,
@@ -32,6 +33,9 @@ DEFAULT_SOURCES_PATH = Path("strategy/job_sources.json")
 DEFAULT_RAW_DIRECTORY = Path("data/raw-job-postings")
 DEFAULT_LEADS_DIRECTORY = Path("data/job-leads")
 DEFAULT_SHORTLIST_PATH = Path("data/job-leads/shortlist.md")
+DEFAULT_ACTION_QUEUE_PATH = Path("data/job-leads/action-queue.md")
+DEFAULT_ANALYSES_DIRECTORY = Path("jobs/analyzed")
+DEFAULT_EVIDENCE_PATH = Path("profile/evidence.yaml")
 DEFAULT_CRITERIA_PATH = Path("strategy/job_search_criteria.json")
 DEFAULT_SCHEMA_PATH = Path(
     "hermes-skills/job-discovery/references/job-lead-schema.json"
@@ -144,6 +148,9 @@ def run_pipeline(
     shortlist_path: Path,
     criteria_path: Path,
     schema_path: Path,
+    action_queue_path: Path = DEFAULT_ACTION_QUEUE_PATH,
+    analyses_directory: Path = DEFAULT_ANALYSES_DIRECTORY,
+    evidence_path: Path = DEFAULT_EVIDENCE_PATH,
 ) -> dict[str, int]:
     criteria = load_json(criteria_path)
     schema = load_json(schema_path)
@@ -171,6 +178,15 @@ def run_pipeline(
         render_shortlist([lead for _, lead in leads]),
         encoding="utf-8",
     )
+    analyses = load_valid_analyses(analyses_directory, evidence_path)
+    fit_results, awaiting = join_results(
+        [lead for _, lead in leads], analyses
+    )
+    action_queue_path.parent.mkdir(parents=True, exist_ok=True)
+    action_queue_path.write_text(
+        render_queue(fit_results, awaiting),
+        encoding="utf-8",
+    )
 
     return {
         "created": created,
@@ -181,6 +197,8 @@ def run_pipeline(
         "full_analysis": sum(
             result.full_analysis_recommended for _, result in score_results
         ),
+        "completed_fit_analyses": len(fit_results),
+        "awaiting_fit_analyses": len(awaiting),
     }
 
 
@@ -212,6 +230,13 @@ def parse_args() -> argparse.Namespace:
         "--leads-directory", type=Path, default=DEFAULT_LEADS_DIRECTORY
     )
     parser.add_argument("--shortlist", type=Path, default=DEFAULT_SHORTLIST_PATH)
+    parser.add_argument(
+        "--action-queue", type=Path, default=DEFAULT_ACTION_QUEUE_PATH
+    )
+    parser.add_argument(
+        "--analyses-directory", type=Path, default=DEFAULT_ANALYSES_DIRECTORY
+    )
+    parser.add_argument("--evidence", type=Path, default=DEFAULT_EVIDENCE_PATH)
     parser.add_argument("--criteria", type=Path, default=DEFAULT_CRITERIA_PATH)
     parser.add_argument("--schema", type=Path, default=DEFAULT_SCHEMA_PATH)
     parser.add_argument(
@@ -241,6 +266,9 @@ def main() -> int:
             args.shortlist,
             args.criteria,
             args.schema,
+            args.action_queue,
+            args.analyses_directory,
+            args.evidence,
         )
         print(
             "Normalization: "
@@ -254,6 +282,12 @@ def main() -> int:
             f"{summary['full_analysis']}."
         )
         print(f"Shortlist: {args.shortlist}")
+        print(
+            "Evidence-based action queue: "
+            f"{summary['completed_fit_analyses']} completed; "
+            f"{summary['awaiting_fit_analyses']} awaiting analysis."
+        )
+        print(f"Action queue: {args.action_queue}")
         return 0
     except (CollectionError, JobLeadValidationError) as exc:
         print(f"Job Discovery failed: {exc}", file=sys.stderr)
