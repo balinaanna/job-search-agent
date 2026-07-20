@@ -21,6 +21,7 @@ from run_resume_pdf_worker import PDF_SCHEMA, pdf_environment, pdf_python
 from surface_fit_queue import join_results, load_leads, load_valid_analyses
 from validate_job_lead import load_json
 from workflow_store import WorkflowStore
+from application_tracker import initial_tracker, update_tracker
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -102,6 +103,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "form-fill-session":
             self.get_form_fill_session(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-tracker":
+            self.get_application_tracker(parts[2])
             return
         if parts == ["api", "browser-extension"]:
             self.get_browser_extension()
@@ -197,6 +201,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "submission-recovery":
             self.recover_blocked_submission(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-tracker":
+            self.update_application_tracker(parts[2])
+            return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "browser-fill-report":
             self.record_browser_fill_report(parts[2])
             return
@@ -281,6 +288,28 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             self.respond(200, session)
         except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
             self.respond(404, {"error": str(exc)})
+
+    def get_application_tracker(self, lead_id: str) -> None:
+        try:
+            workspace = find_workspace(lead_id); path = workspace / "application_tracker.json"
+            if not path.exists():
+                run = self.store.latest_for_lead(lead_id)
+                if run is None or run["status"] != "application_submitted": raise FileNotFoundError("A confirmed submission is required before tracking.")
+                manifest = load_json(workspace / "application_manifest.json"); session = load_json(workspace / "form_fill_session.json")
+                tracker = initial_tracker(lead_id, manifest["company"], manifest["role"], session.get("confirmation_evidence", "Employer confirmation recorded.")); path.write_text(json.dumps(tracker, indent=2) + "\n", encoding="utf-8")
+            self.respond(200, load_json(path))
+        except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc: self.respond(404, {"error": str(exc)})
+
+    def update_application_tracker(self, lead_id: str) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0")); payload = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError): self.respond(400, {"error": "Invalid tracker update."}); return
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] != "application_submitted": self.respond(409, {"error": "A confirmed submission is required before tracking."}); return
+        try:
+            path = find_workspace(lead_id) / "application_tracker.json"; tracker = update_tracker(load_json(path), payload); path.write_text(json.dumps(tracker, indent=2) + "\n", encoding="utf-8")
+        except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc: self.respond(409, {"error": str(exc)}); return
+        self.respond(200, tracker)
 
     def get_browser_extension(self) -> None:
         try:
@@ -498,6 +527,8 @@ class WorkflowHandler(BaseHTTPRequestHandler):
                 lead_path.write_text(json.dumps(lead, indent=2) + "\n", encoding="utf-8")
                 manifest_path = workspace / "application_manifest.json"; manifest = load_json(manifest_path); manifest["status"] = "submitted"
                 manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+                tracker = initial_tracker(lead_id, manifest["company"], manifest["role"], evidence)
+                (workspace / "application_tracker.json").write_text(json.dumps(tracker, indent=2) + "\n", encoding="utf-8")
             run = self.store.transition(run["id"], status, "user", details={"outcome": outcome, "confirmation_recorded": True, "submit_clicked": outcome == "submitted"})
         except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
             self.respond(409, {"error": str(exc)}); return
