@@ -21,17 +21,20 @@ Refresh its data from the repository root:
 PYTHONPATH=scripts python3 scripts/export_dashboard_data.py
 ```
 
-Then start it locally:
+Then start the complete application locally with one command:
 
 ```bash
-cd ui
-npm run dev
+python3 scripts/run_app.py
 ```
 
-In a second terminal, start the persistent workflow service:
+Open `http://localhost:3000`. The launcher starts both the interface and its
+persistent workflow service. Press `Ctrl+C` to stop both.
+
+For development, the two services can still be started separately:
 
 ```bash
 PYTHONPATH=scripts python3 scripts/workflow_api.py
+cd ui && npm run dev
 ```
 
 The Analyze action records an audited workflow run in `data/jobs.db`, starts an

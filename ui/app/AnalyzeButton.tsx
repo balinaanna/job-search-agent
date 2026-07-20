@@ -33,7 +33,10 @@ export function AnalyzeButton({ leadId }: { leadId: string }) {
       setRun(payload);
       setMessage("Analysis queued. You can leave this page while it runs.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "The local workflow service is not running.");
+      const unavailable = error instanceof TypeError;
+      setMessage(unavailable
+        ? "Analysis service is offline. Start the app from the project root with: python3 scripts/run_app.py"
+        : error instanceof Error ? error.message : "Analysis could not start.");
     }
   }
 
