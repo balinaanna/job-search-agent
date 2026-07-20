@@ -270,3 +270,9 @@ class WorkflowStoreTests(unittest.TestCase):
         for status in statuses:
             run = self.store.transition(run["id"], status, "user")
         self.assertEqual(run["status"], "application_submitted")
+
+    def test_blocked_submission_returns_to_fresh_answer_cycle(self) -> None:
+        run = self.store.record_completed_analysis("lead-1", "analysis.json")
+        statuses = ["pursue", "strategy_requested", "strategy_running", "strategy_completed", "resume_plan_requested", "resume_plan_running", "resume_plan_completed", "resume_draft_requested", "resume_draft_running", "resume_draft_completed", "resume_review_requested", "resume_review_running", "resume_review_completed", "resume_approved", "resume_finalization_requested", "resume_finalization_running", "resume_finalization_completed", "resume_pdf_requested", "resume_pdf_running", "resume_pdf_review_required", "resume_pdf_completed", "cover_letter_plan_requested", "cover_letter_plan_running", "cover_letter_plan_completed", "cover_letter_skipped", "application_package_requested", "application_package_running", "application_package_completed", "form_questions_saved", "application_answers_requested", "application_answers_running", "application_answers_completed", "application_answers_approved", "form_filling_started", "submission_review_required", "submission_authorized", "submission_in_progress", "submission_blocked", "form_questions_saved"]
+        for status in statuses: run = self.store.transition(run["id"], status, "user")
+        self.assertEqual(run["status"], "form_questions_saved")

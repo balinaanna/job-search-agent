@@ -16,7 +16,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from write_resume_with_codex import find_workspace
-from prepare_application_answers import apply_answer_review, validate_form_fill_confirmation, validate_submission_authorization, validate_submission_result
+from prepare_application_answers import append_recovery_questions, apply_answer_review, validate_form_fill_confirmation, validate_submission_authorization, validate_submission_result
 from run_resume_pdf_worker import PDF_SCHEMA, pdf_environment, pdf_python
 from surface_fit_queue import join_results, load_leads, load_valid_analyses
 from validate_job_lead import load_json
@@ -193,6 +193,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "submission-result":
             self.record_submission_result(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "submission-recovery":
+            self.recover_blocked_submission(parts[2])
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "browser-fill-report":
             self.record_browser_fill_report(parts[2])
@@ -496,6 +499,27 @@ class WorkflowHandler(BaseHTTPRequestHandler):
                 manifest_path = workspace / "application_manifest.json"; manifest = load_json(manifest_path); manifest["status"] = "submitted"
                 manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
             run = self.store.transition(run["id"], status, "user", details={"outcome": outcome, "confirmation_recorded": True, "submit_clicked": outcome == "submitted"})
+        except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
+            self.respond(409, {"error": str(exc)}); return
+        self.respond(200, run)
+
+    def recover_blocked_submission(self, lead_id: str) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0")); payload = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self.respond(400, {"error": "Invalid recovery request."}); return
+        notes = payload.get("resolution_notes", ""); questions_text = payload.get("new_questions_text", "")
+        if not isinstance(notes, str) or not notes.strip() or not isinstance(questions_text, str):
+            self.respond(400, {"error": "Describe the blocker and any action needed before retrying."}); return
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] != "submission_blocked":
+            self.respond(409, {"error": "A blocked submission is required before recovery."}); return
+        try:
+            workspace = find_workspace(lead_id); form_path = workspace / "application_form.json"; answers_path = workspace / "application_answers.json"; session_path = workspace / "form_fill_session.json"
+            form = load_json(form_path); added = append_recovery_questions(form, questions_text); form_path.write_text(json.dumps(form, indent=2) + "\n", encoding="utf-8")
+            answers = load_json(answers_path); answers["answers_approved"] = False; answers["submission_authorized"] = False; answers_path.write_text(json.dumps(answers, indent=2) + "\n", encoding="utf-8")
+            session = load_json(session_path); session.update({"status": "recovery_requested", "submission_authorized": False, "document_upload_authorized": False, "browser_token": None, "submit_clicked": False, "recovery_notes": notes.strip()}); session_path.write_text(json.dumps(session, indent=2) + "\n", encoding="utf-8")
+            run = self.store.transition(run["id"], "form_questions_saved", "user", details={"submission_authorization_revoked": True, "document_upload_authorization_revoked": True, "new_question_count": len(added), "blocker_preserved": True})
         except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
             self.respond(409, {"error": str(exc)}); return
         self.respond(200, run)

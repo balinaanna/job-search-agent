@@ -88,6 +88,7 @@ ALLOWED_TRANSITIONS = {
     "submission_review_required": {"submission_authorized"},
     "submission_authorized": {"submission_in_progress"},
     "submission_in_progress": {"application_submitted", "submission_blocked"},
+    "submission_blocked": {"form_questions_saved"},
 }
 
 

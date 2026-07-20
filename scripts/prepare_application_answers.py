@@ -94,14 +94,31 @@ def validate_submission_result(payload: dict) -> tuple[str, str]:
     return outcome, evidence.strip()
 
 
+def append_recovery_questions(form: dict, questions_text: str) -> list[str]:
+    existing = {item["question"].strip().lower() for item in form.get("questions", [])}
+    added = []
+    next_number = max([int(item.get("question_id", "q_000").split("_")[-1]) for item in form.get("questions", []) if item.get("question_id", "").split("_")[-1].isdigit()] or [0]) + 1
+    for line in questions_text.splitlines():
+        question = line.strip().lstrip("-• ").strip()
+        if not question or question.lower() in existing: continue
+        form.setdefault("questions", []).append({"question_id": f"q_{next_number:03d}", "question": question})
+        existing.add(question.lower()); added.append(question); next_number += 1
+    return added
+
+
 def prepare(lead_id: str) -> Path:
     workspace = find_workspace(lead_id)
     form = load_json(workspace / "application_form.json")
     strategy = load_json(workspace / "candidate_strategy.json")
+    previous = {}
+    previous_path = workspace / "application_answers.json"
+    if previous_path.exists():
+        previous = {item.get("question", "").strip().lower(): item for item in load_json(previous_path).get("answers", [])}
     answer_strategies = strategy.get("application_answer_strategy", [])
     answers = []
     for item in form["questions"]:
         category = classify(item["question"])
+        prior = previous.get(item["question"].strip().lower())
         matched = strategy_for(item["question"], answer_strategies) if category == "narrative" else None
         if category == "attachment":
             status, answer, evidence, reason = "attachment_ready", None, [], "Use only the approved files in the application package."
@@ -114,6 +131,8 @@ def prepare(lead_id: str) -> Path:
             reason = f"Drafted from the verified candidate-strategy category: {matched.get('category', 'application answer')}."
         else:
             status, answer, evidence, reason = "requires_user_input", None, [], "No verified answer strategy supports a draft."
+        if prior and isinstance(prior.get("proposed_answer"), str) and prior["proposed_answer"].strip():
+            status, answer, evidence, reason = "drafted", prior["proposed_answer"].strip(), prior.get("evidence_ids", []), "Preserved from the previous user-reviewed answer. Fresh approval is required because the form changed."
         answers.append({"question_id": item["question_id"], "question": item["question"], "category": category, "status": status, "proposed_answer": answer, "evidence_ids": evidence, "reason": reason, "reviewed": False})
     payload = {"schema_version": "1.0", "lead_id": lead_id, "source_url": form.get("source_url"), "answers": answers, "submission_authorized": False}
     path = workspace / "application_answers.json"

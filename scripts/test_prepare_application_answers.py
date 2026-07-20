@@ -2,7 +2,7 @@
 
 import unittest
 
-from prepare_application_answers import apply_answer_review, classify, strategy_for, validate_form_fill_confirmation, validate_submission_authorization, validate_submission_result
+from prepare_application_answers import append_recovery_questions, apply_answer_review, classify, strategy_for, validate_form_fill_confirmation, validate_submission_authorization, validate_submission_result
 
 
 class ApplicationAnswerPreparationTests(unittest.TestCase):
@@ -63,6 +63,12 @@ class ApplicationAnswerPreparationTests(unittest.TestCase):
             validate_submission_result({"outcome": "submitted", "evidence": ""})
         with self.assertRaisesRegex(ValueError, "submitted or blocked"):
             validate_submission_result({"outcome": "unknown", "evidence": "message"})
+
+    def test_recovery_questions_append_without_duplicates(self) -> None:
+        form = {"questions": [{"question_id": "q_001", "question": "Why this role?"}]}
+        added = append_recovery_questions(form, "Why this role?\nDo you agree to the new declaration?")
+        self.assertEqual(added, ["Do you agree to the new declaration?"])
+        self.assertEqual(form["questions"][-1]["question_id"], "q_002")
 
 
 if __name__ == "__main__":
