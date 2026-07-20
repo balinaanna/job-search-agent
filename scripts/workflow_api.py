@@ -10,6 +10,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
+from write_resume_with_codex import find_workspace
 from surface_fit_queue import join_results, load_leads, load_valid_analyses
 from validate_job_lead import load_json
 from workflow_store import WorkflowStore
@@ -46,6 +47,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             run = self.store.latest_for_lead(parts[2])
             self.respond(200, run or {"status": "not_started"})
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-review":
+            self.get_resume_review(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def do_POST(self) -> None:
@@ -65,7 +69,24 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-draft":
             self.request_resume_draft(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-review":
+            self.request_resume_review(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-decision":
+            self.record_resume_decision(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
+
+    def get_resume_review(self, lead_id: str) -> None:
+        try:
+            workspace = find_workspace(lead_id)
+            review = load_json(workspace / "resume_review.json")
+            trace = load_json(workspace / "resume_trace.json")
+            resume = (workspace / "resume.md").read_text(encoding="utf-8")
+        except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+            self.respond(404, {"error": str(exc)})
+            return
+        self.respond(200, {"resume": resume, "review": review, "trace": trace})
 
     def request_analysis(self, lead_id: str) -> None:
         lead_path = self.leads_directory / f"{lead_id}.json"
@@ -105,6 +126,53 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         self.respond(202, run)
+
+    def request_resume_review(self, lead_id: str) -> None:
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] not in {"resume_draft_completed", "resume_review_failed"}:
+            self.respond(409, {"error": "A validated resume draft is required before review."})
+            return
+        try:
+            run = self.store.transition(run["id"], "resume_review_requested", "user")
+        except ValueError as exc:
+            self.respond(409, {"error": str(exc)})
+            return
+        subprocess.Popen(
+            [sys.executable, str(ROOT / "scripts/run_resume_review_worker.py"), run["id"]],
+            cwd=ROOT, start_new_session=True,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        self.respond(202, run)
+
+    def record_resume_decision(self, lead_id: str) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self.respond(400, {"error": "Invalid resume decision request."})
+            return
+        action = payload.get("action")
+        notes = payload.get("notes", "")
+        if action not in {"approve", "request_revision"} or not isinstance(notes, str):
+            self.respond(400, {"error": "Choose approve or request_revision and provide text notes."})
+            return
+        if action == "request_revision" and not notes.strip():
+            self.respond(400, {"error": "Tell the agent what you want changed."})
+            return
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] != "resume_review_completed":
+            self.respond(409, {"error": "Complete the resume review before making this decision."})
+            return
+        status = "resume_approved" if action == "approve" else "resume_revision_requested"
+        try:
+            run = self.store.transition(
+                run["id"], status, "user",
+                details={"explicit_user_approval": action == "approve", "notes": notes.strip()},
+            )
+        except ValueError as exc:
+            self.respond(409, {"error": str(exc)})
+            return
+        self.respond(200, run)
 
     def request_resume_plan(self, lead_id: str) -> None:
         run = self.store.latest_for_lead(lead_id)

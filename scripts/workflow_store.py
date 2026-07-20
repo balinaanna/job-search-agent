@@ -28,6 +28,11 @@ ALLOWED_TRANSITIONS = {
     "resume_draft_requested": {"resume_draft_running", "resume_draft_failed"},
     "resume_draft_running": {"resume_draft_completed", "resume_draft_failed"},
     "resume_draft_failed": {"resume_draft_requested"},
+    "resume_draft_completed": {"resume_review_requested"},
+    "resume_review_requested": {"resume_review_running", "resume_review_failed"},
+    "resume_review_running": {"resume_review_completed", "resume_review_failed"},
+    "resume_review_failed": {"resume_review_requested"},
+    "resume_review_completed": {"resume_approved", "resume_revision_requested"},
 }
 
 
