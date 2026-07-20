@@ -55,6 +55,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-pdf":
             self.get_resume_pdf(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-plan":
+            self.get_cover_letter_plan(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def do_POST(self) -> None:
@@ -92,6 +95,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-pdf-decision":
             self.record_resume_pdf_decision(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-plan":
+            self.request_cover_letter_plan(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def get_resume_review(self, lead_id: str) -> None:
@@ -118,6 +124,14 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Disposition", 'inline; filename="final_resume.pdf"')
         self.end_headers()
         self.wfile.write(body)
+
+    def get_cover_letter_plan(self, lead_id: str) -> None:
+        try:
+            plan = load_json(find_workspace(lead_id) / "cover_letter_plan.json")
+        except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+            self.respond(404, {"error": str(exc)})
+            return
+        self.respond(200, plan)
 
     def request_analysis(self, lead_id: str) -> None:
         lead_path = self.leads_directory / f"{lead_id}.json"
@@ -302,6 +316,22 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             shutil.rmtree(check_dir)
         run = self.store.transition(run["id"], "resume_pdf_completed", "user", details={"explicit_visual_approval": True})
         self.respond(200, run)
+
+    def request_cover_letter_plan(self, lead_id: str) -> None:
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] not in {"resume_pdf_completed", "cover_letter_plan_failed"}:
+            self.respond(409, {"error": "A visually approved resume PDF is required before cover letter planning."})
+            return
+        try:
+            run = self.store.transition(run["id"], "cover_letter_plan_requested", "user")
+        except ValueError as exc:
+            self.respond(409, {"error": str(exc)})
+            return
+        subprocess.Popen(
+            [sys.executable, str(ROOT / "scripts/run_cover_letter_plan_worker.py"), run["id"]], cwd=ROOT,
+            start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        self.respond(202, run)
 
     def request_resume_plan(self, lead_id: str) -> None:
         run = self.store.latest_for_lead(lead_id)

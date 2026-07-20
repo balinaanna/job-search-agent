@@ -152,3 +152,19 @@ class WorkflowStoreTests(unittest.TestCase):
         for status in statuses:
             run = self.store.transition(run["id"], status, "user")
         self.assertEqual(run["status"], "resume_pdf_completed")
+
+    def test_cover_letter_planning_requires_released_resume_pdf(self) -> None:
+        run = self.store.record_completed_analysis("lead-1", "analysis.json")
+        statuses = [
+            "pursue", "strategy_requested", "strategy_running", "strategy_completed",
+            "resume_plan_requested", "resume_plan_running", "resume_plan_completed",
+            "resume_draft_requested", "resume_draft_running", "resume_draft_completed",
+            "resume_review_requested", "resume_review_running", "resume_review_completed",
+            "resume_approved", "resume_finalization_requested", "resume_finalization_running",
+            "resume_finalization_completed", "resume_pdf_requested", "resume_pdf_running",
+            "resume_pdf_review_required", "resume_pdf_completed", "cover_letter_plan_requested",
+            "cover_letter_plan_running", "cover_letter_plan_completed",
+        ]
+        for status in statuses:
+            run = self.store.transition(run["id"], status, "user")
+        self.assertEqual(run["status"], "cover_letter_plan_completed")

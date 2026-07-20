@@ -46,6 +46,10 @@ ALLOWED_TRANSITIONS = {
     "resume_pdf_running": {"resume_pdf_review_required", "resume_pdf_failed"},
     "resume_pdf_failed": {"resume_pdf_requested"},
     "resume_pdf_review_required": {"resume_pdf_completed", "resume_pdf_failed"},
+    "resume_pdf_completed": {"cover_letter_plan_requested"},
+    "cover_letter_plan_requested": {"cover_letter_plan_running", "cover_letter_plan_failed"},
+    "cover_letter_plan_running": {"cover_letter_plan_completed", "cover_letter_plan_failed"},
+    "cover_letter_plan_failed": {"cover_letter_plan_requested"},
 }
 
 

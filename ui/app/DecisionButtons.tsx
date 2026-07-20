@@ -9,6 +9,7 @@ type ReviewData = {
   review: { review_score: { total: number }; verdict: string; first_impression: string; strengths: string[]; findings: Finding[] };
   trace: { elements: Array<{ element_id: string; final_text: string; evidence_ids: string[] }> };
 };
+type CoverLetterPlan = { recommendation: "write" | "optional" | "skip"; strategic_role: { rationale: string; adds_beyond_resume: string }; core_message: { thesis: string }; structure: { paragraph_count: number; target_words_min: number; target_words_max: number } };
 
 const labels: Record<string, string> = {
   pursue: "Pursue",
@@ -53,7 +54,7 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
   if (["resume_draft_completed", "resume_revision_completed", "resume_review_requested", "resume_review_running", "resume_review_failed", "resume_review_completed"].includes(status)) return <ResumeReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["resume_approved", "resume_finalization_requested", "resume_finalization_running", "resume_finalization_failed"].includes(status)) return <ResumeFinalizationAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["resume_finalization_completed", "resume_pdf_requested", "resume_pdf_running", "resume_pdf_failed", "resume_pdf_review_required"].includes(status)) return <ResumePdfAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (status === "resume_pdf_completed") return <div className="decision-saved pursue"><strong>Resume PDF ready</strong><span>Content and layout approved. Nothing has been submitted.</span></div>;
+  if (["resume_pdf_completed", "cover_letter_plan_requested", "cover_letter_plan_running", "cover_letter_plan_failed", "cover_letter_plan_completed"].includes(status)) return <CoverLetterPlanAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["resume_revision_requested", "resume_revision_running", "resume_revision_failed"].includes(status)) return <ResumeRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["pursue", "strategy_requested", "strategy_running", "strategy_failed"].includes(status)) return <StrategyAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (status === "pass") return <div className="decision-saved pass"><strong>{labels[status]}</strong><span>Removed from active consideration</span></div>;
@@ -418,4 +419,52 @@ function ResumePdfAction({ leadId, initialStatus, onStatus }: { leadId: string; 
     <div><button disabled={busy || !notes.trim()} onClick={() => decide("report_issue")}>Report layout issue</button><button className="approve" disabled={busy} onClick={() => decide("approve")}>PDF looks correct</button></div>
     {message && <small role="status">{message}</small>}
   </section>;
+}
+
+function CoverLetterPlanAction({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {
+  const [run, setRun] = useState<Run | null>(null);
+  const [plan, setPlan] = useState<CoverLetterPlan | null>(null);
+  const [message, setMessage] = useState(initialStatus === "cover_letter_plan_failed" ? "Cover letter planning needs attention. You can retry." : "Resume package approved. Decide whether a cover letter adds meaningful value.");
+  const working = run && ["cover_letter_plan_requested", "cover_letter_plan_running"].includes(run.status);
+
+  async function loadPlan() {
+    const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/cover-letter-plan`);
+    if (response.ok) setPlan(await response.json());
+  }
+
+  useEffect(() => {
+    if (["cover_letter_plan_requested", "cover_letter_plan_running", "cover_letter_plan_failed"].includes(initialStatus)) {
+      fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`).then((response) => response.ok ? response.json() : null).then((latest) => latest?.id && setRun(latest)).catch(() => undefined);
+    }
+    if (initialStatus === "cover_letter_plan_completed") void loadPlan();
+  }, [leadId, initialStatus]);
+
+  useEffect(() => {
+    if (!working || !run) return;
+    const timer = window.setInterval(async () => {
+      const response = await fetch(`http://localhost:8787/api/runs/${run.id}`);
+      if (!response.ok) return;
+      const next = await response.json();
+      setRun(next);
+      if (next.status === "cover_letter_plan_completed") { setMessage("Cover letter strategy completed and validated."); onStatus(next.status); await loadPlan(); }
+      if (next.status === "cover_letter_plan_failed") setMessage(next.error || "Cover letter planning needs attention.");
+    }, 1200);
+    return () => window.clearInterval(timer);
+  }, [working, run, onStatus]);
+
+  async function buildPlan() {
+    setMessage("Planning the cover letter from approved evidence…");
+    try {
+      const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/cover-letter-plan`, { method: "POST" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Cover letter planning could not start.");
+      setRun(payload);
+    } catch (error) {
+      setMessage(error instanceof TypeError ? "Workflow service is offline." : error instanceof Error ? error.message : "Cover letter planning could not start.");
+    }
+  }
+
+  if (!plan) return <div className="strategy-action"><div><strong>Resume PDF ready</strong><span>{message}</span></div><button disabled={Boolean(working)} onClick={buildPlan}>{working ? "Planning letter…" : "Plan cover letter"}</button></div>;
+
+  return <section className="cover-letter-plan"><header><div><span>COVER LETTER DECISION</span><strong>{plan.recommendation}</strong></div><b>{plan.structure.paragraph_count} paragraphs · {plan.structure.target_words_min}-{plan.structure.target_words_max} words</b></header><p>{plan.strategic_role.rationale}</p><div><strong>Core message</strong><span>{plan.core_message.thesis}</span></div>{plan.recommendation === "skip" ? <small>The planner found that a letter would not add enough value. The resume package remains ready.</small> : <small>Plan validated. Drafting is the next step.</small>}</section>;
 }
