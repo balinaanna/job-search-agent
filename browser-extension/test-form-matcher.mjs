@@ -63,4 +63,6 @@ test("capture adapter supports only the approved alert sources", async () => {
   assert.equal(capture.default.sourceForUrl("https://ca.indeed.com/viewjob?jk=123"), "indeed");
   assert.equal(capture.default.sourceForUrl("https://www.eluta.ca/spl/job-123"), "eluta");
   assert.equal(capture.default.sourceForUrl("https://example.com/jobs/123"), null);
+  assert.equal(capture.default.sourceForUrl("https://www.linkedin.com/in/example"), null);
+  assert.equal(capture.default.postingUrl("https://www.linkedin.com/jobs/search/?currentJobId=98765&origin=alerts"), "https://www.linkedin.com/jobs/view/98765");
 });
