@@ -152,6 +152,10 @@ h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .answer-list article>div { display:grid; gap:3px; }
 .answer-list article span,.answer-list article small { color:var(--muted); font-size:9px; text-transform:none; letter-spacing:0; }
 .answer-list article p { margin:0; font-size:10px; line-height:1.5; }
+.answer-list textarea { width:100%; box-sizing:border-box; min-height:74px; padding:9px; border:1px solid var(--line); border-radius:7px; background:#fff; font:10px/1.5 Arial,sans-serif; resize:vertical; }
+.answer-list textarea:disabled { color:#35443e; background:#f7f8f7; }
+.approve-answers { justify-self:end; padding:9px 13px; border:0; border-radius:7px; background:var(--green); color:#fff; font-size:10px; font-weight:750; }
+.approve-answers:disabled { opacity:.5; cursor:not-allowed; }
 .job-actions { display:flex; justify-content:flex-end; gap:10px; }
 .job-actions a,.job-actions button,.queue-table button { padding:8px 12px; border-radius:7px; font-size:11px; font-weight:700; text-decoration:none; }
 .job-actions a { color:#44514c; border:1px solid var(--line); }

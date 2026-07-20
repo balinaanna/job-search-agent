@@ -12,6 +12,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from write_resume_with_codex import find_workspace
+from prepare_application_answers import apply_answer_review
 from run_resume_pdf_worker import PDF_SCHEMA, pdf_environment, pdf_python
 from surface_fit_queue import join_results, load_leads, load_valid_analyses
 from validate_job_lead import load_json
@@ -140,6 +141,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-answers":
             self.request_application_answers(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-answers-decision":
+            self.approve_application_answers(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def get_resume_review(self, lead_id: str) -> None:
@@ -245,6 +249,26 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             self.respond(409, {"error": str(exc)}); return
         subprocess.Popen([sys.executable, str(ROOT / "scripts/run_application_answers_worker.py"), run["id"]], cwd=ROOT, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.respond(202, run)
+
+    def approve_application_answers(self, lead_id: str) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0")); payload = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self.respond(400, {"error": "Invalid answer-review request."}); return
+        submitted = payload.get("answers")
+        if not isinstance(submitted, list):
+            self.respond(400, {"error": "Reviewed answers are required."}); return
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] != "application_answers_completed":
+            self.respond(409, {"error": "A completed answer plan is required before approval."}); return
+        try:
+            workspace = find_workspace(lead_id); plan_path = workspace / "application_answers.json"; plan = load_json(plan_path)
+            plan = apply_answer_review(plan, submitted)
+            plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+            run = self.store.transition(run["id"], "application_answers_approved", "user", details={"explicit_answer_approval": True, "question_count": len(plan["answers"]), "submission_authorized": False})
+        except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
+            self.respond(409, {"error": str(exc)}); return
+        self.respond(200, run)
 
     def request_analysis(self, lead_id: str) -> None:
         lead_path = self.leads_directory / f"{lead_id}.json"

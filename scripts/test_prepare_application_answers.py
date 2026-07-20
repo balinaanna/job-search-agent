@@ -2,7 +2,7 @@
 
 import unittest
 
-from prepare_application_answers import classify, strategy_for
+from prepare_application_answers import apply_answer_review, classify, strategy_for
 
 
 class ApplicationAnswerPreparationTests(unittest.TestCase):
@@ -29,6 +29,15 @@ class ApplicationAnswerPreparationTests(unittest.TestCase):
             {"category": "customer support", "central_message": "Customer support experience", "recommended_ids": ["E-1"]},
         ]
         self.assertEqual(strategy_for("Describe your customer support experience", strategies), strategies[1])
+
+    def test_review_requires_answers_and_never_authorizes_submission(self) -> None:
+        plan = {"answers": [{"question_id": "q_001", "question": "Salary?", "status": "requires_user_input", "proposed_answer": None, "reviewed": False}], "submission_authorized": False}
+        with self.assertRaisesRegex(ValueError, "Answer required"):
+            apply_answer_review(plan, [{"question_id": "q_001", "answer": ""}])
+        reviewed = apply_answer_review(plan, [{"question_id": "q_001", "answer": "Prefer to discuss"}])
+        self.assertTrue(reviewed["answers_approved"])
+        self.assertFalse(reviewed["submission_authorized"])
+        self.assertEqual(reviewed["answers"][0]["status"], "user_confirmed")
 
 
 if __name__ == "__main__":

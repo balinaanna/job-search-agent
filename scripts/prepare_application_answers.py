@@ -44,6 +44,26 @@ def strategy_for(question: str, strategies: list[dict]) -> dict | None:
     return best[1] if best and best[0] else (strategies[0] if strategies else None)
 
 
+def apply_answer_review(plan: dict, submitted: list[dict]) -> dict:
+    originals = {item["question_id"]: item for item in plan.get("answers", [])}
+    provided = {item.get("question_id"): item.get("answer") for item in submitted if isinstance(item, dict)}
+    if set(provided) != set(originals):
+        raise ValueError("Review every application question before approval.")
+    for question_id, item in originals.items():
+        if item["status"] == "attachment_ready":
+            item["reviewed"] = True
+            continue
+        answer = provided[question_id]
+        if not isinstance(answer, str) or not answer.strip():
+            raise ValueError(f"Answer required for: {item['question']}")
+        item["proposed_answer"] = answer.strip()
+        item["status"] = "user_confirmed"
+        item["reviewed"] = True
+    plan["answers_approved"] = True
+    plan["submission_authorized"] = False
+    return plan
+
+
 def prepare(lead_id: str) -> Path:
     workspace = find_workspace(lead_id)
     form = load_json(workspace / "application_form.json")
