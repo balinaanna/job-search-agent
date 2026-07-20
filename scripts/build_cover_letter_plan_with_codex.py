@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 
 from analyze_job_with_codex import strict_output_schema
-from run_resume_pdf_worker import PDF_SCHEMA, pdf_python
+from run_resume_pdf_worker import PDF_SCHEMA, pdf_environment, pdf_python
 from validate_job_lead import load_json
 from write_resume_with_codex import find_workspace
 
@@ -63,7 +63,7 @@ def build_cover_letter_plan(lead_id: str, codex: str, model: str) -> Path:
     subprocess.run(
         [pdf_python(), "scripts/validate_resume_pdf.py", str(workspace), "--schema", str(PDF_SCHEMA),
          "--visual-inspection-passed", "--no-clipping", "--no-overlaps", "--no-broken-glyphs"],
-        cwd=ROOT, check=True,
+        cwd=ROOT, env=pdf_environment(), check=True,
     )
     strategy_path = create_strategy_handoff(workspace, manifest)
     prompt = f"""

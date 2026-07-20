@@ -12,7 +12,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from write_resume_with_codex import find_workspace
-from run_resume_pdf_worker import PDF_SCHEMA, pdf_python
+from run_resume_pdf_worker import PDF_SCHEMA, pdf_environment, pdf_python
 from surface_fit_queue import join_results, load_leads, load_valid_analyses
 from validate_job_lead import load_json
 from workflow_store import WorkflowStore
@@ -63,6 +63,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-pdf":
             self.get_cover_letter_pdf(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-package":
+            self.get_application_package(parts[2])
             return
         self.respond(404, {"error": "Not found."})
 
@@ -125,6 +128,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-pdf-decision":
             self.record_cover_letter_pdf_decision(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-package":
+            self.request_application_package(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def get_resume_review(self, lead_id: str) -> None:
@@ -183,6 +189,15 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Disposition", 'inline; filename="final_cover_letter.pdf"')
         self.end_headers()
         self.wfile.write(body)
+
+    def get_application_package(self, lead_id: str) -> None:
+        try:
+            workspace = find_workspace(lead_id)
+            package = load_json(workspace / "submission/application_package.json")
+            checklist = (workspace / "submission/submission_checklist.md").read_text(encoding="utf-8")
+        except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
+            self.respond(404, {"error": str(exc)}); return
+        self.respond(200, {"package": package, "checklist": checklist})
 
     def request_analysis(self, lead_id: str) -> None:
         lead_path = self.leads_directory / f"{lead_id}.json"
@@ -357,7 +372,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         result = subprocess.run(
             [pdf_python(), "scripts/validate_resume_pdf.py", str(workspace), "--schema", str(PDF_SCHEMA),
              "--visual-inspection-passed", "--no-clipping", "--no-overlaps", "--no-broken-glyphs"],
-            cwd=ROOT, capture_output=True, text=True,
+            cwd=ROOT, env=pdf_environment(), capture_output=True, text=True,
         )
         if result.returncode:
             self.respond(409, {"error": (result.stderr or result.stdout or "PDF validation failed.")[-4000:]})
@@ -522,11 +537,22 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if action == "report_issue":
             run = self.store.transition(run["id"], "cover_letter_pdf_failed", "user", details={"visual_issue": notes.strip()}, error=notes.strip())
             self.respond(200, run); return
-        result = subprocess.run([pdf_python(), "scripts/release_cover_letter_pdf.py", lead_id], cwd=ROOT, capture_output=True, text=True)
+        result = subprocess.run([pdf_python(), "scripts/release_cover_letter_pdf.py", lead_id], cwd=ROOT, env=pdf_environment(), capture_output=True, text=True)
         if result.returncode:
             self.respond(409, {"error": (result.stderr or result.stdout or "Cover letter PDF release failed.")[-4000:]}); return
         run = self.store.transition(run["id"], "cover_letter_pdf_completed", "user", details={"explicit_visual_approval": True})
         self.respond(200, run)
+
+    def request_application_package(self, lead_id: str) -> None:
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] not in {"cover_letter_pdf_completed", "cover_letter_skipped", "application_package_failed"}:
+            self.respond(409, {"error": "Approved application documents are required before packaging."}); return
+        try:
+            run = self.store.transition(run["id"], "application_package_requested", "user")
+        except ValueError as exc:
+            self.respond(409, {"error": str(exc)}); return
+        subprocess.Popen([sys.executable, str(ROOT / "scripts/run_application_package_worker.py"), run["id"]], cwd=ROOT, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.respond(202, run)
 
     def request_resume_plan(self, lead_id: str) -> None:
         run = self.store.latest_for_lead(lead_id)

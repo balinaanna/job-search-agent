@@ -12,7 +12,7 @@ from workflow_store import WorkflowStore
 from write_resume_with_codex import find_workspace
 
 ROOT = Path(__file__).resolve().parent.parent
-BUNDLED_PYTHON = Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3"
+BUNDLED_PACKAGES = Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/python"
 PDF_SCHEMA = ROOT / "hermes-skills/resume-pdf-renderer/references/resume-pdf-release-schema.json"
 
 
@@ -20,7 +20,15 @@ def pdf_python() -> str:
     configured = os.environ.get("PDF_PYTHON")
     if configured:
         return configured
-    return str(BUNDLED_PYTHON) if BUNDLED_PYTHON.exists() else sys.executable
+    return sys.executable
+
+
+def pdf_environment() -> dict[str, str]:
+    environment = os.environ.copy()
+    if BUNDLED_PACKAGES.exists():
+        current = environment.get("PYTHONPATH", "")
+        environment["PYTHONPATH"] = str(BUNDLED_PACKAGES) + (os.pathsep + current if current else "")
+    return environment
 
 
 def main() -> int:
@@ -31,12 +39,13 @@ def main() -> int:
     check_dir = workspace / "pdf_render_check"
     try:
         python = pdf_python()
-        subprocess.run([python, "scripts/render_resume_pdf.py", str(workspace)], cwd=ROOT, check=True, capture_output=True, text=True)
+        environment = pdf_environment()
+        subprocess.run([python, "scripts/render_resume_pdf.py", str(workspace)], cwd=ROOT, env=environment, check=True, capture_output=True, text=True)
         check_dir.mkdir(exist_ok=True)
         subprocess.run(["pdftoppm", "-png", "-r", "180", str(workspace / "final_resume.pdf"), str(check_dir / "page")], cwd=ROOT, check=True, capture_output=True, text=True)
         validation = subprocess.run(
             [python, "scripts/validate_resume_pdf.py", str(workspace), "--schema", str(PDF_SCHEMA)],
-            cwd=ROOT, capture_output=True, text=True,
+            cwd=ROOT, env=environment, capture_output=True, text=True,
         )
         if validation.returncode not in {0, 2}:
             raise subprocess.CalledProcessError(validation.returncode, validation.args, validation.stdout, validation.stderr)

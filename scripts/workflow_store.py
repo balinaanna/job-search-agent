@@ -72,6 +72,11 @@ ALLOWED_TRANSITIONS = {
     "cover_letter_pdf_running": {"cover_letter_pdf_review_required", "cover_letter_pdf_failed"},
     "cover_letter_pdf_failed": {"cover_letter_pdf_requested"},
     "cover_letter_pdf_review_required": {"cover_letter_pdf_completed", "cover_letter_pdf_failed"},
+    "cover_letter_pdf_completed": {"application_package_requested"},
+    "cover_letter_skipped": {"application_package_requested"},
+    "application_package_requested": {"application_package_running", "application_package_failed"},
+    "application_package_running": {"application_package_completed", "application_package_failed"},
+    "application_package_failed": {"application_package_requested"},
 }
 
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 import re, shutil, subprocess, sys
 from pathlib import Path
-from run_resume_pdf_worker import pdf_python
+from run_resume_pdf_worker import pdf_environment, pdf_python
 from workflow_store import WorkflowStore
 from write_resume_with_codex import find_workspace
 
@@ -22,9 +22,10 @@ def main() -> int:
     render_dir = workspace / ".cover_letter_pdf_render"
     try:
         python = pdf_python()
+        environment = pdf_environment()
         if render_dir.exists(): shutil.rmtree(render_dir)
-        subprocess.run([python, "scripts/render_cover_letter_pdf.py", str(workspace)], cwd=ROOT, check=True, capture_output=True, text=True)
-        check = subprocess.run([python, "-c", "from pypdf import PdfReader; import sys; print('\\n'.join((p.extract_text() or '') for p in PdfReader(sys.argv[1]).pages))", str(workspace / "final_cover_letter.pdf")], cwd=ROOT, check=True, capture_output=True, text=True)
+        subprocess.run([python, "scripts/render_cover_letter_pdf.py", str(workspace)], cwd=ROOT, env=environment, check=True, capture_output=True, text=True)
+        check = subprocess.run([python, "-c", "from pypdf import PdfReader; import sys; print('\\n'.join((p.extract_text() or '') for p in PdfReader(sys.argv[1]).pages))", str(workspace / "final_cover_letter.pdf")], cwd=ROOT, env=environment, check=True, capture_output=True, text=True)
         source = (workspace / "final_cover_letter.md").read_text(encoding="utf-8")
         if normalize(source) != normalize(check.stdout):
             raise ValueError("Rendered PDF text does not match the finalized cover letter.")

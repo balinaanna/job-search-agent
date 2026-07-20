@@ -61,7 +61,6 @@ def main() -> int:
     try:
         manifest = load_json(paths["manifest"])
         resume_release = load_json(paths["resume_release"])
-        cover_release = load_json(paths["cover_release"])
         package = load_json(paths["package"])
         schema = load_json(args.schema)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
@@ -69,6 +68,12 @@ def main() -> int:
         return 1
 
     errors: list[str] = []
+    include_cover = package.get("source_artifacts", {}).get("cover_letter_pdf") is not None
+    try:
+        cover_release = load_json(paths["cover_release"]) if include_cover else None
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
 
     validator = Draft202012Validator(
         schema,
@@ -87,7 +92,7 @@ def main() -> int:
     for name, artifact in [
         ("package", package),
         ("resume release", resume_release),
-        ("cover letter release", cover_release),
+        *(([("cover letter release", cover_release)]) if include_cover else []),
     ]:
         if artifact.get("application_id") != app_id:
             errors.append(f"{name} application ID mismatch.")
@@ -96,7 +101,8 @@ def main() -> int:
         if artifact.get("role") != manifest.get("role"):
             errors.append(f"{name} role mismatch.")
 
-    for path in paths.values():
+    required_paths = [path for key, path in paths.items() if include_cover or key not in {"source_cover", "cover_release", "packaged_cover"}]
+    for path in required_paths:
         if not path.exists():
             errors.append(f"Missing required artifact: {path}")
 
@@ -104,9 +110,11 @@ def main() -> int:
     hash_targets = {
         "source_resume_sha256": paths["source_resume"],
         "packaged_resume_sha256": paths["packaged_resume"],
-        "source_cover_letter_sha256": paths["source_cover"],
-        "packaged_cover_letter_sha256": paths["packaged_cover"],
     }
+    if include_cover:
+        hash_targets.update({"source_cover_letter_sha256": paths["source_cover"], "packaged_cover_letter_sha256": paths["packaged_cover"]})
+    elif hashes.get("source_cover_letter_sha256") is not None or hashes.get("packaged_cover_letter_sha256") is not None:
+        errors.append("Omitted cover letter hashes must be null.")
     for key, path in hash_targets.items():
         if path.exists() and hashes.get(key) != sha256_file(path):
             errors.append(f"Hash mismatch for {key}.")
@@ -114,7 +122,7 @@ def main() -> int:
     if paths["source_resume"].exists() and paths["packaged_resume"].exists():
         if paths["source_resume"].read_bytes() != paths["packaged_resume"].read_bytes():
             errors.append("Packaged resume is not identical to source.")
-    if paths["source_cover"].exists() and paths["packaged_cover"].exists():
+    if include_cover and paths["source_cover"].exists() and paths["packaged_cover"].exists():
         if paths["source_cover"].read_bytes() != paths["packaged_cover"].read_bytes():
             errors.append("Packaged cover letter is not identical to source.")
 
@@ -128,10 +136,8 @@ def main() -> int:
         if recorded_resume_hash != sha256_file(paths["source_resume"]):
             errors.append("Resume source hash does not match release metadata.")
 
-    recorded_cover_hash = cover_release.get("hashes", {}).get(
-        "final_cover_letter_pdf_sha256"
-    )
-    if paths["source_cover"].exists():
+    recorded_cover_hash = cover_release.get("hashes", {}).get("final_cover_letter_pdf_sha256") if include_cover else None
+    if include_cover and paths["source_cover"].exists():
         if recorded_cover_hash != sha256_file(paths["source_cover"]):
             errors.append(
                 "Cover letter source hash does not match release metadata."
@@ -141,8 +147,10 @@ def main() -> int:
     try:
         if pages(paths["packaged_resume"]) != page_counts.get("resume"):
             errors.append("Resume page count mismatch.")
-        if pages(paths["packaged_cover"]) != page_counts.get("cover_letter"):
+        if include_cover and pages(paths["packaged_cover"]) != page_counts.get("cover_letter"):
             errors.append("Cover letter page count mismatch.")
+        if not include_cover and page_counts.get("cover_letter") != 0:
+            errors.append("Omitted cover letter page count must be zero.")
     except Exception as exc:
         errors.append(f"Packaged PDF readability failed: {exc}")
 
@@ -151,10 +159,10 @@ def main() -> int:
         paths["resume_release"]
     ):
         errors.append("Resume release hash mismatch.")
-    if release_refs.get("cover_letter_release_sha256") != sha256_file(
-        paths["cover_release"]
-    ):
+    if include_cover and release_refs.get("cover_letter_release_sha256") != sha256_file(paths["cover_release"]):
         errors.append("Cover letter release hash mismatch.")
+    if not include_cover and (release_refs.get("cover_letter_pdf_release") is not None or release_refs.get("cover_letter_release_sha256") is not None):
+        errors.append("Omitted cover letter release references must be null.")
 
     identity = package.get("identity_checks", {})
     failed_identity = [key for key, value in identity.items() if value is not True]
@@ -178,7 +186,7 @@ def main() -> int:
 
     expected_manifest_artifacts = {
         "submission_resume_pdf": "submission/resume.pdf",
-        "submission_cover_letter_pdf": "submission/cover_letter.pdf",
+        "submission_cover_letter_pdf": "submission/cover_letter.pdf" if include_cover else None,
         "application_package_json": "submission/application_package.json",
         "application_package_markdown": "submission/application_package.md",
         "submission_checklist": "submission/submission_checklist.md",
