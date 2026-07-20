@@ -5,9 +5,10 @@ import json
 import tempfile
 import unittest
 import zipfile
+import hashlib
 from pathlib import Path
 
-from workflow_api import browser_extension_archive
+from workflow_api import browser_extension_archive, verified_document_bytes
 
 
 class BrowserExtensionArchiveTests(unittest.TestCase):
@@ -35,6 +36,14 @@ class BrowserExtensionArchiveTests(unittest.TestCase):
             ])
             manifest = json.loads(archive.read("job-application-assistant/manifest.json"))
             self.assertEqual(manifest["version"], "0.1.0")
+
+    def test_document_bytes_must_match_approved_hash(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "resume.pdf"; path.write_bytes(b"approved pdf bytes")
+            expected = hashlib.sha256(b"approved pdf bytes").hexdigest()
+            self.assertEqual(verified_document_bytes(path, expected), b"approved pdf bytes")
+            with self.assertRaisesRegex(ValueError, "integrity check failed"):
+                verified_document_bytes(path, "0" * 64)
 
 
 if __name__ == "__main__":

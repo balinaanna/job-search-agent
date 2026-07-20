@@ -5,7 +5,7 @@ import fs from "node:fs";
 
 const context = { globalThis: {} };
 vm.runInNewContext(fs.readFileSync(new URL("./form-matcher.js", import.meta.url), "utf8"), context);
-const { normalize, similarity, chooseOption, booleanIntent, matchAnswers } = context.globalThis.JobAgentMatcher;
+const { normalize, similarity, chooseOption, booleanIntent, matchAnswers, documentKind } = context.globalThis.JobAgentMatcher;
 
 function groupedField(type, name, legend, option) {
   const fieldset = { querySelector: (selector) => selector === "legend" ? { innerText: legend } : null };
@@ -27,6 +27,11 @@ test("recognizes explicit checkbox intent only", () => {
   assert.equal(booleanIntent("I agree"), true);
   assert.equal(booleanIntent("No"), false);
   assert.equal(booleanIntent("Please review this manually"), null);
+});
+test("classifies only clearly labelled approved document fields", () => {
+  assert.equal(documentKind("Upload your resume / CV"), "resume");
+  assert.equal(documentKind("Cover letter PDF"), "cover_letter");
+  assert.equal(documentKind("Supporting document"), null);
 });
 test("matches a common ATS yes-no radio group as one reviewed field", () => {
   const no = groupedField("radio", "sponsorship", "Will you require sponsorship?", "No");

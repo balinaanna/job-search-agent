@@ -52,6 +52,38 @@
     return true;
   }
 
+  async function sha256(buffer) {
+    const digest = await crypto.subtle.digest("SHA-256", buffer);
+    return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  }
+
+  async function uploadApprovedDocuments(payload) {
+    const uploaded = []; const blockers = [];
+    const fields = [...document.querySelectorAll('input[type="file"]')];
+    for (const field of fields) {
+      const label = globalThis.JobAgentMatcher.fieldLabel(field) || "unlabelled file field";
+      const kind = globalThis.JobAgentMatcher.documentKind(label);
+      if (!kind) { blockers.push(`Ambiguous file field: ${label}`); continue; }
+      const documentInfo = payload.documents?.[kind];
+      if (!payload.document_upload_authorized || !documentInfo) { blockers.push(`Manual file upload required: ${label}`); continue; }
+      try {
+        if (field.files?.length) {
+          const existingHash = await sha256(await field.files[0].arrayBuffer());
+          if (existingHash === documentInfo.sha256) { uploaded.push({ kind, filename: field.files[0].name, sha256: existingHash }); continue; }
+          blockers.push(`Document field already contains a different file: ${label}`); continue;
+        }
+        const response = await fetch(`http://localhost:8787/api/jobs/${encodeURIComponent(leadId)}/browser-document?token=${encodeURIComponent(token)}&kind=${kind}`);
+        if (!response.ok) throw new Error("approved document unavailable");
+        const bytes = await response.arrayBuffer(); const actualHash = await sha256(bytes);
+        if (actualHash !== documentInfo.sha256 || response.headers.get("X-Content-SHA256") !== documentInfo.sha256) throw new Error("document integrity mismatch");
+        const transfer = new DataTransfer(); transfer.items.add(new File([bytes], documentInfo.filename, { type: "application/pdf" })); field.files = transfer.files;
+        field.dispatchEvent(new Event("input", { bubbles: true })); field.dispatchEvent(new Event("change", { bubbles: true }));
+        uploaded.push({ kind, filename: documentInfo.filename, sha256: actualHash });
+      } catch (error) { blockers.push(`Document upload stopped for ${label}: ${error instanceof Error ? error.message : "unknown error"}`); }
+    }
+    return { uploaded, blockers };
+  }
+
   const endpoint = `http://localhost:8787/api/jobs/${encodeURIComponent(leadId)}/browser-fill?token=${encodeURIComponent(token)}`;
   async function scan() {
     try {
@@ -66,10 +98,10 @@
         else failed.push(match.answer.question);
       }
       const captcha = Boolean(document.querySelector('iframe[src*="captcha" i], [class*="captcha" i], [id*="captcha" i]'));
-      const fileUploads = [...document.querySelectorAll('input[type="file"]')].map((field) => globalThis.JobAgentMatcher.fieldLabel(field) || "document upload");
-      const blockers = [...failed, ...(captcha ? ["CAPTCHA detected"] : []), ...fileUploads.map((label) => `Manual file upload required: ${label}`), ...result.unusedFields.map((label) => `Unreviewed field: ${label}`)];
-      await fetch(`http://localhost:8787/api/jobs/${encodeURIComponent(leadId)}/browser-fill-report?token=${encodeURIComponent(token)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filled, unmatched: result.unmatched, blockers }) });
-      notice("Application assistant", blockers.length ? `${filled.length} answer(s) filled. Review ${blockers.length + result.unmatched.length} unmatched or blocked item(s). Nothing was submitted.` : `${filled.length} approved answer(s) filled. Review every field and upload the approved documents. Nothing was submitted.`, blockers.length > 0 || result.unmatched.length > 0, scan);
+      const documentResult = await uploadApprovedDocuments(payload);
+      const blockers = [...failed, ...(captcha ? ["CAPTCHA detected"] : []), ...documentResult.blockers, ...result.unusedFields.map((label) => `Unreviewed field: ${label}`)];
+      await fetch(`http://localhost:8787/api/jobs/${encodeURIComponent(leadId)}/browser-fill-report?token=${encodeURIComponent(token)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filled, uploaded: documentResult.uploaded, unmatched: result.unmatched, blockers }) });
+      notice("Application assistant", blockers.length ? `${filled.length} answer(s) and ${documentResult.uploaded.length} document(s) filled. Review ${blockers.length + result.unmatched.length} unmatched or blocked item(s). Nothing was submitted.` : `${filled.length} approved answer(s) and ${documentResult.uploaded.length} approved document(s) filled. Review every field. Nothing was submitted.`, blockers.length > 0 || result.unmatched.length > 0, scan);
     } catch (error) {
       if (error instanceof Error && /not active|token/i.test(error.message)) await chrome.runtime.sendMessage({ type: "job-agent-clear-session" });
       notice("Application assistant stopped", error instanceof Error ? error.message : "The form could not be filled.", true, scan);

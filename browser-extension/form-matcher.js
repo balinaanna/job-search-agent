@@ -57,6 +57,13 @@
     return null;
   }
 
+  function documentKind(label) {
+    const value = normalize(label);
+    if (/\bcover\s+letter\b/.test(value)) return "cover_letter";
+    if (/\b(resume|curriculum vitae|cv)\b/.test(value)) return "resume";
+    return null;
+  }
+
   function matchAnswers(answers, fields) {
     const used = new Set(); const matches = []; const unmatched = [];
     for (const answer of answers) {
@@ -82,5 +89,5 @@
     return { matches, unmatched, unusedFields: fields.filter((field) => !used.has(field)).map((field) => fieldLabel(field)).filter(Boolean) };
   }
 
-  root.JobAgentMatcher = { normalize, similarity, matchAnswers, eligibleFields, fieldLabel, optionLabel, chooseOption, booleanIntent };
+  root.JobAgentMatcher = { normalize, similarity, matchAnswers, eligibleFields, fieldLabel, optionLabel, chooseOption, booleanIntent, documentKind };
 })(globalThis);
