@@ -126,6 +126,9 @@ h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .cover-letter-plan>div { display:grid; gap:4px; padding-top:9px; border-top:1px solid var(--line); }
 .cover-letter-plan>div strong { font-size:10px; }
 .cover-letter-plan>div span,.cover-letter-plan>small { color:var(--muted); font-size:9px; line-height:1.45; }
+.cover-letter-plan>div.plan-action { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.cover-letter-plan .plan-action button { flex:none; padding:9px 12px; border:0; border-radius:7px; background:var(--green); color:#fff; font-size:10px; font-weight:750; }
+.cover-letter-plan .plan-action button:disabled { opacity:.55; cursor:wait; }
 .job-actions { display:flex; justify-content:flex-end; gap:10px; }
 .job-actions a,.job-actions button,.queue-table button { padding:8px 12px; border-radius:7px; font-size:11px; font-weight:700; text-decoration:none; }
 .job-actions a { color:#44514c; border:1px solid var(--line); }

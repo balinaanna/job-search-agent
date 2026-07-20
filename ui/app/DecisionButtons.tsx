@@ -54,7 +54,10 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
   if (["resume_draft_completed", "resume_revision_completed", "resume_review_requested", "resume_review_running", "resume_review_failed", "resume_review_completed"].includes(status)) return <ResumeReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["resume_approved", "resume_finalization_requested", "resume_finalization_running", "resume_finalization_failed"].includes(status)) return <ResumeFinalizationAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["resume_finalization_completed", "resume_pdf_requested", "resume_pdf_running", "resume_pdf_failed", "resume_pdf_review_required"].includes(status)) return <ResumePdfAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["resume_pdf_completed", "cover_letter_plan_requested", "cover_letter_plan_running", "cover_letter_plan_failed", "cover_letter_plan_completed"].includes(status)) return <CoverLetterPlanAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (["resume_pdf_completed", "cover_letter_plan_requested", "cover_letter_plan_running", "cover_letter_plan_failed"].includes(status)) return <CoverLetterPlanAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (["cover_letter_plan_completed", "cover_letter_draft_requested", "cover_letter_draft_running", "cover_letter_draft_failed"].includes(status)) return <CoverLetterDraftAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (status === "cover_letter_draft_completed") return <div className="decision-saved pursue"><strong>Cover letter draft ready</strong><span>Evidence trace validated and ready for review.</span></div>;
+  if (status === "cover_letter_skipped") return <div className="decision-saved"><strong>Cover letter skipped</strong><span>The plan found that a letter would not add meaningful value.</span></div>;
   if (["resume_revision_requested", "resume_revision_running", "resume_revision_failed"].includes(status)) return <ResumeRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["pursue", "strategy_requested", "strategy_running", "strategy_failed"].includes(status)) return <StrategyAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (status === "pass") return <div className="decision-saved pass"><strong>{labels[status]}</strong><span>Removed from active consideration</span></div>;
@@ -467,4 +470,46 @@ function CoverLetterPlanAction({ leadId, initialStatus, onStatus }: { leadId: st
   if (!plan) return <div className="strategy-action"><div><strong>Resume PDF ready</strong><span>{message}</span></div><button disabled={Boolean(working)} onClick={buildPlan}>{working ? "Planning letter…" : "Plan cover letter"}</button></div>;
 
   return <section className="cover-letter-plan"><header><div><span>COVER LETTER DECISION</span><strong>{plan.recommendation}</strong></div><b>{plan.structure.paragraph_count} paragraphs · {plan.structure.target_words_min}-{plan.structure.target_words_max} words</b></header><p>{plan.strategic_role.rationale}</p><div><strong>Core message</strong><span>{plan.core_message.thesis}</span></div>{plan.recommendation === "skip" ? <small>The planner found that a letter would not add enough value. The resume package remains ready.</small> : <small>Plan validated. Drafting is the next step.</small>}</section>;
+}
+
+function CoverLetterDraftAction({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {
+  const [run, setRun] = useState<Run | null>(null);
+  const [plan, setPlan] = useState<CoverLetterPlan | null>(null);
+  const [message, setMessage] = useState(initialStatus === "cover_letter_draft_failed" ? "Cover letter drafting needs attention. You can retry." : "Plan validated. Drafting will stay within its evidence and wording controls.");
+  const working = run && ["cover_letter_draft_requested", "cover_letter_draft_running"].includes(run.status);
+
+  useEffect(() => {
+    fetch(`http://localhost:8787/api/jobs/${leadId}/cover-letter-plan`).then((response) => response.ok ? response.json() : null).then((value) => value?.recommendation && setPlan(value)).catch(() => undefined);
+    if (["cover_letter_draft_requested", "cover_letter_draft_running", "cover_letter_draft_failed"].includes(initialStatus)) {
+      fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`).then((response) => response.ok ? response.json() : null).then((latest) => latest?.id && setRun(latest)).catch(() => undefined);
+    }
+  }, [leadId, initialStatus]);
+
+  useEffect(() => {
+    if (!working || !run) return;
+    const timer = window.setInterval(async () => {
+      const response = await fetch(`http://localhost:8787/api/runs/${run.id}`);
+      if (!response.ok) return;
+      const next = await response.json();
+      setRun(next);
+      if (next.status === "cover_letter_draft_completed") { setMessage("Cover letter drafted and evidence trace validated."); onStatus(next.status); }
+      if (next.status === "cover_letter_draft_failed") setMessage(next.error || "Cover letter drafting needs attention.");
+    }, 1200);
+    return () => window.clearInterval(timer);
+  }, [working, run, onStatus]);
+
+  async function draft() {
+    setMessage(plan?.recommendation === "skip" ? "Recording the plan's skip recommendation…" : "Drafting the evidence-based cover letter…");
+    try {
+      const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/cover-letter-draft`, { method: "POST" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Cover letter drafting could not start.");
+      if (payload.status === "cover_letter_skipped") onStatus(payload.status); else setRun(payload);
+    } catch (error) {
+      setMessage(error instanceof TypeError ? "Workflow service is offline." : error instanceof Error ? error.message : "Cover letter drafting could not start.");
+    }
+  }
+
+  if (!plan) return <div className="strategy-action"><div><strong>Cover letter plan ready</strong><span>{message}</span></div></div>;
+  return <section className="cover-letter-plan"><header><div><span>COVER LETTER DECISION</span><strong>{plan.recommendation}</strong></div><b>{plan.structure.paragraph_count} paragraphs · {plan.structure.target_words_min}-{plan.structure.target_words_max} words</b></header><p>{plan.strategic_role.rationale}</p><div><strong>Core message</strong><span>{plan.core_message.thesis}</span></div><div className="plan-action"><small>{message}</small><button disabled={Boolean(working)} onClick={draft}>{working ? "Drafting letter…" : plan.recommendation === "skip" ? "Continue without letter" : "Draft cover letter"}</button></div></section>;
 }

@@ -98,6 +98,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-plan":
             self.request_cover_letter_plan(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-draft":
+            self.request_cover_letter_draft(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def get_resume_review(self, lead_id: str) -> None:
@@ -329,6 +332,35 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         subprocess.Popen(
             [sys.executable, str(ROOT / "scripts/run_cover_letter_plan_worker.py"), run["id"]], cwd=ROOT,
+            start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        self.respond(202, run)
+
+    def request_cover_letter_draft(self, lead_id: str) -> None:
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] not in {"cover_letter_plan_completed", "cover_letter_draft_failed"}:
+            self.respond(409, {"error": "A validated cover letter plan is required before drafting."})
+            return
+        workspace = find_workspace(lead_id)
+        plan = load_json(workspace / "cover_letter_plan.json")
+        if plan.get("recommendation") == "skip":
+            if run["status"] != "cover_letter_plan_completed":
+                self.respond(409, {"error": "This cover letter plan cannot be skipped from its current state."})
+                return
+            run = self.store.transition(run["id"], "cover_letter_skipped", "user", details={"plan_recommendation": "skip"})
+            manifest_path = workspace / "application_manifest.json"
+            manifest = load_json(manifest_path)
+            manifest["status"] = "cover_letter_skipped"
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            self.respond(200, run)
+            return
+        try:
+            run = self.store.transition(run["id"], "cover_letter_draft_requested", "user")
+        except ValueError as exc:
+            self.respond(409, {"error": str(exc)})
+            return
+        subprocess.Popen(
+            [sys.executable, str(ROOT / "scripts/run_cover_letter_draft_worker.py"), run["id"]], cwd=ROOT,
             start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         self.respond(202, run)

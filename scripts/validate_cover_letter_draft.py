@@ -127,6 +127,7 @@ def main() -> int:
 
     resume_element_ids = collect_trace_element_ids(resume_trace)
 
+    normalized_letter = normalize(letter_text)
     for planned, written in zip(plan_paragraphs, trace_paragraphs):
         if written.get("purpose") != planned.get("purpose"):
             errors.append(
@@ -154,9 +155,12 @@ def main() -> int:
             errors.append(
                 f"{written.get('paragraph_id')} word count should be {wc}."
             )
+        if normalize(written.get("text", "")) not in normalized_letter:
+            errors.append(
+                f"{written.get('paragraph_id')} trace text does not appear in the letter."
+            )
 
     forbidden_phrases = set(plan.get("writing_controls", {}).get("forbidden_phrases", []))
-    normalized_letter = normalize(letter_text)
     for phrase in forbidden_phrases:
         if normalize(phrase) in normalized_letter:
             errors.append(f"Forbidden phrase found: {phrase}")

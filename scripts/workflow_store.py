@@ -50,6 +50,10 @@ ALLOWED_TRANSITIONS = {
     "cover_letter_plan_requested": {"cover_letter_plan_running", "cover_letter_plan_failed"},
     "cover_letter_plan_running": {"cover_letter_plan_completed", "cover_letter_plan_failed"},
     "cover_letter_plan_failed": {"cover_letter_plan_requested"},
+    "cover_letter_plan_completed": {"cover_letter_draft_requested", "cover_letter_skipped"},
+    "cover_letter_draft_requested": {"cover_letter_draft_running", "cover_letter_draft_failed"},
+    "cover_letter_draft_running": {"cover_letter_draft_completed", "cover_letter_draft_failed"},
+    "cover_letter_draft_failed": {"cover_letter_draft_requested"},
 }
 
 
