@@ -203,6 +203,16 @@ def apply_filter_decision(
     lead: dict[str, Any],
     decision: FilterDecision,
 ) -> None:
+    protected_statuses = {
+        "shortlisted",
+        "analysis_started",
+        "analysis_completed",
+        "application_started",
+        "applied",
+        "closed",
+        "archived",
+    }
+    existing_status = lead["status"]["lead_status"]
     lead["discovery"]["hard_filter_result"] = decision.result
     lead["discovery"]["hard_filter_reasons"] = list(decision.reasons)
 
@@ -215,6 +225,9 @@ def apply_filter_decision(
     else:
         lead["discovery"]["full_analysis_recommended"] = None
         lead["status"]["lead_status"] = "new"
+
+    if existing_status in protected_statuses:
+        lead["status"]["lead_status"] = existing_status
 
 
 def write_json(path: Path, value: dict[str, Any]) -> None:

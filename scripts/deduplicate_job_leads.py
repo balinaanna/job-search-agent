@@ -219,13 +219,27 @@ def choose_canonical(
     first: dict[str, Any],
     second: dict[str, Any],
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    workflow_priority = {
+        "applied": 1000,
+        "application_started": 900,
+        "analysis_completed": 800,
+        "analysis_started": 700,
+        "shortlisted": 600,
+        "eligible": 100,
+        "new": 50,
+        "rejected": 20,
+        "closed": 10,
+        "archived": 0,
+    }
     first_rank = (
+        workflow_priority.get(first["status"]["lead_status"], 0),
         source_priority(first),
         completeness_score(first),
         -collected_timestamp(first).timestamp(),
     )
 
     second_rank = (
+        workflow_priority.get(second["status"]["lead_status"], 0),
         source_priority(second),
         completeness_score(second),
         -collected_timestamp(second).timestamp(),

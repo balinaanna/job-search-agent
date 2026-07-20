@@ -53,6 +53,26 @@ public read endpoints. It must not submit applications or access candidate
 data. Employer names and board identifiers must be verified before they are
 added to the active source configuration.
 
+## End-to-end discovery run
+
+Run the configured public collection sources through the complete discovery
+pipeline and write the ranked shortlist:
+
+```bash
+PYTHONPATH=scripts python3 scripts/run_job_discovery.py
+```
+
+To process raw postings already on disk without network access:
+
+```bash
+PYTHONPATH=scripts python3 scripts/run_job_discovery.py --skip-collection
+```
+
+Repeated runs refresh posting content and timestamps while preserving review,
+analysis, application, closed, and archived workflow states. An in-progress or
+applied record remains canonical when the same job appears through another
+source.
+
 ## Normalization
 
 Normalize a raw job-posting JSON file with:

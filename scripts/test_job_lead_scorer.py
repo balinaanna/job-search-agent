@@ -124,6 +124,15 @@ class JobLeadScorerTests(unittest.TestCase):
             results[1][1].preliminary_score,
         )
 
+    def test_scoring_does_not_reset_application_status(self) -> None:
+        self.lead["status"]["lead_status"] = "application_started"
+        result = calculate_score(self.lead, self.criteria)
+        apply_score_result(self.lead, result, self.criteria)
+        self.assertEqual(
+            self.lead["status"]["lead_status"],
+            "application_started",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

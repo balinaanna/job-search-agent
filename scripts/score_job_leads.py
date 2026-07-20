@@ -446,6 +446,16 @@ def apply_score_result(
     result: ScoreResult,
     criteria: dict[str, Any],
 ) -> None:
+    protected_statuses = {
+        "shortlisted",
+        "analysis_started",
+        "analysis_completed",
+        "application_started",
+        "applied",
+        "closed",
+        "archived",
+    }
+    existing_status = lead["status"]["lead_status"]
     discovery = lead["discovery"]
     discovery["preliminary_score"] = result.preliminary_score
     discovery["score_components"] = result.components
@@ -461,6 +471,9 @@ def apply_score_result(
         lead["status"]["lead_status"] = "eligible"
     else:
         lead["status"]["lead_status"] = "rejected"
+
+    if existing_status in protected_statuses:
+        lead["status"]["lead_status"] = existing_status
 
 
 def load_lead_files(directory: Path) -> list[tuple[Path, dict[str, Any]]]:

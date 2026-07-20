@@ -121,6 +121,12 @@ class JobLeadFilterTests(unittest.TestCase):
         )
         self.assertEqual(decisions, [])
 
+    def test_filter_does_not_reset_applied_status(self) -> None:
+        self.lead["status"]["lead_status"] = "applied"
+        decision = evaluate_hard_filters(self.lead, self.criteria)
+        apply_filter_decision(self.lead, decision)
+        self.assertEqual(self.lead["status"]["lead_status"], "applied")
+
 
 if __name__ == "__main__":
     unittest.main()

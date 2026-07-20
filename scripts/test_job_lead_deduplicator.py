@@ -127,6 +127,21 @@ class JobLeadDeduplicatorTests(unittest.TestCase):
             "linkedin-copy",
         )
 
+    def test_applied_record_remains_canonical_across_sources(self) -> None:
+        company = self.build_example()
+        company["lead_id"] = "company-copy"
+        company["source"]["platform"] = "company_careers"
+
+        applied = copy.deepcopy(company)
+        applied["lead_id"] = "applied-linkedin-copy"
+        applied["source"]["platform"] = "linkedin"
+        applied["status"]["lead_status"] = "applied"
+
+        canonical, duplicate = choose_canonical(company, applied)
+
+        self.assertEqual(canonical["lead_id"], "applied-linkedin-copy")
+        self.assertEqual(duplicate["lead_id"], "company-copy")
+
     def test_remote_and_on_site_are_incompatible(self) -> None:
         first = self.build_example()
         second = copy.deepcopy(first)
