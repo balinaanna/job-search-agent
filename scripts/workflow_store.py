@@ -59,6 +59,10 @@ ALLOWED_TRANSITIONS = {
     "cover_letter_review_running": {"cover_letter_review_completed", "cover_letter_review_failed"},
     "cover_letter_review_failed": {"cover_letter_review_requested"},
     "cover_letter_review_completed": {"cover_letter_approved", "cover_letter_revision_requested"},
+    "cover_letter_revision_requested": {"cover_letter_revision_running", "cover_letter_revision_failed"},
+    "cover_letter_revision_running": {"cover_letter_revision_completed", "cover_letter_revision_failed"},
+    "cover_letter_revision_failed": {"cover_letter_revision_requested"},
+    "cover_letter_revision_completed": {"cover_letter_review_requested"},
 }
 
 

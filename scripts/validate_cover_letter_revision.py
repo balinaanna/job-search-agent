@@ -303,6 +303,9 @@ def main() -> int:
         )
 
     normalized_letter = normalize(current_letter)
+    for paragraph_id, paragraph in trace_paragraphs.items():
+        if normalize(paragraph.get("text", "")) not in normalized_letter:
+            errors.append(f"{paragraph_id} trace text does not appear in the revised letter.")
     forbidden_phrases = plan.get("writing_controls", {}).get(
         "forbidden_phrases", []
     )

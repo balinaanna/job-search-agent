@@ -110,6 +110,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-decision":
             self.record_cover_letter_decision(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-revision":
+            self.request_cover_letter_revision(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def get_resume_review(self, lead_id: str) -> None:
@@ -387,7 +390,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
 
     def request_cover_letter_review(self, lead_id: str) -> None:
         run = self.store.latest_for_lead(lead_id)
-        if run is None or run["status"] not in {"cover_letter_draft_completed", "cover_letter_review_failed"}:
+        if run is None or run["status"] not in {"cover_letter_draft_completed", "cover_letter_revision_completed", "cover_letter_review_failed"}:
             self.respond(409, {"error": "A validated cover letter draft is required before review."})
             return
         try:
@@ -422,6 +425,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         review = load_json(find_workspace(lead_id) / "cover_letter_review.json")
         blocking = any(item.get("severity") in {"critical", "high"} for item in review.get("findings", []))
+        if action == "request_revision" and review.get("verdict") == "ready":
+            self.respond(409, {"error": "This review is Ready and does not authorize a revision. Approve the letter instead."})
+            return
         if action == "approve" and (review.get("verdict") != "ready" or review.get("score", 0) < 90 or blocking):
             self.respond(409, {"error": "Resolve the review findings and reach a Ready verdict before approval."})
             return
@@ -431,6 +437,23 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             details={"explicit_user_approval": action == "approve", "notes": notes.strip()},
         )
         self.respond(200, run)
+
+    def request_cover_letter_revision(self, lead_id: str) -> None:
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] not in {"cover_letter_revision_requested", "cover_letter_revision_failed"}:
+            self.respond(409, {"error": "A non-ready review with revision notes is required."})
+            return
+        if run["status"] == "cover_letter_revision_failed":
+            try:
+                run = self.store.transition(run["id"], "cover_letter_revision_requested", "user", details={"retry": True})
+            except ValueError as exc:
+                self.respond(409, {"error": str(exc)})
+                return
+        subprocess.Popen(
+            [sys.executable, str(ROOT / "scripts/run_cover_letter_revision_worker.py"), run["id"]], cwd=ROOT,
+            start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        self.respond(202, run)
 
     def request_resume_plan(self, lead_id: str) -> None:
         run = self.store.latest_for_lead(lead_id)

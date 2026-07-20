@@ -16,6 +16,7 @@ from write_resume_with_codex import find_workspace
 ROOT = Path(__file__).resolve().parent.parent
 REVIEW_SCHEMA = ROOT / "hermes-skills/cover-letter-reviewer/references/cover-letter-review-schema.json"
 TRACE_SCHEMA = ROOT / "hermes-skills/cover-letter-writer/references/cover-letter-trace-schema.json"
+REVISION_SCHEMA = ROOT / "hermes-skills/cover-letter-reviser/references/cover-letter-revision-schema.json"
 
 
 def reduce_score(breakdown: dict, target: int) -> None:
@@ -70,12 +71,14 @@ def review_cover_letter(lead_id: str, codex: str, model: str) -> Path:
     workspace = find_workspace(lead_id)
     manifest_path = workspace / "application_manifest.json"
     manifest = load_json(manifest_path)
-    if manifest.get("status") != "cover_letter_drafting":
+    if manifest.get("status") not in {"cover_letter_drafting", "cover_letter_revision"}:
         raise ValueError("A validated cover letter draft is required before review.")
-    subprocess.run(
-        [os.sys.executable, "scripts/validate_cover_letter_draft.py", str(workspace), "--schema", str(TRACE_SCHEMA)],
-        cwd=ROOT, check=True,
+    validator = (
+        [os.sys.executable, "scripts/validate_cover_letter_revision.py", str(workspace), "--schema", str(REVISION_SCHEMA)]
+        if manifest.get("status") == "cover_letter_revision"
+        else [os.sys.executable, "scripts/validate_cover_letter_draft.py", str(workspace), "--schema", str(TRACE_SCHEMA)]
     )
+    subprocess.run(validator, cwd=ROOT, check=True)
     prompt = f"""
 Review the cover letter using the complete hermes-skills/cover-letter-reviewer/SKILL.md workflow.
 Use only {workspace.relative_to(ROOT)}, its recorded job analysis, and verified profile evidence.

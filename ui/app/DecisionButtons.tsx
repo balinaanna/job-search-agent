@@ -57,9 +57,9 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
   if (["resume_finalization_completed", "resume_pdf_requested", "resume_pdf_running", "resume_pdf_failed", "resume_pdf_review_required"].includes(status)) return <ResumePdfAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["resume_pdf_completed", "cover_letter_plan_requested", "cover_letter_plan_running", "cover_letter_plan_failed"].includes(status)) return <CoverLetterPlanAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["cover_letter_plan_completed", "cover_letter_draft_requested", "cover_letter_draft_running", "cover_letter_draft_failed"].includes(status)) return <CoverLetterDraftAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["cover_letter_draft_completed", "cover_letter_review_requested", "cover_letter_review_running", "cover_letter_review_failed", "cover_letter_review_completed"].includes(status)) return <CoverLetterReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (["cover_letter_draft_completed", "cover_letter_revision_completed", "cover_letter_review_requested", "cover_letter_review_running", "cover_letter_review_failed", "cover_letter_review_completed"].includes(status)) return <CoverLetterReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (status === "cover_letter_approved") return <div className="decision-saved pursue"><strong>Cover letter approved</strong><span>Your explicit approval was recorded. Nothing has been submitted.</span></div>;
-  if (status === "cover_letter_revision_requested") return <div className="decision-saved"><strong>Cover letter revision requested</strong><span>Your notes were saved for the controlled revision pass.</span></div>;
+  if (["cover_letter_revision_requested", "cover_letter_revision_running", "cover_letter_revision_failed"].includes(status)) return <CoverLetterRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (status === "cover_letter_skipped") return <div className="decision-saved"><strong>Cover letter skipped</strong><span>The plan found that a letter would not add meaningful value.</span></div>;
   if (["resume_revision_requested", "resume_revision_running", "resume_revision_failed"].includes(status)) return <ResumeRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["pursue", "strategy_requested", "strategy_running", "strategy_failed"].includes(status)) return <StrategyAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
@@ -520,7 +520,7 @@ function CoverLetterDraftAction({ leadId, initialStatus, onStatus }: { leadId: s
 function CoverLetterReviewAction({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {
   const [run, setRun] = useState<Run | null>(null);
   const [data, setData] = useState<CoverLetterReviewData | null>(null);
-  const [message, setMessage] = useState(initialStatus === "cover_letter_review_failed" ? "The review needs attention. You can retry." : "The traced draft is ready for a recruiter-style review.");
+  const [message, setMessage] = useState(initialStatus === "cover_letter_review_failed" ? "The review needs attention. You can retry." : initialStatus === "cover_letter_revision_completed" ? "The revised letter passed provenance validation and must be reviewed again." : "The traced draft is ready for a recruiter-style review.");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const working = run && ["cover_letter_review_requested", "cover_letter_review_running"].includes(run.status);
@@ -586,7 +586,44 @@ function CoverLetterReviewAction({ leadId, initialStatus, onStatus }: { leadId: 
     <details open={data.review.findings.some((item) => ["critical", "high"].includes(item.severity))}><summary>Review findings ({data.review.findings.length})</summary><div className="review-findings">{data.review.findings.length ? data.review.findings.map((item) => <article key={item.finding_id}><span className={item.severity}>{item.severity}</span><strong>{item.paragraph_id}</strong><p>{item.issue}</p><small>{item.revision_instruction}</small></article>) : <p>No revision findings.</p>}</div></details>
     <details><summary>Evidence trace ({data.trace.paragraphs.length} paragraphs)</summary><div className="evidence-trace">{data.trace.paragraphs.map((item) => <article key={item.paragraph_id}><p>{item.text}</p><small>Evidence: {item.evidence_ids.join(", ")}</small></article>)}</div></details>
     <label><span>Revision notes</span><textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Tell the agent what should change before approval." /></label>
-    <div className="review-actions"><button disabled={busy || !notes.trim()} onClick={() => decide("request_revision")}>Request revision</button><button className="approve" disabled={busy || data.review.verdict !== "ready"} onClick={() => decide("approve")}>Approve cover letter</button></div>
+    <div className="review-actions"><button disabled={busy || !notes.trim() || data.review.verdict === "ready"} onClick={() => decide("request_revision")}>Request revision</button><button className="approve" disabled={busy || data.review.verdict !== "ready"} onClick={() => decide("approve")}>Approve cover letter</button></div>
     {data.review.verdict !== "ready" && <small>Resolve the review findings before approval.</small>}{message && <small role="status">{message}</small>}
   </section>;
+}
+
+function CoverLetterRevisionAction({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {
+  const [run, setRun] = useState<Run | null>(null);
+  const [message, setMessage] = useState(initialStatus === "cover_letter_revision_failed" ? "The revision needs attention. You can retry without losing the reviewed version." : "Your notes and the authorized review findings are ready for a controlled revision.");
+  const working = run && ["cover_letter_revision_requested", "cover_letter_revision_running"].includes(run.status);
+
+  useEffect(() => {
+    fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`).then((response) => response.ok ? response.json() : null).then((latest) => latest?.id && setRun(latest)).catch(() => undefined);
+  }, [leadId]);
+
+  useEffect(() => {
+    if (!working || !run) return;
+    const timer = window.setInterval(async () => {
+      const response = await fetch(`http://localhost:8787/api/runs/${run.id}`);
+      if (!response.ok) return;
+      const next = await response.json();
+      setRun(next);
+      if (next.status === "cover_letter_revision_completed") { setMessage("Revision completed and validated."); onStatus(next.status); }
+      if (next.status === "cover_letter_revision_failed") setMessage(next.error || "Cover letter revision needs attention.");
+    }, 1200);
+    return () => window.clearInterval(timer);
+  }, [working, run, onStatus]);
+
+  async function revise() {
+    setMessage("Creating a bounded revision with versioned backups…");
+    try {
+      const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/cover-letter-revision`, { method: "POST" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Cover letter revision could not start.");
+      setRun(payload);
+    } catch (error) {
+      setMessage(error instanceof TypeError ? "Workflow service is offline." : error instanceof Error ? error.message : "Cover letter revision could not start.");
+    }
+  }
+
+  return <div className="strategy-action"><div><strong>Cover letter revision requested</strong><span>{message}</span></div><button disabled={Boolean(working)} onClick={revise}>{working ? "Revising letter…" : "Revise cover letter"}</button></div>;
 }
