@@ -42,7 +42,8 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
     }
   }
 
-  if (status === "strategy_completed") return <div className="decision-saved pursue"><strong>Strategy ready</strong><span>Validated and ready for document planning</span></div>;
+  if (["strategy_completed", "resume_plan_requested", "resume_plan_running", "resume_plan_failed"].includes(status)) return <ApplicationStart leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (status === "resume_plan_completed") return <div className="decision-saved pursue"><strong>Application started</strong><span>Resume plan validated and ready for drafting</span></div>;
   if (["pursue", "strategy_requested", "strategy_running", "strategy_failed"].includes(status)) return <StrategyAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (status === "pass") return <div className="decision-saved pass"><strong>{labels[status]}</strong><span>Removed from active consideration</span></div>;
 
@@ -96,4 +97,45 @@ function StrategyAction({ leadId, initialStatus, onStatus }: { leadId: string; i
   }
 
   return <div className="strategy-action"><div><strong>Pursue</strong><span>{message}</span></div><button disabled={Boolean(working)} onClick={build}>{working ? "Building strategy…" : "Build strategy"}</button></div>;
+}
+
+function ApplicationStart({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {
+  const [run, setRun] = useState<Run | null>(null);
+  const [message, setMessage] = useState(initialStatus === "resume_plan_failed" ? "Resume planning needs attention. You can retry." : "Strategy validated. Resume planning is the next step.");
+  const working = run && ["resume_plan_requested", "resume_plan_running"].includes(run.status);
+
+  useEffect(() => {
+    if (!["resume_plan_requested", "resume_plan_running", "resume_plan_failed"].includes(initialStatus)) return;
+    fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((latest) => latest?.id && setRun(latest))
+      .catch(() => undefined);
+  }, [leadId, initialStatus]);
+
+  useEffect(() => {
+    if (!working || !run) return;
+    const timer = window.setInterval(async () => {
+      const response = await fetch(`http://localhost:8787/api/runs/${run.id}`);
+      if (!response.ok) return;
+      const next = await response.json();
+      setRun(next);
+      if (next.status === "resume_plan_completed") { setMessage("Resume plan completed and validated."); onStatus(next.status); }
+      if (next.status === "resume_plan_failed") setMessage(next.error || "Resume planning needs attention.");
+    }, 1200);
+    return () => window.clearInterval(timer);
+  }, [working, run, onStatus]);
+
+  async function start() {
+    setMessage("Creating application workspace and resume plan…");
+    try {
+      const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/resume-plan`, { method: "POST" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Application could not start.");
+      setRun(payload);
+    } catch (error) {
+      setMessage(error instanceof TypeError ? "Workflow service is offline." : error instanceof Error ? error.message : "Application could not start.");
+    }
+  }
+
+  return <div className="strategy-action"><div><strong>Strategy ready</strong><span>{message}</span></div><button disabled={Boolean(working)} onClick={start}>{working ? "Planning resume…" : "Start application"}</button></div>;
 }

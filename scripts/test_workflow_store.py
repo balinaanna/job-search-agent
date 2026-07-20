@@ -87,3 +87,14 @@ class WorkflowStoreTests(unittest.TestCase):
         run = self.store.record_completed_analysis("lead-1", "analysis.json")
         with self.assertRaises(ValueError):
             self.store.transition(run["id"], "strategy_requested", "user")
+
+    def test_resume_plan_requires_completed_strategy(self) -> None:
+        run = self.store.record_completed_analysis("lead-1", "analysis.json")
+        pursued = self.store.transition(run["id"], "pursue", "user")
+        requested = self.store.transition(pursued["id"], "strategy_requested", "user")
+        running = self.store.transition(requested["id"], "strategy_running", "worker")
+        strategy = self.store.transition(running["id"], "strategy_completed", "worker")
+        plan_requested = self.store.transition(strategy["id"], "resume_plan_requested", "user")
+        plan_running = self.store.transition(plan_requested["id"], "resume_plan_running", "worker")
+        plan = self.store.transition(plan_running["id"], "resume_plan_completed", "worker")
+        self.assertEqual(plan["status"], "resume_plan_completed")

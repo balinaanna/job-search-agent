@@ -20,6 +20,10 @@ ALLOWED_TRANSITIONS = {
     "strategy_requested": {"strategy_running", "strategy_failed"},
     "strategy_running": {"strategy_completed", "strategy_failed"},
     "strategy_failed": {"strategy_requested"},
+    "strategy_completed": {"resume_plan_requested"},
+    "resume_plan_requested": {"resume_plan_running", "resume_plan_failed"},
+    "resume_plan_running": {"resume_plan_completed", "resume_plan_failed"},
+    "resume_plan_failed": {"resume_plan_requested"},
 }
 
 
