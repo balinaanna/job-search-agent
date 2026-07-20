@@ -62,6 +62,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-plan":
             self.request_resume_plan(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-draft":
+            self.request_resume_draft(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def request_analysis(self, lead_id: str) -> None:
@@ -83,6 +86,23 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             start_new_session=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
+        )
+        self.respond(202, run)
+
+    def request_resume_draft(self, lead_id: str) -> None:
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] not in {"resume_plan_completed", "resume_draft_failed"}:
+            self.respond(409, {"error": "A validated resume plan is required before drafting."})
+            return
+        try:
+            run = self.store.transition(run["id"], "resume_draft_requested", "user")
+        except ValueError as exc:
+            self.respond(409, {"error": str(exc)})
+            return
+        subprocess.Popen(
+            [sys.executable, str(ROOT / "scripts/run_resume_draft_worker.py"), run["id"]],
+            cwd=ROOT, start_new_session=True,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         self.respond(202, run)
 

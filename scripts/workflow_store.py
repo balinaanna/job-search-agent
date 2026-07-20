@@ -24,6 +24,10 @@ ALLOWED_TRANSITIONS = {
     "resume_plan_requested": {"resume_plan_running", "resume_plan_failed"},
     "resume_plan_running": {"resume_plan_completed", "resume_plan_failed"},
     "resume_plan_failed": {"resume_plan_requested"},
+    "resume_plan_completed": {"resume_draft_requested"},
+    "resume_draft_requested": {"resume_draft_running", "resume_draft_failed"},
+    "resume_draft_running": {"resume_draft_completed", "resume_draft_failed"},
+    "resume_draft_failed": {"resume_draft_requested"},
 }
 
 

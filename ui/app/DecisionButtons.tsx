@@ -43,7 +43,8 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
   }
 
   if (["strategy_completed", "resume_plan_requested", "resume_plan_running", "resume_plan_failed"].includes(status)) return <ApplicationStart leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (status === "resume_plan_completed") return <div className="decision-saved pursue"><strong>Application started</strong><span>Resume plan validated and ready for drafting</span></div>;
+  if (["resume_plan_completed", "resume_draft_requested", "resume_draft_running", "resume_draft_failed"].includes(status)) return <ResumeDraftAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (status === "resume_draft_completed") return <div className="decision-saved pursue"><strong>Resume draft ready</strong><span>Evidence-checked and waiting for your review</span></div>;
   if (["pursue", "strategy_requested", "strategy_running", "strategy_failed"].includes(status)) return <StrategyAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (status === "pass") return <div className="decision-saved pass"><strong>{labels[status]}</strong><span>Removed from active consideration</span></div>;
 
@@ -138,4 +139,45 @@ function ApplicationStart({ leadId, initialStatus, onStatus }: { leadId: string;
   }
 
   return <div className="strategy-action"><div><strong>Strategy ready</strong><span>{message}</span></div><button disabled={Boolean(working)} onClick={start}>{working ? "Planning resume…" : "Start application"}</button></div>;
+}
+
+function ResumeDraftAction({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {
+  const [run, setRun] = useState<Run | null>(null);
+  const [message, setMessage] = useState(initialStatus === "resume_draft_failed" ? "Resume drafting needs attention. You can retry." : "Resume plan validated. The draft is ready to create.");
+  const working = run && ["resume_draft_requested", "resume_draft_running"].includes(run.status);
+
+  useEffect(() => {
+    if (!["resume_draft_requested", "resume_draft_running", "resume_draft_failed"].includes(initialStatus)) return;
+    fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((latest) => latest?.id && setRun(latest))
+      .catch(() => undefined);
+  }, [leadId, initialStatus]);
+
+  useEffect(() => {
+    if (!working || !run) return;
+    const timer = window.setInterval(async () => {
+      const response = await fetch(`http://localhost:8787/api/runs/${run.id}`);
+      if (!response.ok) return;
+      const next = await response.json();
+      setRun(next);
+      if (next.status === "resume_draft_completed") { setMessage("Resume draft completed and validated."); onStatus(next.status); }
+      if (next.status === "resume_draft_failed") setMessage(next.error || "Resume drafting needs attention.");
+    }, 1200);
+    return () => window.clearInterval(timer);
+  }, [working, run, onStatus]);
+
+  async function draft() {
+    setMessage("Drafting an evidence-based resume…");
+    try {
+      const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/resume-draft`, { method: "POST" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Resume drafting could not start.");
+      setRun(payload);
+    } catch (error) {
+      setMessage(error instanceof TypeError ? "Workflow service is offline." : error instanceof Error ? error.message : "Resume drafting could not start.");
+    }
+  }
+
+  return <div className="strategy-action"><div><strong>Resume plan ready</strong><span>{message}</span></div><button disabled={Boolean(working)} onClick={draft}>{working ? "Drafting resume…" : "Draft resume"}</button></div>;
 }
