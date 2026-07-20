@@ -61,6 +61,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-review":
             self.get_cover_letter_review(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-pdf":
+            self.get_cover_letter_pdf(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def do_POST(self) -> None:
@@ -113,6 +116,15 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-revision":
             self.request_cover_letter_revision(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-finalize":
+            self.request_cover_letter_finalization(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-pdf":
+            self.request_cover_letter_pdf(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-pdf-decision":
+            self.record_cover_letter_pdf_decision(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def get_resume_review(self, lead_id: str) -> None:
@@ -158,6 +170,19 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             self.respond(404, {"error": str(exc)})
             return
         self.respond(200, {"letter": letter, "review": review, "trace": trace})
+
+    def get_cover_letter_pdf(self, lead_id: str) -> None:
+        try:
+            body = (find_workspace(lead_id) / "final_cover_letter.pdf").read_bytes()
+        except OSError as exc:
+            self.respond(404, {"error": str(exc)})
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", "application/pdf")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Content-Disposition", 'inline; filename="final_cover_letter.pdf"')
+        self.end_headers()
+        self.wfile.write(body)
 
     def request_analysis(self, lead_id: str) -> None:
         lead_path = self.leads_directory / f"{lead_id}.json"
@@ -454,6 +479,54 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         self.respond(202, run)
+
+    def request_cover_letter_finalization(self, lead_id: str) -> None:
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] not in {"cover_letter_approved", "cover_letter_finalization_failed"}:
+            self.respond(409, {"error": "Explicit approval of a Ready cover letter is required."})
+            return
+        try:
+            run = self.store.transition(run["id"], "cover_letter_finalization_requested", "user")
+        except ValueError as exc:
+            self.respond(409, {"error": str(exc)})
+            return
+        subprocess.Popen([sys.executable, str(ROOT / "scripts/run_cover_letter_finalization_worker.py"), run["id"]], cwd=ROOT, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.respond(202, run)
+
+    def request_cover_letter_pdf(self, lead_id: str) -> None:
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] not in {"cover_letter_finalization_completed", "cover_letter_pdf_failed"}:
+            self.respond(409, {"error": "A finalized cover letter is required before PDF rendering."})
+            return
+        try:
+            run = self.store.transition(run["id"], "cover_letter_pdf_requested", "user")
+        except ValueError as exc:
+            self.respond(409, {"error": str(exc)})
+            return
+        subprocess.Popen([sys.executable, str(ROOT / "scripts/run_cover_letter_pdf_worker.py"), run["id"]], cwd=ROOT, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.respond(202, run)
+
+    def record_cover_letter_pdf_decision(self, lead_id: str) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0")); payload = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self.respond(400, {"error": "Invalid PDF decision request."}); return
+        action, notes = payload.get("action"), payload.get("notes", "")
+        if action not in {"approve", "report_issue"} or not isinstance(notes, str):
+            self.respond(400, {"error": "Choose approve or report_issue."}); return
+        if action == "report_issue" and not notes.strip():
+            self.respond(400, {"error": "Describe the PDF layout issue."}); return
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] != "cover_letter_pdf_review_required":
+            self.respond(409, {"error": "A rendered cover letter PDF must be waiting for review."}); return
+        if action == "report_issue":
+            run = self.store.transition(run["id"], "cover_letter_pdf_failed", "user", details={"visual_issue": notes.strip()}, error=notes.strip())
+            self.respond(200, run); return
+        result = subprocess.run([pdf_python(), "scripts/release_cover_letter_pdf.py", lead_id], cwd=ROOT, capture_output=True, text=True)
+        if result.returncode:
+            self.respond(409, {"error": (result.stderr or result.stdout or "Cover letter PDF release failed.")[-4000:]}); return
+        run = self.store.transition(run["id"], "cover_letter_pdf_completed", "user", details={"explicit_visual_approval": True})
+        self.respond(200, run)
 
     def request_resume_plan(self, lead_id: str) -> None:
         run = self.store.latest_for_lead(lead_id)
