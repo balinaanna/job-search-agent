@@ -173,6 +173,11 @@ h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .submission-result-actions .approve { border-color:var(--green); background:var(--green); color:#fff; }
 .submission-result-actions button:disabled { opacity:.45; cursor:not-allowed; }
 .submission-success { border-color:#91c5aa; background:#f2faf5; }
+.browser-report { display:grid; gap:4px; padding:10px; border:1px solid #91c5aa; border-radius:8px; background:#f2faf5; }
+.browser-report.warning { border-color:#d9b27d; background:#fff8ed; }
+.browser-report strong { font-size:10px; }
+.browser-report span,.browser-report li { color:var(--muted); font-size:9px; }
+.browser-report ul { margin:4px 0 0; padding-left:17px; }
 .job-actions { display:flex; justify-content:flex-end; gap:10px; }
 .job-actions a,.job-actions button,.queue-table button { padding:8px 12px; border-radius:7px; font-size:11px; font-weight:700; text-decoration:none; }
 .job-actions a { color:#44514c; border:1px solid var(--line); }

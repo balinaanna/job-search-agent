@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import secrets
 import subprocess
 import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -27,7 +28,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
     leads_directory: Path
 
     def end_headers(self) -> None:
-        self.send_header("Access-Control-Allow-Origin", "http://localhost:3000")
+        origin = self.headers.get("Origin", "")
+        if origin == "http://localhost:3000" or origin.startswith("chrome-extension://"):
+            self.send_header("Access-Control-Allow-Origin", origin)
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         super().end_headers()
@@ -37,7 +40,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self) -> None:
-        parts = urlparse(self.path).path.strip("/").split("/")
+        parsed = urlparse(self.path); parts = parsed.path.strip("/").split("/")
         if len(parts) == 3 and parts[:2] == ["api", "runs"]:
             try:
                 run = self.store.get(parts[2])
@@ -70,6 +73,12 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-answers":
             self.get_application_answers(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "browser-fill":
+            self.get_browser_fill(parts[2], parsed.query)
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "form-fill-session":
+            self.get_form_fill_session(parts[2])
             return
         self.respond(404, {"error": "Not found."})
 
@@ -159,6 +168,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "submission-result":
             self.record_submission_result(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "browser-fill-report":
+            self.record_browser_fill_report(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def get_resume_review(self, lead_id: str) -> None:
@@ -233,6 +245,28 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
             self.respond(404, {"error": str(exc)})
 
+    def get_form_fill_session(self, lead_id: str) -> None:
+        try:
+            session = load_json(find_workspace(lead_id) / "form_fill_session.json")
+            session.pop("browser_token", None)
+            self.respond(200, session)
+        except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+            self.respond(404, {"error": str(exc)})
+
+    def get_browser_fill(self, lead_id: str, query: str) -> None:
+        from urllib.parse import parse_qs
+        token = parse_qs(query).get("token", [""])[0]
+        try:
+            workspace = find_workspace(lead_id); session = load_json(workspace / "form_fill_session.json"); answers = load_json(workspace / "application_answers.json")
+            if not token or not secrets.compare_digest(token, session.get("browser_token", "")):
+                raise ValueError("Invalid browser-fill token.")
+            if session.get("status") != "form_filling_started" or not answers.get("answers_approved"):
+                raise ValueError("This browser-fill session is not active.")
+            safe_answers = [{"question_id": item["question_id"], "question": item["question"], "answer": item.get("proposed_answer"), "category": item["category"]} for item in answers.get("answers", []) if item.get("proposed_answer")]
+            self.respond(200, {"lead_id": lead_id, "answers": safe_answers, "never_submit": True})
+        except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+            self.respond(403, {"error": str(exc)})
+
     def save_form_questions(self, lead_id: str) -> None:
         try:
             length = int(self.headers.get("Content-Length", "0")); payload = json.loads(self.rfile.read(length) or b"{}")
@@ -301,12 +335,35 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             if not answers.get("answers_approved") or answers.get("submission_authorized"):
                 raise ValueError("Approved answers with submission disabled are required.")
             answers["source_url"] = source_url.strip(); answer_path.write_text(json.dumps(answers, indent=2) + "\n", encoding="utf-8")
-            session = {"schema_version": "1.0", "lead_id": lead_id, "source_url": source_url.strip(), "status": "form_filling_started", "completed_question_ids": [], "documents_checked": False, "submit_clicked": False}
+            browser_token = secrets.token_urlsafe(24)
+            separator = "&" if "#" in source_url else "#"
+            browser_launch_url = f"{source_url.strip()}{separator}jobAgentLead={lead_id}&jobAgentToken={browser_token}"
+            session = {"schema_version": "1.0", "lead_id": lead_id, "source_url": source_url.strip(), "status": "form_filling_started", "completed_question_ids": [], "documents_checked": False, "submit_clicked": False, "browser_token": browser_token, "browser_fill_report": None}
             (workspace / "form_fill_session.json").write_text(json.dumps(session, indent=2) + "\n", encoding="utf-8")
             run = self.store.transition(run["id"], "form_filling_started", "user", details={"assisted_mode": True, "submit_clicked": False})
         except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
             self.respond(409, {"error": str(exc)}); return
-        self.respond(200, run)
+        self.respond(200, {**run, "browser_launch_url": browser_launch_url})
+
+    def record_browser_fill_report(self, lead_id: str) -> None:
+        from urllib.parse import parse_qs
+        token = parse_qs(urlparse(self.path).query).get("token", [""])[0]
+        try:
+            length = int(self.headers.get("Content-Length", "0")); payload = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self.respond(400, {"error": "Invalid browser-fill report."}); return
+        try:
+            session_path = find_workspace(lead_id) / "form_fill_session.json"; session = load_json(session_path)
+            if not token or not secrets.compare_digest(token, session.get("browser_token", "")) or session.get("status") != "form_filling_started":
+                raise ValueError("This browser-fill session is not active.")
+            filled = payload.get("filled", []); unmatched = payload.get("unmatched", []); blockers = payload.get("blockers", [])
+            if not all(isinstance(value, list) for value in (filled, unmatched, blockers)):
+                raise ValueError("Browser-fill report lists are invalid.")
+            session["browser_fill_report"] = {"filled": filled[:100], "unmatched": unmatched[:100], "blockers": blockers[:100], "submit_clicked": False}
+            session_path.write_text(json.dumps(session, indent=2) + "\n", encoding="utf-8")
+        except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
+            self.respond(409, {"error": str(exc)}); return
+        self.respond(200, {"recorded": True, "submit_clicked": False})
 
     def complete_form_fill(self, lead_id: str) -> None:
         try:
