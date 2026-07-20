@@ -32,6 +32,7 @@ test("server-renders the job-search workspace", async () => {
   assert.match(html, /LinkedIn/);
   assert.match(html, /Indeed/);
   assert.match(html, /Eluta/);
+  assert.match(html, /Connect Gmail alerts/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 

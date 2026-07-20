@@ -10,6 +10,7 @@ import io
 import zipfile
 import hashlib
 import sqlite3
+import imaplib
 import subprocess
 import sys
 import threading
@@ -29,6 +30,7 @@ from application_tracker import initial_tracker, update_tracker
 from discovery_store import DiscoveryStore
 from search_settings import load_search_settings, save_search_settings
 from job_alert_inbox import AlertInboxStore, save_captured_posting
+from gmail_alerts import keyring_set, load_config as load_gmail_config, poll_gmail, save_config as save_gmail_config
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -51,6 +53,18 @@ def scheduled_discovery_loop(database: Path) -> None:
         except (OSError, ValueError, json.JSONDecodeError):
             pass
         time.sleep(60)
+
+
+def gmail_alert_loop(database: Path) -> None:
+    store = AlertInboxStore(database); config_path = ROOT / "data/gmail-alerts.json"
+    while True:
+        wait_seconds = 600
+        try:
+            config = load_gmail_config(config_path); wait_seconds = int(config.get("poll_minutes", 10)) * 60
+            if config.get("connected"): poll_gmail(config, store)
+        except (OSError, ValueError, imaplib.IMAP4.error, json.JSONDecodeError):
+            pass
+        time.sleep(wait_seconds)
 
 
 def browser_extension_archive(extension: Path = ROOT / "browser-extension") -> bytes:
@@ -150,6 +164,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if parts == ["api", "job-alerts"]:
             self.respond(200, {"jobs": self.alert_store.list()})
             return
+        if parts == ["api", "gmail-alerts"]:
+            self.respond(200, load_gmail_config(ROOT / "data/gmail-alerts.json"))
+            return
         self.respond(404, {"error": "Not found."})
 
     def do_POST(self) -> None:
@@ -165,6 +182,12 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if parts == ["api", "job-alerts", "capture"]:
             self.capture_alert_job()
+            return
+        if parts == ["api", "gmail-alerts", "connect"]:
+            self.connect_gmail_alerts()
+            return
+        if parts == ["api", "gmail-alerts", "check"]:
+            self.check_gmail_alerts()
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "analyze":
             self.request_analysis(parts[2])
@@ -412,6 +435,27 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             detail = ((exc.stdout or "") + "\n" + (exc.stderr or "")).strip() if isinstance(exc, subprocess.CalledProcessError) else str(exc)
             self.respond(400, {"error": detail[-2000:] or "Captured posting could not be processed."}); return
         self.respond(201, {"status": "captured", "raw_path": str(path.relative_to(ROOT)), "pipeline": pipeline.stdout.strip()})
+
+    def connect_gmail_alerts(self) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0")); payload = json.loads(self.rfile.read(length) or b"{}")
+            email = payload.get("email", ""); password = payload.get("app_password", ""); interval = int(payload.get("poll_minutes", 10))
+            if len(password.replace(" ", "")) != 16: raise ValueError("Enter the 16-character Gmail app password, not your Google password.")
+            normalized_email = email.strip().casefold(); keyring_set(normalized_email, password)
+            candidate = {"connected": True, "email": normalized_email, "poll_minutes": interval}; result = poll_gmail(candidate, self.alert_store)
+            config = save_gmail_config(ROOT / "data/gmail-alerts.json", email, interval)
+        except (OSError, ValueError, TypeError, json.JSONDecodeError, imaplib.IMAP4.error) as exc:
+            self.respond(400, {"error": str(exc)}); return
+        self.respond(200, {**config, "result": result})
+
+    def check_gmail_alerts(self) -> None:
+        try:
+            config = load_gmail_config(ROOT / "data/gmail-alerts.json")
+            if not config["connected"]: raise ValueError("Connect Gmail first.")
+            result = poll_gmail(config, self.alert_store)
+        except (OSError, ValueError, json.JSONDecodeError, imaplib.IMAP4.error) as exc:
+            self.respond(400, {"error": str(exc)}); return
+        self.respond(200, result)
 
     def get_browser_fill(self, lead_id: str, query: str) -> None:
         from urllib.parse import parse_qs
@@ -1107,6 +1151,7 @@ def main() -> int:
     WorkflowHandler.alert_store = AlertInboxStore(args.database)
     WorkflowHandler.leads_directory = args.leads
     threading.Thread(target=scheduled_discovery_loop, args=(args.database,), daemon=True).start()
+    threading.Thread(target=gmail_alert_loop, args=(args.database,), daemon=True).start()
     server = HTTPServer((args.host, args.port), WorkflowHandler)
     print(f"Workflow API: http://{args.host}:{args.port}")
     server.serve_forever()

@@ -105,6 +105,7 @@ class AlertInboxStore:
     def __init__(self, path: Path):
         self.connection = sqlite3.connect(path); self.connection.row_factory = sqlite3.Row
         self.connection.execute("""CREATE TABLE IF NOT EXISTS alert_jobs (id TEXT PRIMARY KEY, source TEXT NOT NULL, title TEXT NOT NULL, posting_url TEXT NOT NULL UNIQUE, status TEXT NOT NULL, received_at TEXT NOT NULL)""")
+        self.connection.execute("""CREATE TABLE IF NOT EXISTS gmail_alert_messages (uid TEXT PRIMARY KEY, processed_at TEXT NOT NULL)""")
         self.connection.commit()
     def import_alert(self, source: str, content: str) -> dict:
         jobs = parse_alert(source, content); added = 0; timestamp = datetime.now(timezone.utc).isoformat()
@@ -120,5 +121,9 @@ class AlertInboxStore:
     def mark_captured(self, source: str, title: str) -> None:
         with self.connection:
             self.connection.execute("UPDATE alert_jobs SET status='captured' WHERE source=? AND lower(title)=lower(?)", (source, title))
+    def gmail_processed(self, uid: str) -> bool:
+        return self.connection.execute("SELECT 1 FROM gmail_alert_messages WHERE uid=?", (uid,)).fetchone() is not None
+    def mark_gmail_processed(self, uid: str) -> None:
+        with self.connection: self.connection.execute("INSERT OR IGNORE INTO gmail_alert_messages VALUES (?, ?)", (uid, datetime.now(timezone.utc).isoformat()))
     def close(self) -> None:
         self.connection.close()
