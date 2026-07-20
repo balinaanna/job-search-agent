@@ -26,6 +26,33 @@ Normalized leads are written to:
 
 Runtime leads are not committed to Git.
 
+## Public ATS collection
+
+Copy the source configuration template and replace its examples with verified
+employer board identifiers:
+
+```bash
+cp strategy/job_sources.example.json strategy/job_sources.json
+```
+
+Collect published postings from the configured public Greenhouse and Lever
+feeds:
+
+```bash
+PYTHONPATH=scripts python3 scripts/collect_job_postings.py
+```
+
+Preview collection without writing files:
+
+```bash
+PYTHONPATH=scripts python3 scripts/collect_job_postings.py --dry-run
+```
+
+Raw postings are written to `data/raw-job-postings/`. Collection uses only
+public read endpoints. It must not submit applications or access candidate
+data. Employer names and board identifiers must be verified before they are
+added to the active source configuration.
+
 ## Normalization
 
 Normalize a raw job-posting JSON file with:

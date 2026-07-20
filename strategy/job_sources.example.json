@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "company": "Example Greenhouse Employer",
+      "platform": "greenhouse",
+      "board_token": "example-board-token",
+      "enabled": true
+    },
+    {
+      "company": "Example Lever Employer",
+      "platform": "lever",
+      "site": "example-site",
+      "region": "global",
+      "enabled": true
+    }
+  ]
+}

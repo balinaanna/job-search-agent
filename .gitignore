@@ -16,3 +16,5 @@ jobs/inbox/
 # Runtime job discovery data
 data/job-leads/*
 !data/job-leads/.gitkeep
+data/raw-job-postings/*
+!data/raw-job-postings/.gitkeep
