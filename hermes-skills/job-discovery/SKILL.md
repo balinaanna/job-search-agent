@@ -66,3 +66,18 @@ The scorer populates all seven discovery score components, applies configured
 penalties, calculates the weighted preliminary score, and prints leads in rank
 order. Only hard-filter passes at or above the full-analysis threshold are
 recommended for Job Fit Analysis.
+
+## Shortlist surfacing
+
+After scoring, render a human-readable shortlist without modifying Job Lead
+records:
+
+```bash
+PYTHONPATH=scripts python3 scripts/surface_job_leads.py \
+  --output data/job-leads/shortlist.md
+```
+
+The report separates leads recommended for full Job Fit Analysis from leads
+that need manual eligibility review, discovery-only leads, rejected leads,
+unprocessed leads, and archived duplicates. Recommendations remain gated by
+the hard filter and the configured full-analysis score threshold.
