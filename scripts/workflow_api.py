@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -11,6 +12,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from write_resume_with_codex import find_workspace
+from run_resume_pdf_worker import PDF_SCHEMA, pdf_python
 from surface_fit_queue import join_results, load_leads, load_valid_analyses
 from validate_job_lead import load_json
 from workflow_store import WorkflowStore
@@ -50,6 +52,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-review":
             self.get_resume_review(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-pdf":
+            self.get_resume_pdf(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def do_POST(self) -> None:
@@ -78,6 +83,15 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-revision":
             self.request_resume_revision(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-finalize":
+            self.request_resume_finalization(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-pdf":
+            self.request_resume_pdf(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-pdf-decision":
+            self.record_resume_pdf_decision(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def get_resume_review(self, lead_id: str) -> None:
@@ -90,6 +104,20 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             self.respond(404, {"error": str(exc)})
             return
         self.respond(200, {"resume": resume, "review": review, "trace": trace})
+
+    def get_resume_pdf(self, lead_id: str) -> None:
+        try:
+            path = find_workspace(lead_id) / "final_resume.pdf"
+            body = path.read_bytes()
+        except OSError as exc:
+            self.respond(404, {"error": str(exc)})
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", "application/pdf")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Content-Disposition", 'inline; filename="final_resume.pdf"')
+        self.end_headers()
+        self.wfile.write(body)
 
     def request_analysis(self, lead_id: str) -> None:
         lead_path = self.leads_directory / f"{lead_id}.json"
@@ -162,6 +190,16 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if action == "request_revision" and not notes.strip():
             self.respond(400, {"error": "Tell the agent what you want changed."})
             return
+        if action == "approve":
+            try:
+                review = load_json(find_workspace(lead_id) / "resume_review.json")
+            except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+                self.respond(409, {"error": str(exc)})
+                return
+            summary = review.get("validation_summary", {})
+            if review.get("verdict") != "ready" or review.get("review_score", {}).get("total", 0) < 90 or summary.get("critical_count") or summary.get("high_count"):
+                self.respond(409, {"error": "Resolve the review findings and reach a Ready verdict before approval."})
+                return
         run = self.store.latest_for_lead(lead_id)
         if run is None or run["status"] != "resume_review_completed":
             self.respond(409, {"error": "Complete the resume review before making this decision."})
@@ -194,6 +232,76 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         self.respond(202, run)
+
+    def request_resume_finalization(self, lead_id: str) -> None:
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] not in {"resume_approved", "resume_finalization_failed"}:
+            self.respond(409, {"error": "Explicit approval of a Ready resume is required before finalization."})
+            return
+        try:
+            run = self.store.transition(run["id"], "resume_finalization_requested", "user")
+        except ValueError as exc:
+            self.respond(409, {"error": str(exc)})
+            return
+        subprocess.Popen(
+            [sys.executable, str(ROOT / "scripts/run_resume_finalization_worker.py"), run["id"]], cwd=ROOT,
+            start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        self.respond(202, run)
+
+    def request_resume_pdf(self, lead_id: str) -> None:
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] not in {"resume_finalization_completed", "resume_pdf_failed"}:
+            self.respond(409, {"error": "A finalized resume is required before PDF rendering."})
+            return
+        try:
+            run = self.store.transition(run["id"], "resume_pdf_requested", "user")
+        except ValueError as exc:
+            self.respond(409, {"error": str(exc)})
+            return
+        subprocess.Popen(
+            [sys.executable, str(ROOT / "scripts/run_resume_pdf_worker.py"), run["id"]], cwd=ROOT,
+            start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        self.respond(202, run)
+
+    def record_resume_pdf_decision(self, lead_id: str) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self.respond(400, {"error": "Invalid PDF decision request."})
+            return
+        action = payload.get("action")
+        notes = payload.get("notes", "")
+        if action not in {"approve", "report_issue"} or not isinstance(notes, str):
+            self.respond(400, {"error": "Choose approve or report_issue."})
+            return
+        if action == "report_issue" and not notes.strip():
+            self.respond(400, {"error": "Describe the PDF layout issue."})
+            return
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] != "resume_pdf_review_required":
+            self.respond(409, {"error": "A rendered PDF must be waiting for visual review."})
+            return
+        if action == "report_issue":
+            run = self.store.transition(run["id"], "resume_pdf_failed", "user", details={"visual_issue": notes.strip()}, error=notes.strip())
+            self.respond(200, run)
+            return
+        workspace = find_workspace(lead_id)
+        result = subprocess.run(
+            [pdf_python(), "scripts/validate_resume_pdf.py", str(workspace), "--schema", str(PDF_SCHEMA),
+             "--visual-inspection-passed", "--no-clipping", "--no-overlaps", "--no-broken-glyphs"],
+            cwd=ROOT, capture_output=True, text=True,
+        )
+        if result.returncode:
+            self.respond(409, {"error": (result.stderr or result.stdout or "PDF validation failed.")[-4000:]})
+            return
+        check_dir = workspace / "pdf_render_check"
+        if check_dir.exists():
+            shutil.rmtree(check_dir)
+        run = self.store.transition(run["id"], "resume_pdf_completed", "user", details={"explicit_visual_approval": True})
+        self.respond(200, run)
 
     def request_resume_plan(self, lead_id: str) -> None:
         run = self.store.latest_for_lead(lead_id)

@@ -51,7 +51,9 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
   if (["strategy_completed", "resume_plan_requested", "resume_plan_running", "resume_plan_failed"].includes(status)) return <ApplicationStart leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["resume_plan_completed", "resume_draft_requested", "resume_draft_running", "resume_draft_failed"].includes(status)) return <ResumeDraftAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["resume_draft_completed", "resume_revision_completed", "resume_review_requested", "resume_review_running", "resume_review_failed", "resume_review_completed"].includes(status)) return <ResumeReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (status === "resume_approved") return <div className="decision-saved pursue"><strong>Resume approved</strong><span>Your explicit approval was recorded. Nothing has been submitted.</span></div>;
+  if (["resume_approved", "resume_finalization_requested", "resume_finalization_running", "resume_finalization_failed"].includes(status)) return <ResumeFinalizationAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (["resume_finalization_completed", "resume_pdf_requested", "resume_pdf_running", "resume_pdf_failed", "resume_pdf_review_required"].includes(status)) return <ResumePdfAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (status === "resume_pdf_completed") return <div className="decision-saved pursue"><strong>Resume PDF ready</strong><span>Content and layout approved. Nothing has been submitted.</span></div>;
   if (["resume_revision_requested", "resume_revision_running", "resume_revision_failed"].includes(status)) return <ResumeRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["pursue", "strategy_requested", "strategy_running", "strategy_failed"].includes(status)) return <StrategyAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (status === "pass") return <div className="decision-saved pass"><strong>{labels[status]}</strong><span>Removed from active consideration</span></div>;
@@ -313,4 +315,107 @@ function ResumeRevisionAction({ leadId, initialStatus, onStatus }: { leadId: str
   }
 
   return <div className="strategy-action"><div><strong>Revision requested</strong><span>{message}</span></div><button disabled={Boolean(working)} onClick={revise}>{working ? "Revising resume…" : "Revise resume"}</button></div>;
+}
+
+function ResumeFinalizationAction({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {
+  const [run, setRun] = useState<Run | null>(null);
+  const [message, setMessage] = useState(initialStatus === "resume_finalization_failed" ? "Finalization needs attention. The approved draft was not changed." : "Approval recorded. Lock the exact reviewed content before creating a PDF.");
+  const working = run && ["resume_finalization_requested", "resume_finalization_running"].includes(run.status);
+
+  useEffect(() => {
+    if (!["resume_finalization_requested", "resume_finalization_running", "resume_finalization_failed"].includes(initialStatus)) return;
+    fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`).then((response) => response.ok ? response.json() : null).then((latest) => latest?.id && setRun(latest)).catch(() => undefined);
+  }, [leadId, initialStatus]);
+
+  useEffect(() => {
+    if (!working || !run) return;
+    const timer = window.setInterval(async () => {
+      const response = await fetch(`http://localhost:8787/api/runs/${run.id}`);
+      if (!response.ok) return;
+      const next = await response.json();
+      setRun(next);
+      if (next.status === "resume_finalization_completed") { setMessage("Approved resume locked and validated."); onStatus(next.status); }
+      if (next.status === "resume_finalization_failed") setMessage(next.error || "Resume finalization needs attention.");
+    }, 1200);
+    return () => window.clearInterval(timer);
+  }, [working, run, onStatus]);
+
+  async function finalize() {
+    setMessage("Locking the approved resume…");
+    try {
+      const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/resume-finalize`, { method: "POST" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Finalization could not start.");
+      setRun(payload);
+    } catch (error) {
+      setMessage(error instanceof TypeError ? "Workflow service is offline." : error instanceof Error ? error.message : "Finalization could not start.");
+    }
+  }
+
+  return <div className="strategy-action"><div><strong>Resume approved</strong><span>{message}</span></div><button disabled={Boolean(working)} onClick={finalize}>{working ? "Finalizing…" : "Finalize resume"}</button></div>;
+}
+
+function ResumePdfAction({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {
+  const [run, setRun] = useState<Run | null>(null);
+  const [message, setMessage] = useState(initialStatus === "resume_pdf_failed" ? "PDF rendering needs attention." : "The approved content is locked. Render the ATS-friendly PDF next.");
+  const [notes, setNotes] = useState("");
+  const [busy, setBusy] = useState(false);
+  const working = run && ["resume_pdf_requested", "resume_pdf_running"].includes(run.status);
+  const reviewRequired = initialStatus === "resume_pdf_review_required" || run?.status === "resume_pdf_review_required";
+
+  useEffect(() => {
+    if (!["resume_pdf_requested", "resume_pdf_running", "resume_pdf_failed"].includes(initialStatus)) return;
+    fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`).then((response) => response.ok ? response.json() : null).then((latest) => latest?.id && setRun(latest)).catch(() => undefined);
+  }, [leadId, initialStatus]);
+
+  useEffect(() => {
+    if (!working || !run) return;
+    const timer = window.setInterval(async () => {
+      const response = await fetch(`http://localhost:8787/api/runs/${run.id}`);
+      if (!response.ok) return;
+      const next = await response.json();
+      setRun(next);
+      if (next.status === "resume_pdf_review_required") setMessage("Text fidelity passed. Inspect every PDF page before approval.");
+      if (next.status === "resume_pdf_failed") setMessage(next.error || "PDF rendering needs attention.");
+    }, 1200);
+    return () => window.clearInterval(timer);
+  }, [working, run]);
+
+  async function renderPdf() {
+    setMessage("Rendering and checking PDF text fidelity…");
+    try {
+      const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/resume-pdf`, { method: "POST" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "PDF rendering could not start.");
+      setRun(payload);
+    } catch (error) {
+      setMessage(error instanceof TypeError ? "Workflow service is offline." : error instanceof Error ? error.message : "PDF rendering could not start.");
+    }
+  }
+
+  async function decide(action: "approve" | "report_issue") {
+    setBusy(true);
+    try {
+      const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/resume-pdf-decision`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, notes }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "PDF decision could not be saved.");
+      onStatus(payload.status);
+    } catch (error) {
+      setMessage(error instanceof TypeError ? "Workflow service is offline." : error instanceof Error ? error.message : "PDF decision could not be saved.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!reviewRequired) return <div className="strategy-action"><div><strong>Final resume ready</strong><span>{message}</span></div><button disabled={Boolean(working)} onClick={renderPdf}>{working ? "Rendering PDF…" : "Create PDF"}</button></div>;
+
+  return <section className="pdf-review"><header><div><strong>Inspect resume PDF</strong><span>Text fidelity already passed</span></div><a href={`http://localhost:8787/api/jobs/${leadId}/resume-pdf`} target="_blank" rel="noreferrer">Open full size</a></header>
+    <iframe title="Final resume PDF preview" src={`http://localhost:8787/api/jobs/${leadId}/resume-pdf`} />
+    <p>Check every page for clipped or overlapping text, broken characters, awkward page breaks, and unreadably small type.</p>
+    <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Describe any layout problem you see." />
+    <div><button disabled={busy || !notes.trim()} onClick={() => decide("report_issue")}>Report layout issue</button><button className="approve" disabled={busy} onClick={() => decide("approve")}>PDF looks correct</button></div>
+    {message && <small role="status">{message}</small>}
+  </section>;
 }

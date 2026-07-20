@@ -37,6 +37,15 @@ ALLOWED_TRANSITIONS = {
     "resume_revision_running": {"resume_revision_completed", "resume_revision_failed"},
     "resume_revision_failed": {"resume_revision_requested"},
     "resume_revision_completed": {"resume_review_requested"},
+    "resume_approved": {"resume_finalization_requested"},
+    "resume_finalization_requested": {"resume_finalization_running", "resume_finalization_failed"},
+    "resume_finalization_running": {"resume_finalization_completed", "resume_finalization_failed"},
+    "resume_finalization_failed": {"resume_finalization_requested"},
+    "resume_finalization_completed": {"resume_pdf_requested"},
+    "resume_pdf_requested": {"resume_pdf_running", "resume_pdf_failed"},
+    "resume_pdf_running": {"resume_pdf_review_required", "resume_pdf_failed"},
+    "resume_pdf_failed": {"resume_pdf_requested"},
+    "resume_pdf_review_required": {"resume_pdf_completed", "resume_pdf_failed"},
 }
 
 
