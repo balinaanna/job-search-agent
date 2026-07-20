@@ -84,6 +84,16 @@ def validate_submission_authorization(payload: dict, answers: dict, session: dic
         raise ValueError("The completed form must pass final review before authorization.")
 
 
+def validate_submission_result(payload: dict) -> tuple[str, str]:
+    outcome = payload.get("outcome")
+    evidence = payload.get("evidence", "")
+    if outcome not in {"submitted", "blocked"}:
+        raise ValueError("Choose submitted or blocked.")
+    if not isinstance(evidence, str) or not evidence.strip():
+        raise ValueError("Record the employer confirmation or the blocking message.")
+    return outcome, evidence.strip()
+
+
 def prepare(lead_id: str) -> Path:
     workspace = find_workspace(lead_id)
     form = load_json(workspace / "application_form.json")

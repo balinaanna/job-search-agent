@@ -167,6 +167,12 @@ h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .final-confirmations .authorization-check { padding-top:8px; border-top:1px solid var(--line); color:#243c32; font-weight:750; }
 .authorize-submission { justify-self:end; padding:10px 14px; border:0; border-radius:7px; background:#173f30; color:#fff; font-size:10px; font-weight:800; }
 .authorize-submission:disabled { opacity:.45; cursor:not-allowed; }
+.submission-evidence { width:100%; box-sizing:border-box; min-height:86px; padding:10px; border:1px solid var(--line); border-radius:7px; background:#fff; font:10px/1.5 Arial,sans-serif; resize:vertical; }
+.submission-result-actions { display:flex; justify-content:flex-end; gap:8px; }
+.submission-result-actions button { padding:9px 12px; border:1px solid var(--line); border-radius:7px; background:#fff; color:#43534c; font-size:10px; font-weight:750; }
+.submission-result-actions .approve { border-color:var(--green); background:var(--green); color:#fff; }
+.submission-result-actions button:disabled { opacity:.45; cursor:not-allowed; }
+.submission-success { border-color:#91c5aa; background:#f2faf5; }
 .job-actions { display:flex; justify-content:flex-end; gap:10px; }
 .job-actions a,.job-actions button,.queue-table button { padding:8px 12px; border-radius:7px; font-size:11px; font-weight:700; text-decoration:none; }
 .job-actions a { color:#44514c; border:1px solid var(--line); }

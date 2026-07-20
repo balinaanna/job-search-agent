@@ -12,7 +12,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from write_resume_with_codex import find_workspace
-from prepare_application_answers import apply_answer_review, validate_form_fill_confirmation, validate_submission_authorization
+from prepare_application_answers import apply_answer_review, validate_form_fill_confirmation, validate_submission_authorization, validate_submission_result
 from run_resume_pdf_worker import PDF_SCHEMA, pdf_environment, pdf_python
 from surface_fit_queue import join_results, load_leads, load_valid_analyses
 from validate_job_lead import load_json
@@ -152,6 +152,12 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "submission-authorization":
             self.authorize_submission(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "submission-execution":
+            self.start_submission(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "submission-result":
+            self.record_submission_result(parts[2])
             return
         self.respond(404, {"error": "Not found."})
 
@@ -337,6 +343,47 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             session.update({"status": "submission_authorized", "submission_authorized": True, "submit_clicked": False})
             session_path.write_text(json.dumps(session, indent=2) + "\n", encoding="utf-8")
             run = self.store.transition(run["id"], "submission_authorized", "user", details={"explicit_submission_authorization": True, "scope": lead_id, "submit_clicked": False})
+        except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
+            self.respond(409, {"error": str(exc)}); return
+        self.respond(200, run)
+
+    def start_submission(self, lead_id: str) -> None:
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] != "submission_authorized":
+            self.respond(409, {"error": "Explicit authorization for this application is required."}); return
+        try:
+            workspace = find_workspace(lead_id); session_path = workspace / "form_fill_session.json"; session = load_json(session_path)
+            if session.get("status") != "submission_authorized" or session.get("submission_authorized") is not True or session.get("submit_clicked") is not False:
+                raise ValueError("The submission authorization is not valid for execution.")
+            session["status"] = "submission_in_progress"; session_path.write_text(json.dumps(session, indent=2) + "\n", encoding="utf-8")
+            run = self.store.transition(run["id"], "submission_in_progress", "user", details={"explicit_authorization_verified": True, "submit_clicked": False})
+        except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
+            self.respond(409, {"error": str(exc)}); return
+        self.respond(200, run)
+
+    def record_submission_result(self, lead_id: str) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0")); payload = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self.respond(400, {"error": "Invalid submission-result request."}); return
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] != "submission_in_progress":
+            self.respond(409, {"error": "An authorized submission session must be in progress."}); return
+        try:
+            outcome, evidence = validate_submission_result(payload)
+            workspace = find_workspace(lead_id); session_path = workspace / "form_fill_session.json"; session = load_json(session_path)
+            if session.get("status") != "submission_in_progress" or session.get("submission_authorized") is not True:
+                raise ValueError("The authorized submission session is not active.")
+            status = "application_submitted" if outcome == "submitted" else "submission_blocked"
+            session.update({"status": status, "submit_clicked": outcome == "submitted", "confirmation_evidence": evidence})
+            session_path.write_text(json.dumps(session, indent=2) + "\n", encoding="utf-8")
+            if outcome == "submitted":
+                lead_path = self.leads_directory / f"{lead_id}.json"
+                lead = load_json(lead_path); lead["status"]["lead_status"] = "applied"
+                lead_path.write_text(json.dumps(lead, indent=2) + "\n", encoding="utf-8")
+                manifest_path = workspace / "application_manifest.json"; manifest = load_json(manifest_path); manifest["status"] = "submitted"
+                manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            run = self.store.transition(run["id"], status, "user", details={"outcome": outcome, "confirmation_recorded": True, "submit_clicked": outcome == "submitted"})
         except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
             self.respond(409, {"error": str(exc)}); return
         self.respond(200, run)

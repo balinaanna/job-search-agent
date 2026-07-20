@@ -2,7 +2,7 @@
 
 import unittest
 
-from prepare_application_answers import apply_answer_review, classify, strategy_for, validate_form_fill_confirmation, validate_submission_authorization
+from prepare_application_answers import apply_answer_review, classify, strategy_for, validate_form_fill_confirmation, validate_submission_authorization, validate_submission_result
 
 
 class ApplicationAnswerPreparationTests(unittest.TestCase):
@@ -56,6 +56,13 @@ class ApplicationAnswerPreparationTests(unittest.TestCase):
             validate_submission_authorization({**confirmations, "commitments_confirmed": False}, answers, session)
         with self.assertRaisesRegex(ValueError, "Explicit submission authorization"):
             validate_submission_authorization({**confirmations, "authorization": "review_only"}, answers, session)
+
+    def test_submission_result_requires_confirmation_evidence(self) -> None:
+        self.assertEqual(validate_submission_result({"outcome": "submitted", "evidence": "Application received"}), ("submitted", "Application received"))
+        with self.assertRaisesRegex(ValueError, "confirmation"):
+            validate_submission_result({"outcome": "submitted", "evidence": ""})
+        with self.assertRaisesRegex(ValueError, "submitted or blocked"):
+            validate_submission_result({"outcome": "unknown", "evidence": "message"})
 
 
 if __name__ == "__main__":
