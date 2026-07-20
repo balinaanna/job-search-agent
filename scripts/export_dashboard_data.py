@@ -75,7 +75,7 @@ def build_dashboard_data(
             ),
         },
         "analyzedJobs": jobs,
-        "awaitingAnalysis": [awaiting_record(lead) for lead in awaiting[:8]],
+        "awaitingAnalysis": [awaiting_record(lead) for lead in awaiting],
     }
 
 

@@ -23,18 +23,24 @@ test("server-renders the job-search workspace", async () => {
   assert.match(html, /Evidence-Based|evidence-based/i);
   assert.match(html, /Nothing submits without you/);
   assert.match(html, /Durable/);
-  assert.match(html, />60<\/span>/);
+  assert.match(html, /Jobs workspace/);
+  assert.match(html, /Search title, company, or location/);
+  assert.match(html, /All fit decisions/);
+  assert.match(html, /Awaiting analysis/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 
-test("dashboard uses exported workflow data and responsive styling", async () => {
-  const [page, css, data] = await Promise.all([
+test("dashboard uses all exported workflow data and responsive styling", async () => {
+  const [page, jobsView, css, data] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/JobsView.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/dashboard-data.json", import.meta.url), "utf8"),
   ]);
   assert.match(page, /dashboard-data\.json/);
   assert.match(page, /explicit approval/);
+  assert.match(jobsView, /filtered\.slice\(0, visible\)/);
+  assert.match(jobsView, /Show 10 more/);
   assert.match(css, /@media \(max-width:950px\)/);
   assert.match(css, /@media \(max-width:600px\)/);
   const parsed = JSON.parse(data);

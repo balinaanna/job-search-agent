@@ -1,18 +1,8 @@
 import data from "./dashboard-data.json";
-import { AnalyzeButton } from "./AnalyzeButton";
-import { DecisionButtons } from "./DecisionButtons";
+import { JobsView } from "./JobsView";
 import { FindJobsButton } from "./FindJobsButton";
 
-const recommendationLabel: Record<string, string> = {
-  strong_apply: "Strong match",
-  apply: "Apply",
-  selective_apply: "Stretch",
-  do_not_apply: "Pass",
-};
-
 export default function Home() {
-  const primaryJob = data.analyzedJobs[0];
-
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -58,26 +48,7 @@ export default function Home() {
         </section>
 
         <section className="content-grid" id="jobs">
-          <div>
-            <div className="section-heading"><div><p className="eyebrow">PRIORITIZED FOR YOU</p><h2>Job decisions</h2></div><a href="#analysis-queue">View queue</a></div>
-            {primaryJob ? (
-              <article className="job-card">
-                <div className="job-card-head">
-                  <div><span className="company-avatar">{primaryJob.company.charAt(0)}</span></div>
-                  <div className="job-title"><h3>{primaryJob.role}</h3><p>{primaryJob.company} · {primaryJob.location}</p></div>
-                  <span className={`recommendation ${primaryJob.recommendation}`}>{recommendationLabel[primaryJob.recommendation]}</span>
-                </div>
-                <div className="score-row">
-                  <div><span className="score">{primaryJob.fitScore}</span><span className="out-of">/100 fit</span></div>
-                  <div className="score-track"><span style={{width: `${primaryJob.fitScore}%`}} /></div>
-                  <small>Discovery estimate {primaryJob.discoveryScore}</small>
-                </div>
-                <p className="risk"><strong>Main consideration:</strong> {primaryJob.risk}</p>
-                <DecisionButtons leadId={primaryJob.id} />
-                <div className="job-actions"><a className="secondary-action" href={primaryJob.postingUrl} target="_blank" rel="noreferrer">View posting</a><button type="button">Review fit analysis →</button></div>
-              </article>
-            ) : <div className="empty-state">No completed job analyses yet.</div>}
-          </div>
+          <JobsView analyzedJobs={data.analyzedJobs} awaitingAnalysis={data.awaitingAnalysis} />
 
           <aside className="pipeline" id="applications">
             <div className="section-heading"><div><p className="eyebrow">YOUR PIPELINE</p><h2>Application progress</h2></div></div>
@@ -89,20 +60,6 @@ export default function Home() {
               <li><span>5</span><div><strong>Apply & track</strong><small>Final submission and follow-up</small></div></li>
             </ol>
           </aside>
-        </section>
-
-        <section className="queue" id="analysis-queue">
-          <div className="section-heading"><div><p className="eyebrow">EVIDENCE CHECK REQUIRED</p><h2>Analysis queue</h2></div><span>Highest discovery score first</span></div>
-          <div className="queue-table">
-            {data.awaitingAnalysis.slice(0, 5).map((job, index) => (
-              <article key={job.id}>
-                <span className="queue-number">{index + 1}</span>
-                <div><strong>{job.role}</strong><small>{job.company} · {job.location}</small></div>
-                <div className="prelim"><strong>{job.discoveryScore}</strong><small>preliminary</small></div>
-                <AnalyzeButton leadId={job.id} />
-              </article>
-            ))}
-          </div>
         </section>
 
         <footer id="profile">Updated from your local job-search data · No application can be submitted without explicit approval.</footer>
