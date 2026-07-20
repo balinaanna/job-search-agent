@@ -1,6 +1,7 @@
 import data from "./dashboard-data.json";
 import { JobsView } from "./JobsView";
 import { FindJobsButton } from "./FindJobsButton";
+import { SearchSettings } from "./SearchSettings";
 
 export default function Home() {
   return (
@@ -25,7 +26,7 @@ export default function Home() {
       <section className="workspace">
         <header className="topbar">
           <div><p className="eyebrow">JOB SEARCH WORKSPACE</p><h1 id="overview">Good afternoon, Anna</h1></div>
-          <FindJobsButton />
+          <div className="search-controls"><FindJobsButton /><SearchSettings /></div>
         </header>
 
         <section className="attention-card">

@@ -11,6 +11,9 @@ import zipfile
 import hashlib
 import subprocess
 import sys
+import threading
+import time
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
@@ -23,9 +26,29 @@ from validate_job_lead import load_json
 from workflow_store import WorkflowStore
 from application_tracker import initial_tracker, update_tracker
 from discovery_store import DiscoveryStore
+from search_settings import load_search_settings, save_search_settings
 
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def scheduled_discovery_loop(database: Path) -> None:
+    store = DiscoveryStore(database)
+    while True:
+        try:
+            schedule_path = ROOT / "strategy/discovery_schedule.json"
+            frequency = json.loads(schedule_path.read_text(encoding="utf-8")).get("frequency", "manual") if schedule_path.exists() else "manual"
+            interval = {"daily": 86400, "weekly": 604800}.get(frequency)
+            latest = store.latest()
+            last_time = datetime.fromisoformat(latest["created_at"]) if latest else None
+            due = interval is not None and (last_time is None or (datetime.now(timezone.utc) - last_time).total_seconds() >= interval)
+            if due:
+                run = store.request()
+                if run["status"] == "requested":
+                    subprocess.Popen([sys.executable, str(ROOT / "scripts/run_discovery_worker.py"), run["id"]], cwd=ROOT, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except (OSError, ValueError, json.JSONDecodeError):
+            pass
+        time.sleep(60)
 
 
 def browser_extension_archive(extension: Path = ROOT / "browser-extension") -> bytes:
@@ -115,12 +138,21 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if parts == ["api", "discovery", "latest"]:
             self.respond(200, self.discovery_store.latest() or {"status": "not_started"})
             return
+        if parts == ["api", "search-settings"]:
+            try:
+                self.respond(200, load_search_settings(ROOT / "strategy/job_search_criteria.json", ROOT / "strategy/job_sources.json", ROOT / "strategy/discovery_schedule.json"))
+            except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
+                self.respond(500, {"error": str(exc)})
+            return
         self.respond(404, {"error": "Not found."})
 
     def do_POST(self) -> None:
         parts = urlparse(self.path).path.strip("/").split("/")
         if parts == ["api", "discovery"]:
             self.request_discovery()
+            return
+        if parts == ["api", "search-settings"]:
+            self.update_search_settings()
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "analyze":
             self.request_analysis(parts[2])
@@ -334,6 +366,18 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         run = self.discovery_store.request()
         if run["status"] == "requested": subprocess.Popen([sys.executable, str(ROOT / "scripts/run_discovery_worker.py"), run["id"]], cwd=ROOT, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.respond(202, run)
+
+    def update_search_settings(self) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+            if not isinstance(payload, dict):
+                raise ValueError("Search settings must be an object.")
+            settings = save_search_settings(payload, ROOT / "strategy/job_search_criteria.json", ROOT / "strategy/job_sources.json", ROOT / "strategy/discovery_schedule.json")
+        except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
+            self.respond(400, {"error": str(exc)})
+            return
+        self.respond(200, settings)
 
     def get_browser_fill(self, lead_id: str, query: str) -> None:
         from urllib.parse import parse_qs
@@ -1027,6 +1071,7 @@ def main() -> int:
     WorkflowHandler.store = WorkflowStore(args.database)
     WorkflowHandler.discovery_store = DiscoveryStore(args.database)
     WorkflowHandler.leads_directory = args.leads
+    threading.Thread(target=scheduled_discovery_loop, args=(args.database,), daemon=True).start()
     server = HTTPServer((args.host, args.port), WorkflowHandler)
     print(f"Workflow API: http://{args.host}:{args.port}")
     server.serve_forever()

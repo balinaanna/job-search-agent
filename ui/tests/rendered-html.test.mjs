@@ -27,6 +27,7 @@ test("server-renders the job-search workspace", async () => {
   assert.match(html, /Search title, company, or location/);
   assert.match(html, /All fit decisions/);
   assert.match(html, /Awaiting analysis/);
+  assert.match(html, /Search settings/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 
