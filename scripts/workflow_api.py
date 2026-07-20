@@ -75,6 +75,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-decision":
             self.record_resume_decision(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-revision":
+            self.request_resume_revision(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def get_resume_review(self, lead_id: str) -> None:
@@ -129,7 +132,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
 
     def request_resume_review(self, lead_id: str) -> None:
         run = self.store.latest_for_lead(lead_id)
-        if run is None or run["status"] not in {"resume_draft_completed", "resume_review_failed"}:
+        if run is None or run["status"] not in {"resume_draft_completed", "resume_revision_completed", "resume_review_failed"}:
             self.respond(409, {"error": "A validated resume draft is required before review."})
             return
         try:
@@ -173,6 +176,24 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             self.respond(409, {"error": str(exc)})
             return
         self.respond(200, run)
+
+    def request_resume_revision(self, lead_id: str) -> None:
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] not in {"resume_revision_requested", "resume_revision_failed"}:
+            self.respond(409, {"error": "Revision notes and a completed review are required."})
+            return
+        if run["status"] == "resume_revision_failed":
+            try:
+                run = self.store.transition(run["id"], "resume_revision_requested", "user", details={"retry": True})
+            except ValueError as exc:
+                self.respond(409, {"error": str(exc)})
+                return
+        subprocess.Popen(
+            [sys.executable, str(ROOT / "scripts/run_resume_revision_worker.py"), run["id"]],
+            cwd=ROOT, start_new_session=True,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        self.respond(202, run)
 
     def request_resume_plan(self, lead_id: str) -> None:
         run = self.store.latest_for_lead(lead_id)

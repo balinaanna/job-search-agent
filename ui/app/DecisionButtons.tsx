@@ -50,9 +50,9 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
 
   if (["strategy_completed", "resume_plan_requested", "resume_plan_running", "resume_plan_failed"].includes(status)) return <ApplicationStart leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["resume_plan_completed", "resume_draft_requested", "resume_draft_running", "resume_draft_failed"].includes(status)) return <ResumeDraftAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["resume_draft_completed", "resume_review_requested", "resume_review_running", "resume_review_failed", "resume_review_completed"].includes(status)) return <ResumeReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (["resume_draft_completed", "resume_revision_completed", "resume_review_requested", "resume_review_running", "resume_review_failed", "resume_review_completed"].includes(status)) return <ResumeReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (status === "resume_approved") return <div className="decision-saved pursue"><strong>Resume approved</strong><span>Your explicit approval was recorded. Nothing has been submitted.</span></div>;
-  if (status === "resume_revision_requested") return <div className="decision-saved"><strong>Revision requested</strong><span>Your notes were saved for the next revision pass.</span></div>;
+  if (["resume_revision_requested", "resume_revision_running", "resume_revision_failed"].includes(status)) return <ResumeRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["pursue", "strategy_requested", "strategy_running", "strategy_failed"].includes(status)) return <StrategyAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (status === "pass") return <div className="decision-saved pass"><strong>{labels[status]}</strong><span>Removed from active consideration</span></div>;
 
@@ -193,7 +193,7 @@ function ResumeDraftAction({ leadId, initialStatus, onStatus }: { leadId: string
 function ResumeReviewAction({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {
   const [run, setRun] = useState<Run | null>(null);
   const [review, setReview] = useState<ReviewData | null>(null);
-  const [message, setMessage] = useState(initialStatus === "resume_review_failed" ? "The review needs attention. You can retry." : "The draft is ready for a recruiter-style review.");
+  const [message, setMessage] = useState(initialStatus === "resume_review_failed" ? "The review needs attention. You can retry." : initialStatus === "resume_revision_completed" ? "The revised resume passed evidence validation and must be reviewed again." : "The draft is ready for a recruiter-style review.");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const working = run && ["resume_review_requested", "resume_review_running"].includes(run.status);
@@ -273,4 +273,44 @@ function ResumeReviewAction({ leadId, initialStatus, onStatus }: { leadId: strin
     <div className="review-actions"><button disabled={busy || !notes.trim()} onClick={() => decide("request_revision")}>Request revision</button><button className="approve" disabled={busy} onClick={() => decide("approve")}>Approve resume</button></div>
     {message && <small role="status">{message}</small>}
   </section>;
+}
+
+function ResumeRevisionAction({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {
+  const [run, setRun] = useState<Run | null>(null);
+  const [message, setMessage] = useState(initialStatus === "resume_revision_failed" ? "The revision needs attention. You can retry without losing the previous version." : "Your revision notes are saved. The previous resume will be backed up before changes.");
+  const working = run && ["resume_revision_requested", "resume_revision_running"].includes(run.status);
+
+  useEffect(() => {
+    fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((latest) => latest?.id && setRun(latest))
+      .catch(() => undefined);
+  }, [leadId]);
+
+  useEffect(() => {
+    if (!working || !run) return;
+    const timer = window.setInterval(async () => {
+      const response = await fetch(`http://localhost:8787/api/runs/${run.id}`);
+      if (!response.ok) return;
+      const next = await response.json();
+      setRun(next);
+      if (next.status === "resume_revision_completed") { setMessage("Revision completed and validated."); onStatus(next.status); }
+      if (next.status === "resume_revision_failed") setMessage(next.error || "Resume revision needs attention.");
+    }, 1200);
+    return () => window.clearInterval(timer);
+  }, [working, run, onStatus]);
+
+  async function revise() {
+    setMessage("Creating a controlled revision with a versioned backup…");
+    try {
+      const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/resume-revision`, { method: "POST" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Resume revision could not start.");
+      setRun(payload);
+    } catch (error) {
+      setMessage(error instanceof TypeError ? "Workflow service is offline." : error instanceof Error ? error.message : "Resume revision could not start.");
+    }
+  }
+
+  return <div className="strategy-action"><div><strong>Revision requested</strong><span>{message}</span></div><button disabled={Boolean(working)} onClick={revise}>{working ? "Revising resume…" : "Revise resume"}</button></div>;
 }

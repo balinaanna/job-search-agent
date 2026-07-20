@@ -33,6 +33,10 @@ ALLOWED_TRANSITIONS = {
     "resume_review_running": {"resume_review_completed", "resume_review_failed"},
     "resume_review_failed": {"resume_review_requested"},
     "resume_review_completed": {"resume_approved", "resume_revision_requested"},
+    "resume_revision_requested": {"resume_revision_running", "resume_revision_failed"},
+    "resume_revision_running": {"resume_revision_completed", "resume_revision_failed"},
+    "resume_revision_failed": {"resume_revision_requested"},
+    "resume_revision_completed": {"resume_review_requested"},
 }
 
 
