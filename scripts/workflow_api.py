@@ -22,6 +22,7 @@ from surface_fit_queue import join_results, load_leads, load_valid_analyses
 from validate_job_lead import load_json
 from workflow_store import WorkflowStore
 from application_tracker import initial_tracker, update_tracker
+from discovery_store import DiscoveryStore
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -45,6 +46,7 @@ def verified_document_bytes(path: Path, expected_sha256: str) -> bytes:
 
 class WorkflowHandler(BaseHTTPRequestHandler):
     store: WorkflowStore
+    discovery_store: DiscoveryStore
     leads_directory: Path
 
     def end_headers(self) -> None:
@@ -110,10 +112,16 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if parts == ["api", "browser-extension"]:
             self.get_browser_extension()
             return
+        if parts == ["api", "discovery", "latest"]:
+            self.respond(200, self.discovery_store.latest() or {"status": "not_started"})
+            return
         self.respond(404, {"error": "Not found."})
 
     def do_POST(self) -> None:
         parts = urlparse(self.path).path.strip("/").split("/")
+        if parts == ["api", "discovery"]:
+            self.request_discovery()
+            return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "analyze":
             self.request_analysis(parts[2])
             return
@@ -321,6 +329,11 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Content-Disposition", 'attachment; filename="job-application-assistant.zip"')
         self.end_headers(); self.wfile.write(body)
+
+    def request_discovery(self) -> None:
+        run = self.discovery_store.request()
+        if run["status"] == "requested": subprocess.Popen([sys.executable, str(ROOT / "scripts/run_discovery_worker.py"), run["id"]], cwd=ROOT, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.respond(202, run)
 
     def get_browser_fill(self, lead_id: str, query: str) -> None:
         from urllib.parse import parse_qs
@@ -1012,6 +1025,7 @@ def main() -> int:
     parser.add_argument("--leads", type=Path, default=ROOT / "data/job-leads")
     args = parser.parse_args()
     WorkflowHandler.store = WorkflowStore(args.database)
+    WorkflowHandler.discovery_store = DiscoveryStore(args.database)
     WorkflowHandler.leads_directory = args.leads
     server = HTTPServer((args.host, args.port), WorkflowHandler)
     print(f"Workflow API: http://{args.host}:{args.port}")

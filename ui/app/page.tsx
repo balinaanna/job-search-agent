@@ -1,6 +1,7 @@
 import data from "./dashboard-data.json";
 import { AnalyzeButton } from "./AnalyzeButton";
 import { DecisionButtons } from "./DecisionButtons";
+import { FindJobsButton } from "./FindJobsButton";
 
 const recommendationLabel: Record<string, string> = {
   strong_apply: "Strong match",
@@ -34,7 +35,7 @@ export default function Home() {
       <section className="workspace">
         <header className="topbar">
           <div><p className="eyebrow">JOB SEARCH WORKSPACE</p><h1 id="overview">Good afternoon, Anna</h1></div>
-          <button className="search-button" type="button">Find new jobs</button>
+          <FindJobsButton />
         </header>
 
         <section className="attention-card">

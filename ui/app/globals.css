@@ -28,6 +28,9 @@ h1 { margin-bottom:0; font:500 30px/1.2 Georgia,serif; letter-spacing:-.02em; }
 h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .search-button,.primary-action { border:0; border-radius:9px; background:var(--green); color:white; text-decoration:none; padding:11px 17px; font-weight:650; font-size:13px; box-shadow:0 2px 0 rgba(0,0,0,.08); }
 .search-button:hover,.primary-action:hover { background:var(--green-dark); }
+.find-jobs-control { display:grid; justify-items:end; gap:5px; }
+.find-jobs-control span { max-width:340px; color:var(--muted); font-size:9px; text-align:right; }
+.find-jobs-control .search-button:disabled { opacity:.6; cursor:wait; }
 .attention-card { min-height:190px; display:flex; align-items:center; justify-content:space-between; padding:34px 40px; border-radius:16px; background:#dfece5; border:1px solid #c9ddd2; overflow:hidden; position:relative; }
 .attention-card:after { content:""; position:absolute; width:330px; height:330px; right:-100px; top:-150px; border:1px solid rgba(31,104,79,.12); border-radius:50%; box-shadow:0 0 0 45px rgba(255,255,255,.12),0 0 0 90px rgba(255,255,255,.08); }
 .attention-copy { position:relative; z-index:1; max-width:680px; }
