@@ -12,7 +12,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from write_resume_with_codex import find_workspace
-from prepare_application_answers import apply_answer_review
+from prepare_application_answers import apply_answer_review, validate_form_fill_confirmation
 from run_resume_pdf_worker import PDF_SCHEMA, pdf_environment, pdf_python
 from surface_fit_queue import join_results, load_leads, load_valid_analyses
 from validate_job_lead import load_json
@@ -144,6 +144,12 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-answers-decision":
             self.approve_application_answers(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "form-fill":
+            self.start_form_fill(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "form-fill-ready":
+            self.complete_form_fill(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def get_resume_review(self, lead_id: str) -> None:
@@ -266,6 +272,48 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             plan = apply_answer_review(plan, submitted)
             plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
             run = self.store.transition(run["id"], "application_answers_approved", "user", details={"explicit_answer_approval": True, "question_count": len(plan["answers"]), "submission_authorized": False})
+        except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
+            self.respond(409, {"error": str(exc)}); return
+        self.respond(200, run)
+
+    def start_form_fill(self, lead_id: str) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0")); payload = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self.respond(400, {"error": "Invalid form-filling request."}); return
+        source_url = payload.get("source_url", "")
+        if not isinstance(source_url, str) or not source_url.strip().startswith(("https://", "http://")):
+            self.respond(400, {"error": "Enter the employer's application-page URL."}); return
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] != "application_answers_approved":
+            self.respond(409, {"error": "Approved application answers are required before form filling."}); return
+        try:
+            workspace = find_workspace(lead_id); answer_path = workspace / "application_answers.json"; answers = load_json(answer_path)
+            if not answers.get("answers_approved") or answers.get("submission_authorized"):
+                raise ValueError("Approved answers with submission disabled are required.")
+            answers["source_url"] = source_url.strip(); answer_path.write_text(json.dumps(answers, indent=2) + "\n", encoding="utf-8")
+            session = {"schema_version": "1.0", "lead_id": lead_id, "source_url": source_url.strip(), "status": "form_filling_started", "completed_question_ids": [], "documents_checked": False, "submit_clicked": False}
+            (workspace / "form_fill_session.json").write_text(json.dumps(session, indent=2) + "\n", encoding="utf-8")
+            run = self.store.transition(run["id"], "form_filling_started", "user", details={"assisted_mode": True, "submit_clicked": False})
+        except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
+            self.respond(409, {"error": str(exc)}); return
+        self.respond(200, run)
+
+    def complete_form_fill(self, lead_id: str) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0")); payload = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self.respond(400, {"error": "Invalid form-completion request."}); return
+        completed = payload.get("completed_question_ids"); documents_checked = payload.get("documents_checked")
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] != "form_filling_started":
+            self.respond(409, {"error": "Start assisted form filling before requesting final review."}); return
+        try:
+            workspace = find_workspace(lead_id); answers = load_json(workspace / "application_answers.json"); session_path = workspace / "form_fill_session.json"; session = load_json(session_path)
+            confirmed_ids = validate_form_fill_confirmation(answers, completed, documents_checked)
+            session.update({"status": "submission_review_required", "completed_question_ids": confirmed_ids, "documents_checked": True, "submit_clicked": False})
+            session_path.write_text(json.dumps(session, indent=2) + "\n", encoding="utf-8")
+            run = self.store.transition(run["id"], "submission_review_required", "user", details={"all_fields_confirmed": True, "documents_checked": True, "submit_clicked": False, "submission_authorized": False})
         except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
             self.respond(409, {"error": str(exc)}); return
         self.respond(200, run)

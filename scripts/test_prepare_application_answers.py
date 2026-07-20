@@ -2,7 +2,7 @@
 
 import unittest
 
-from prepare_application_answers import apply_answer_review, classify, strategy_for
+from prepare_application_answers import apply_answer_review, classify, strategy_for, validate_form_fill_confirmation
 
 
 class ApplicationAnswerPreparationTests(unittest.TestCase):
@@ -38,6 +38,14 @@ class ApplicationAnswerPreparationTests(unittest.TestCase):
         self.assertTrue(reviewed["answers_approved"])
         self.assertFalse(reviewed["submission_authorized"])
         self.assertEqual(reviewed["answers"][0]["status"], "user_confirmed")
+
+    def test_form_fill_confirmation_requires_every_field_and_documents(self) -> None:
+        answers = {"answers": [{"question_id": "q_001"}, {"question_id": "q_002"}]}
+        with self.assertRaisesRegex(ValueError, "Confirm every answer"):
+            validate_form_fill_confirmation(answers, ["q_001"], True)
+        with self.assertRaisesRegex(ValueError, "Confirm every answer"):
+            validate_form_fill_confirmation(answers, ["q_001", "q_002"], False)
+        self.assertEqual(validate_form_fill_confirmation(answers, ["q_002", "q_001"], True), ["q_001", "q_002"])
 
 
 if __name__ == "__main__":

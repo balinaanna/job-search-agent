@@ -64,6 +64,13 @@ def apply_answer_review(plan: dict, submitted: list[dict]) -> dict:
     return plan
 
 
+def validate_form_fill_confirmation(answers: dict, completed: object, documents_checked: object) -> list[str]:
+    expected = {item["question_id"] for item in answers.get("answers", [])}
+    if not isinstance(completed, list) or set(completed) != expected or documents_checked is not True:
+        raise ValueError("Confirm every answer and the uploaded documents before final review.")
+    return sorted(expected)
+
+
 def prepare(lead_id: str) -> Path:
     workspace = find_workspace(lead_id)
     form = load_json(workspace / "application_form.json")

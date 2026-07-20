@@ -262,8 +262,9 @@ class WorkflowStoreTests(unittest.TestCase):
             "cover_letter_pdf_review_required", "cover_letter_pdf_completed", "application_package_requested",
             "application_package_running", "application_package_completed",
             "form_questions_saved", "application_answers_requested", "application_answers_running",
-            "application_answers_completed", "application_answers_approved",
+            "application_answers_completed", "application_answers_approved", "form_filling_started",
+            "submission_review_required",
         ]
         for status in statuses:
             run = self.store.transition(run["id"], status, "user")
-        self.assertEqual(run["status"], "application_answers_approved")
+        self.assertEqual(run["status"], "submission_review_required")
