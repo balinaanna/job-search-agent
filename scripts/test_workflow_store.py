@@ -72,3 +72,18 @@ class WorkflowStoreTests(unittest.TestCase):
         later = self.store.transition(run["id"], "decide_later", "user")
         decided = self.store.transition(later["id"], "pass", "user")
         self.assertEqual(decided["status"], "pass")
+
+    def test_strategy_requires_pursue_and_completes_in_order(self) -> None:
+        run = self.store.record_completed_analysis("lead-1", "analysis.json")
+        pursued = self.store.transition(run["id"], "pursue", "user")
+        requested = self.store.transition(pursued["id"], "strategy_requested", "user")
+        running = self.store.transition(requested["id"], "strategy_running", "worker")
+        complete = self.store.transition(
+            running["id"], "strategy_completed", "worker", result_path="strategy.json"
+        )
+        self.assertEqual(complete["status"], "strategy_completed")
+
+    def test_strategy_cannot_start_from_analysis_completed(self) -> None:
+        run = self.store.record_completed_analysis("lead-1", "analysis.json")
+        with self.assertRaises(ValueError):
+            self.store.transition(run["id"], "strategy_requested", "user")

@@ -17,6 +17,9 @@ ALLOWED_TRANSITIONS = {
     "analysis_completed": {"pursue", "pass", "decide_later"},
     "decide_later": {"pursue", "pass"},
     "pursue": {"strategy_requested"},
+    "strategy_requested": {"strategy_running", "strategy_failed"},
+    "strategy_running": {"strategy_completed", "strategy_failed"},
+    "strategy_failed": {"strategy_requested"},
 }
 
 
