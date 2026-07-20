@@ -2,11 +2,17 @@
   document.documentElement.setAttribute("data-job-agent-extension", chrome.runtime.getManifest().version);
   window.dispatchEvent(new CustomEvent("job-agent-extension-ready", { detail: chrome.runtime.getManifest().version }));
   const parameters = new URLSearchParams(location.hash.replace(/^#/, ""));
-  const leadId = parameters.get("jobAgentLead"); const token = parameters.get("jobAgentToken");
+  let leadId = parameters.get("jobAgentLead"); let token = parameters.get("jobAgentToken");
+  if (leadId && token) {
+    await chrome.runtime.sendMessage({ type: "job-agent-register-session", leadId, token });
+    parameters.delete("jobAgentLead"); parameters.delete("jobAgentToken");
+    const cleanHash = parameters.toString();
+    history.replaceState(null, "", `${location.pathname}${location.search}${cleanHash ? `#${cleanHash}` : ""}`);
+  } else {
+    const stored = await chrome.runtime.sendMessage({ type: "job-agent-get-session" });
+    leadId = stored?.leadId; token = stored?.token;
+  }
   if (!leadId || !token || !globalThis.JobAgentMatcher) return;
-  parameters.delete("jobAgentLead"); parameters.delete("jobAgentToken");
-  const cleanHash = parameters.toString();
-  history.replaceState(null, "", `${location.pathname}${location.search}${cleanHash ? `#${cleanHash}` : ""}`);
   if (document.readyState === "loading") await new Promise((resolve) => document.addEventListener("DOMContentLoaded", resolve, { once: true }));
 
   function notice(title, detail, warning, rescan) {
@@ -65,6 +71,7 @@
       await fetch(`http://localhost:8787/api/jobs/${encodeURIComponent(leadId)}/browser-fill-report?token=${encodeURIComponent(token)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filled, unmatched: result.unmatched, blockers }) });
       notice("Application assistant", blockers.length ? `${filled.length} answer(s) filled. Review ${blockers.length + result.unmatched.length} unmatched or blocked item(s). Nothing was submitted.` : `${filled.length} approved answer(s) filled. Review every field and upload the approved documents. Nothing was submitted.`, blockers.length > 0 || result.unmatched.length > 0, scan);
     } catch (error) {
+      if (error instanceof Error && /not active|token/i.test(error.message)) await chrome.runtime.sendMessage({ type: "job-agent-clear-session" });
       notice("Application assistant stopped", error instanceof Error ? error.message : "The form could not be filled.", true, scan);
     }
   }

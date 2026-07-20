@@ -16,6 +16,7 @@ class BrowserExtensionArchiveTests(unittest.TestCase):
             root = Path(directory)
             for name, content in {
                 "manifest.json": '{"version":"0.1.0"}',
+                "background.js": "background",
                 "form-matcher.js": "matcher",
                 "content-script.js": "content",
                 "README.md": "instructions",
@@ -27,6 +28,7 @@ class BrowserExtensionArchiveTests(unittest.TestCase):
             names = sorted(archive.namelist())
             self.assertEqual(names, [
                 "job-application-assistant/README.md",
+                "job-application-assistant/background.js",
                 "job-application-assistant/content-script.js",
                 "job-application-assistant/form-matcher.js",
                 "job-application-assistant/manifest.json",

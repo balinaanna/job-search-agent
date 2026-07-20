@@ -1,9 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Anna's Job Application Assistant",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Fills explicitly approved application answers and never submits forms.",
+  "permissions": ["storage"],
   "host_permissions": ["http://localhost:8787/*"],
+  "background": { "service_worker": "background.js" },
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],

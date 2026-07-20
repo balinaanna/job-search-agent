@@ -42,4 +42,12 @@ test("content adapter contains no automated click action", () => {
   assert.equal(/\.click\s*\(/.test(source), false);
   assert.match(source, /never_submit/);
   assert.match(source, /data-job-agent-extension/);
+  assert.match(source, /job-agent-get-session/);
+});
+
+test("background session storage is tab scoped", () => {
+  const source = fs.readFileSync(new URL("./background.js", import.meta.url), "utf8");
+  assert.match(source, /sender\.tab\?\.id/);
+  assert.match(source, /chrome\.storage\.session/);
+  assert.match(source, /job-agent-clear-session/);
 });

@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def browser_extension_archive(extension: Path = ROOT / "browser-extension") -> bytes:
-    files = ("manifest.json", "form-matcher.js", "content-script.js", "README.md")
+    files = ("manifest.json", "background.js", "form-matcher.js", "content-script.js", "README.md")
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
         for name in files:
