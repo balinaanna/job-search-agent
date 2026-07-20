@@ -4,6 +4,7 @@ import hashlib
 import html
 import re
 import sqlite3
+import json
 from datetime import datetime, timezone
 from email import policy
 from email.parser import Parser
@@ -82,6 +83,24 @@ def parse_alert(source: str, content: str) -> list[dict]:
     return list(unique.values())
 
 
+def save_captured_posting(payload: dict, output_directory: Path) -> Path:
+    source = payload.get("source")
+    if source not in SOURCES: raise ValueError("Capture source must be LinkedIn, Indeed, or Eluta.")
+    required = {}
+    for name in ("company", "role", "posting_url", "description_text"):
+        value = payload.get(name)
+        if not isinstance(value, str) or not value.strip(): raise ValueError(f"Captured {name.replace('_', ' ')} is required.")
+        required[name] = value.strip()
+    if len(required["description_text"]) < 200: raise ValueError("Capture the complete job description before importing.")
+    if sourceFor := canonical_job_url(required["posting_url"], source): required["posting_url"] = sourceFor
+    else: raise ValueError("The captured URL does not match its job source.")
+    posting = {**required, "application_url": payload.get("application_url") or required["posting_url"], "external_job_id": None, "platform": source, "location_raw": payload.get("location_raw"), "workplace_type_raw": payload.get("workplace_type_raw"), "employment_type_raw": payload.get("employment_type_raw"), "department": None, "salary": {"minimum": None, "maximum": None, "currency": None, "period": None, "source": None}, "posted_date": payload.get("posted_date"), "deadline": None, "collected_at": datetime.now(timezone.utc).isoformat(), "search_query": f"{source} job alert"}
+    output_directory.mkdir(parents=True, exist_ok=True)
+    name = f"captured-{source}-{hashlib.sha256(required['posting_url'].encode()).hexdigest()[:20]}.json"
+    path = output_directory / name; path.write_text(json.dumps(posting, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return path
+
+
 class AlertInboxStore:
     def __init__(self, path: Path):
         self.connection = sqlite3.connect(path); self.connection.row_factory = sqlite3.Row
@@ -98,5 +117,8 @@ class AlertInboxStore:
     def list(self) -> list[dict]:
         rows = self.connection.execute("SELECT * FROM alert_jobs ORDER BY received_at DESC").fetchall()
         return [dict(row) for row in rows]
+    def mark_captured(self, source: str, title: str) -> None:
+        with self.connection:
+            self.connection.execute("UPDATE alert_jobs SET status='captured' WHERE source=? AND lower(title)=lower(?)", (source, title))
     def close(self) -> None:
         self.connection.close()

@@ -56,3 +56,11 @@ test("background session storage is tab scoped", () => {
   assert.match(source, /chrome\.storage\.session/);
   assert.match(source, /job-agent-clear-session/);
 });
+
+test("capture adapter supports only the approved alert sources", async () => {
+  const capture = await import("./job-capture.js");
+  assert.equal(capture.default.sourceForUrl("https://www.linkedin.com/jobs/view/123"), "linkedin");
+  assert.equal(capture.default.sourceForUrl("https://ca.indeed.com/viewjob?jk=123"), "indeed");
+  assert.equal(capture.default.sourceForUrl("https://www.eluta.ca/spl/job-123"), "eluta");
+  assert.equal(capture.default.sourceForUrl("https://example.com/jobs/123"), null);
+});

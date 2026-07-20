@@ -28,7 +28,7 @@ from workflow_store import WorkflowStore
 from application_tracker import initial_tracker, update_tracker
 from discovery_store import DiscoveryStore
 from search_settings import load_search_settings, save_search_settings
-from job_alert_inbox import AlertInboxStore
+from job_alert_inbox import AlertInboxStore, save_captured_posting
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -54,7 +54,7 @@ def scheduled_discovery_loop(database: Path) -> None:
 
 
 def browser_extension_archive(extension: Path = ROOT / "browser-extension") -> bytes:
-    files = ("manifest.json", "background.js", "form-matcher.js", "content-script.js", "README.md")
+    files = ("manifest.json", "background.js", "form-matcher.js", "job-capture.js", "content-script.js", "README.md")
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
         for name in files:
@@ -162,6 +162,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if parts == ["api", "job-alerts", "import"]:
             self.import_job_alert()
+            return
+        if parts == ["api", "job-alerts", "capture"]:
+            self.capture_alert_job()
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "analyze":
             self.request_analysis(parts[2])
@@ -397,6 +400,18 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             self.respond(400, {"error": str(exc)})
             return
         self.respond(200, result)
+
+    def capture_alert_job(self) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0")); payload = json.loads(self.rfile.read(length) or b"{}")
+            path = save_captured_posting(payload, ROOT / "data/raw-job-postings")
+            pipeline = subprocess.run([sys.executable, "scripts/run_job_discovery.py", "--skip-collection"], cwd=ROOT, check=True, capture_output=True, text=True)
+            subprocess.run([sys.executable, "scripts/export_dashboard_data.py"], cwd=ROOT, check=True, capture_output=True, text=True)
+            self.alert_store.mark_captured(payload["source"], payload["role"])
+        except (ValueError, KeyError, OSError, json.JSONDecodeError, subprocess.CalledProcessError) as exc:
+            detail = ((exc.stdout or "") + "\n" + (exc.stderr or "")).strip() if isinstance(exc, subprocess.CalledProcessError) else str(exc)
+            self.respond(400, {"error": detail[-2000:] or "Captured posting could not be processed."}); return
+        self.respond(201, {"status": "captured", "raw_path": str(path.relative_to(ROOT)), "pipeline": pipeline.stdout.strip()})
 
     def get_browser_fill(self, lead_id: str, query: str) -> None:
         from urllib.parse import parse_qs

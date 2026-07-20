@@ -19,6 +19,7 @@ class BrowserExtensionArchiveTests(unittest.TestCase):
                 "manifest.json": '{"version":"0.1.0"}',
                 "background.js": "background",
                 "form-matcher.js": "matcher",
+                "job-capture.js": "capture",
                 "content-script.js": "content",
                 "README.md": "instructions",
                 "test-form-matcher.mjs": "not shipped",
@@ -32,6 +33,7 @@ class BrowserExtensionArchiveTests(unittest.TestCase):
                 "job-application-assistant/background.js",
                 "job-application-assistant/content-script.js",
                 "job-application-assistant/form-matcher.js",
+                "job-application-assistant/job-capture.js",
                 "job-application-assistant/manifest.json",
             ])
             manifest = json.loads(archive.read("job-application-assistant/manifest.json"))

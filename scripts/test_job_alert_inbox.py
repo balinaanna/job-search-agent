@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from job_alert_inbox import AlertInboxStore, parse_alert
+from job_alert_inbox import AlertInboxStore, parse_alert, save_captured_posting
 
 
 class JobAlertInboxTests(unittest.TestCase):
@@ -28,6 +28,17 @@ class JobAlertInboxTests(unittest.TestCase):
             parse_alert("other", "email")
         with self.assertRaisesRegex(ValueError, "Paste"):
             parse_alert("indeed", "")
+
+    def test_saves_complete_user_captured_posting(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = save_captured_posting({"source": "linkedin", "company": "Example AI", "role": "AI Engineer", "posting_url": "https://www.linkedin.com/jobs/view/12345?tracking=x", "description_text": "Build trustworthy AI products. " * 20, "location_raw": "Canada (Remote)"}, Path(directory))
+            self.assertTrue(path.exists())
+            self.assertIn('"platform": "linkedin"', path.read_text())
+
+    def test_rejects_incomplete_capture(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(ValueError, "complete job description"):
+                save_captured_posting({"source": "eluta", "company": "Example", "role": "Engineer", "posting_url": "https://www.eluta.ca/spl/job-123", "description_text": "Too short"}, Path(directory))
 
 
 if __name__ == "__main__": unittest.main()

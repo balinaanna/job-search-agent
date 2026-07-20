@@ -1,0 +1,12 @@
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === "object" && module.exports) module.exports = api;
+  else root.JobAgentCapture = api;
+})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  function sourceForUrl(url) { const host = new URL(url).hostname.replace(/^www\./, ""); if (host.endsWith("linkedin.com")) return "linkedin"; if (host.endsWith("indeed.com")) return "indeed"; if (host.endsWith("eluta.ca")) return "eluta"; return null; }
+  function text(value) { return typeof value === "string" ? value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() : ""; }
+  function jobPosting(document) { for (const node of document.querySelectorAll('script[type="application/ld+json"]')) { try { const parsed = JSON.parse(node.textContent || "null"); const values = Array.isArray(parsed) ? parsed : parsed?.["@graph"] || [parsed]; const found = values.find((item) => item?.["@type"] === "JobPosting"); if (found) return found; } catch {} } return null; }
+  function locationValue(value) { const location = Array.isArray(value) ? value[0] : value; const address = location?.address || location; return text([address?.addressLocality, address?.addressRegion, address?.addressCountry].filter(Boolean).join(", ")) || text(location?.name); }
+  function extract(document, url) { const source = sourceForUrl(url); if (!source) throw new Error("This page is not a supported alert source."); const posting = jobPosting(document); const title = text(posting?.title) || text(document.querySelector("h1")?.textContent); const company = text(posting?.hiringOrganization?.name) || text(document.querySelector('[class*="company" i], [data-company-name]')?.textContent); const description = text(posting?.description) || text(document.querySelector('[class*="description" i], #jobDescriptionText, main')?.textContent); const location = locationValue(posting?.jobLocation) || text(document.querySelector('[class*="location" i]')?.textContent); if (!title || !company || description.length < 200) throw new Error("The complete title, employer, and job description could not be identified. Open the individual job posting and try again."); return { source, company, role: title, posting_url: url, application_url: text(posting?.url) || url, description_text: description, location_raw: location || null, workplace_type_raw: posting?.jobLocationType === "TELECOMMUTE" ? "Remote" : null, employment_type_raw: text(posting?.employmentType) || null, posted_date: text(posting?.datePosted) || null }; }
+  return { sourceForUrl, extract };
+});

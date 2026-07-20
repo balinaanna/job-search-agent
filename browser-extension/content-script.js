@@ -1,6 +1,22 @@
 (async function () {
   document.documentElement.setAttribute("data-job-agent-extension", chrome.runtime.getManifest().version);
   window.dispatchEvent(new CustomEvent("job-agent-extension-ready", { detail: chrome.runtime.getManifest().version }));
+  if (globalThis.JobAgentCapture?.sourceForUrl(location.href)) {
+    const captureButton = document.createElement("button");
+    captureButton.type = "button"; captureButton.textContent = "Capture this job";
+    captureButton.style.cssText = "position:fixed;right:18px;bottom:18px;z-index:2147483646;padding:10px 14px;border:0;border-radius:8px;background:#1f684f;color:white;font:600 13px Arial,sans-serif;box-shadow:0 5px 18px #0003";
+    captureButton.addEventListener("click", async () => {
+      captureButton.disabled = true; captureButton.textContent = "Capturing…";
+      try {
+        const posting = globalThis.JobAgentCapture.extract(document, location.href);
+        const response = await fetch("http://localhost:8787/api/job-alerts/capture", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(posting) });
+        const result = await response.json(); if (!response.ok) throw new Error(result.error || "Capture failed.");
+        captureButton.textContent = "Captured for analysis"; captureButton.style.background = "#315f9a";
+      } catch (error) { captureButton.textContent = error instanceof Error ? error.message : "Capture failed"; captureButton.style.maxWidth = "360px"; captureButton.style.background = "#9a5227"; captureButton.disabled = false; }
+    });
+    const addButton = () => { if (!document.body.contains(captureButton)) document.body.appendChild(captureButton); };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", addButton, { once: true }); else addButton();
+  }
   const parameters = new URLSearchParams(location.hash.replace(/^#/, ""));
   let leadId = parameters.get("jobAgentLead"); let token = parameters.get("jobAgentToken");
   if (leadId && token) {

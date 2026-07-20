@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Anna's Job Application Assistant",
-  "version": "0.4.0",
-  "description": "Fills explicitly approved application answers and never submits forms.",
+  "version": "0.5.0",
+  "description": "Captures user-selected job postings, fills explicitly approved answers, and never submits forms.",
   "permissions": ["storage"],
   "host_permissions": ["http://localhost:8787/*"],
   "background": { "service_worker": "background.js" },
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["form-matcher.js", "content-script.js"],
+      "js": ["form-matcher.js", "job-capture.js", "content-script.js"],
       "run_at": "document_start"
     }
   ]
