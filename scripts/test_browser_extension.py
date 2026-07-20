@@ -6,9 +6,10 @@ import tempfile
 import unittest
 import zipfile
 import hashlib
+from inspect import getsource
 from pathlib import Path
 
-from workflow_api import browser_extension_archive, verified_document_bytes
+from workflow_api import WorkflowHandler, browser_extension_archive, verified_document_bytes
 
 
 class BrowserExtensionArchiveTests(unittest.TestCase):
@@ -46,6 +47,11 @@ class BrowserExtensionArchiveTests(unittest.TestCase):
             self.assertEqual(verified_document_bytes(path, expected), b"approved pdf bytes")
             with self.assertRaisesRegex(ValueError, "integrity check failed"):
                 verified_document_bytes(path, "0" * 64)
+
+    def test_api_allows_extension_private_network_preflight(self) -> None:
+        source = getsource(WorkflowHandler.end_headers)
+        self.assertIn("Access-Control-Allow-Private-Network", source)
+        self.assertIn("Access-Control-Request-Private-Network", source)
 
 
 if __name__ == "__main__":

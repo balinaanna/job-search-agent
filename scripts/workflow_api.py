@@ -96,6 +96,8 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             self.send_header("Access-Control-Expose-Headers", "X-Content-SHA256, Content-Disposition")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        if self.headers.get("Access-Control-Request-Private-Network") == "true":
+            self.send_header("Access-Control-Allow-Private-Network", "true")
         super().end_headers()
 
     def do_OPTIONS(self) -> None:
