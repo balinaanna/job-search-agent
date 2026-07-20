@@ -1,4 +1,6 @@
 (async function () {
+  document.documentElement.setAttribute("data-job-agent-extension", chrome.runtime.getManifest().version);
+  window.dispatchEvent(new CustomEvent("job-agent-extension-ready", { detail: chrome.runtime.getManifest().version }));
   const parameters = new URLSearchParams(location.hash.replace(/^#/, ""));
   const leadId = parameters.get("jobAgentLead"); const token = parameters.get("jobAgentToken");
   if (!leadId || !token || !globalThis.JobAgentMatcher) return;

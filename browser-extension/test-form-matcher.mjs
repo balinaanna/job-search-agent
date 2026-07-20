@@ -15,4 +15,5 @@ test("content adapter contains no automated click action", () => {
   const source = fs.readFileSync(new URL("./content-script.js", import.meta.url), "utf8");
   assert.equal(/\.click\s*\(/.test(source), false);
   assert.match(source, /never_submit/);
+  assert.match(source, /data-job-agent-extension/);
 });

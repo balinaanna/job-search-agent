@@ -6,6 +6,8 @@ import argparse
 import json
 import shutil
 import secrets
+import io
+import zipfile
 import subprocess
 import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -21,6 +23,15 @@ from workflow_store import WorkflowStore
 
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def browser_extension_archive(extension: Path = ROOT / "browser-extension") -> bytes:
+    files = ("manifest.json", "form-matcher.js", "content-script.js", "README.md")
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        for name in files:
+            archive.write(extension / name, f"job-application-assistant/{name}")
+    return buffer.getvalue()
 
 
 class WorkflowHandler(BaseHTTPRequestHandler):
@@ -79,6 +90,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "form-fill-session":
             self.get_form_fill_session(parts[2])
+            return
+        if parts == ["api", "browser-extension"]:
+            self.get_browser_extension()
             return
         self.respond(404, {"error": "Not found."})
 
@@ -252,6 +266,17 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             self.respond(200, session)
         except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
             self.respond(404, {"error": str(exc)})
+
+    def get_browser_extension(self) -> None:
+        try:
+            body = browser_extension_archive()
+        except OSError as exc:
+            self.respond(500, {"error": str(exc)}); return
+        self.send_response(200)
+        self.send_header("Content-Type", "application/zip")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Content-Disposition", 'attachment; filename="job-application-assistant.zip"')
+        self.end_headers(); self.wfile.write(body)
 
     def get_browser_fill(self, lead_id: str, query: str) -> None:
         from urllib.parse import parse_qs

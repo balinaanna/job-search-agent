@@ -178,6 +178,16 @@ h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .browser-report strong { font-size:10px; }
 .browser-report span,.browser-report li { color:var(--muted); font-size:9px; }
 .browser-report ul { margin:4px 0 0; padding-left:17px; }
+.extension-status { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px; border:1px solid #d9b27d; border-radius:8px; background:#fff8ed; }
+.extension-status.connected { border-color:#91c5aa; background:#f2faf5; }
+.extension-status>div { display:grid; gap:3px; }
+.extension-status strong { font-size:10px; }
+.extension-status span { color:var(--muted); font-size:9px; }
+.extension-status>b { color:#8b5b1e; font-size:9px; white-space:nowrap; }
+.extension-status.connected>b { color:var(--green); }
+.extension-setup summary { cursor:pointer; font-size:10px; font-weight:750; }
+.extension-setup ol { margin:8px 0 0; padding-left:20px; color:#4f5d57; font-size:9px; line-height:1.65; }
+.extension-setup a { color:var(--green); font-weight:750; }
 .job-actions { display:flex; justify-content:flex-end; gap:10px; }
 .job-actions a,.job-actions button,.queue-table button { padding:8px 12px; border-radius:7px; font-size:11px; font-weight:700; text-decoration:none; }
 .job-actions a { color:#44514c; border:1px solid var(--line); }
