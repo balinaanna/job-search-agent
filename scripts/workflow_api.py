@@ -9,6 +9,7 @@ import secrets
 import io
 import zipfile
 import hashlib
+import sqlite3
 import subprocess
 import sys
 import threading
@@ -27,6 +28,7 @@ from workflow_store import WorkflowStore
 from application_tracker import initial_tracker, update_tracker
 from discovery_store import DiscoveryStore
 from search_settings import load_search_settings, save_search_settings
+from job_alert_inbox import AlertInboxStore
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -71,6 +73,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
     store: WorkflowStore
     discovery_store: DiscoveryStore
     leads_directory: Path
+    alert_store: AlertInboxStore
 
     def end_headers(self) -> None:
         origin = self.headers.get("Origin", "")
@@ -144,6 +147,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
                 self.respond(500, {"error": str(exc)})
             return
+        if parts == ["api", "job-alerts"]:
+            self.respond(200, {"jobs": self.alert_store.list()})
+            return
         self.respond(404, {"error": "Not found."})
 
     def do_POST(self) -> None:
@@ -153,6 +159,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if parts == ["api", "search-settings"]:
             self.update_search_settings()
+            return
+        if parts == ["api", "job-alerts", "import"]:
+            self.import_job_alert()
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "analyze":
             self.request_analysis(parts[2])
@@ -378,6 +387,16 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             self.respond(400, {"error": str(exc)})
             return
         self.respond(200, settings)
+
+    def import_job_alert(self) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+            result = self.alert_store.import_alert(payload.get("source", ""), payload.get("content", ""))
+        except (ValueError, json.JSONDecodeError, sqlite3.Error) as exc:
+            self.respond(400, {"error": str(exc)})
+            return
+        self.respond(200, result)
 
     def get_browser_fill(self, lead_id: str, query: str) -> None:
         from urllib.parse import parse_qs
@@ -1070,6 +1089,7 @@ def main() -> int:
     args = parser.parse_args()
     WorkflowHandler.store = WorkflowStore(args.database)
     WorkflowHandler.discovery_store = DiscoveryStore(args.database)
+    WorkflowHandler.alert_store = AlertInboxStore(args.database)
     WorkflowHandler.leads_directory = args.leads
     threading.Thread(target=scheduled_discovery_loop, args=(args.database,), daemon=True).start()
     server = HTTPServer((args.host, args.port), WorkflowHandler)

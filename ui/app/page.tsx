@@ -2,6 +2,7 @@ import data from "./dashboard-data.json";
 import { JobsView } from "./JobsView";
 import { FindJobsButton } from "./FindJobsButton";
 import { SearchSettings } from "./SearchSettings";
+import { AlertInbox } from "./AlertInbox";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
         <nav aria-label="Main navigation">
           <a className="nav-item active" href="#overview"><span>⌂</span> Overview</a>
           <a className="nav-item" href="#jobs"><span>◎</span> Jobs <b>{data.summary.awaitingAnalysis + data.analyzedJobs.length}</b></a>
+          <a className="nav-item" href="#alert-inbox"><span>✉</span> Alert inbox</a>
           <a className="nav-item" href="#applications"><span>▤</span> Applications</a>
           <a className="nav-item" href="#profile"><span>◇</span> Career profile</a>
         </nav>
@@ -47,6 +49,8 @@ export default function Home() {
           <article><span>Ready to pursue</span><strong>{data.summary.readyToPursue}</strong><small>strong or solid matches</small></article>
           <article><span>In progress</span><strong>{data.summary.applicationsInProgress}</strong><small>application packages</small></article>
         </section>
+
+        <AlertInbox />
 
         <section className="content-grid" id="jobs">
           <JobsView analyzedJobs={data.analyzedJobs} awaitingAnalysis={data.awaitingAnalysis} />
