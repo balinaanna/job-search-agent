@@ -67,6 +67,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-package":
             self.get_application_package(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-answers":
+            self.get_application_answers(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def do_POST(self) -> None:
@@ -130,6 +133,12 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-package":
             self.request_application_package(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "form-questions":
+            self.save_form_questions(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-answers":
+            self.request_application_answers(parts[2])
             return
         self.respond(404, {"error": "Not found."})
 
@@ -198,6 +207,44 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
             self.respond(404, {"error": str(exc)}); return
         self.respond(200, {"package": package, "checklist": checklist})
+
+    def get_application_answers(self, lead_id: str) -> None:
+        try:
+            self.respond(200, load_json(find_workspace(lead_id) / "application_answers.json"))
+        except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+            self.respond(404, {"error": str(exc)})
+
+    def save_form_questions(self, lead_id: str) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0")); payload = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self.respond(400, {"error": "Invalid form-question request."}); return
+        text = payload.get("questions_text", ""); source_url = payload.get("source_url", "")
+        questions = [line.strip().lstrip("-• ").strip() for line in text.splitlines() if line.strip()]
+        if not questions:
+            self.respond(400, {"error": "Paste at least one application question, one per line."}); return
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] not in {"application_package_completed", "application_answers_failed"}:
+            self.respond(409, {"error": "A validated application package is required before importing questions."}); return
+        try:
+            workspace = find_workspace(lead_id)
+            form = {"schema_version": "1.0", "lead_id": lead_id, "source_url": source_url.strip() or None, "questions": [{"question_id": f"q_{index:03d}", "question": question} for index, question in enumerate(questions, 1)]}
+            (workspace / "application_form.json").write_text(json.dumps(form, indent=2) + "\n", encoding="utf-8")
+            run = self.store.transition(run["id"], "form_questions_saved", "user", details={"question_count": len(questions)})
+        except (OSError, ValueError) as exc:
+            self.respond(409, {"error": str(exc)}); return
+        self.respond(200, run)
+
+    def request_application_answers(self, lead_id: str) -> None:
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] != "form_questions_saved":
+            self.respond(409, {"error": "Import the application questions before preparing answers."}); return
+        try:
+            run = self.store.transition(run["id"], "application_answers_requested", "user")
+        except ValueError as exc:
+            self.respond(409, {"error": str(exc)}); return
+        subprocess.Popen([sys.executable, str(ROOT / "scripts/run_application_answers_worker.py"), run["id"]], cwd=ROOT, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.respond(202, run)
 
     def request_analysis(self, lead_id: str) -> None:
         lead_path = self.leads_directory / f"{lead_id}.json"

@@ -142,6 +142,16 @@ h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .package-files span,.package-integrity span,.application-package>small { color:var(--muted); font-size:9px; }
 .application-package summary { cursor:pointer; font-size:10px; font-weight:750; }
 .application-package pre { max-height:230px; overflow:auto; padding:11px; border:1px solid var(--line); border-radius:7px; background:#fff; white-space:pre-wrap; font:9px/1.5 Arial,sans-serif; }
+.form-import { display:grid; gap:8px; padding-top:10px; border-top:1px solid var(--line); }
+.form-import>span { color:var(--muted); font-size:9px; }
+.form-import input,.form-import textarea { width:100%; box-sizing:border-box; padding:9px 10px; border:1px solid var(--line); border-radius:7px; background:#fff; font:10px Arial,sans-serif; }
+.form-import textarea { min-height:90px; resize:vertical; }
+.form-import button { justify-self:start; }
+.answer-list { display:grid; gap:8px; }
+.answer-list article { padding:10px; border:1px solid var(--line); border-radius:8px; background:#fff; display:grid; gap:7px; }
+.answer-list article>div { display:grid; gap:3px; }
+.answer-list article span,.answer-list article small { color:var(--muted); font-size:9px; text-transform:none; letter-spacing:0; }
+.answer-list article p { margin:0; font-size:10px; line-height:1.5; }
 .job-actions { display:flex; justify-content:flex-end; gap:10px; }
 .job-actions a,.job-actions button,.queue-table button { padding:8px 12px; border-radius:7px; font-size:11px; font-weight:700; text-decoration:none; }
 .job-actions a { color:#44514c; border:1px solid var(--line); }

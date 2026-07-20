@@ -77,6 +77,11 @@ ALLOWED_TRANSITIONS = {
     "application_package_requested": {"application_package_running", "application_package_failed"},
     "application_package_running": {"application_package_completed", "application_package_failed"},
     "application_package_failed": {"application_package_requested"},
+    "application_package_completed": {"form_questions_saved"},
+    "form_questions_saved": {"application_answers_requested"},
+    "application_answers_requested": {"application_answers_running", "application_answers_failed"},
+    "application_answers_running": {"application_answers_completed", "application_answers_failed"},
+    "application_answers_failed": {"application_answers_requested", "form_questions_saved"},
 }
 
 
