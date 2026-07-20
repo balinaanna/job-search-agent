@@ -65,6 +65,16 @@ h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .score-track span { display:block; height:100%; border-radius:5px; background:#d89b48; }
 .risk { margin-bottom:18px; padding:12px 14px; border-radius:8px; background:#f8f7f3; color:#5c6561; font-size:11px; line-height:1.55; }
 .risk strong { color:#38443f; }
+.decision-control { margin:0 0 18px; padding:14px; border:1px solid var(--line); border-radius:9px; display:grid; gap:9px; }
+.decision-control>span { font-size:11px; font-weight:700; }
+.decision-control>div { display:flex; gap:8px; }
+.decision-control button { padding:8px 12px; border:1px solid var(--line); border-radius:7px; background:#fff; color:#53605b; font-size:11px; font-weight:700; }
+.decision-control button.pursue { border-color:var(--green); background:var(--green); color:#fff; }
+.decision-control small { color:var(--muted); font-size:10px; }
+.decision-saved { margin:0 0 18px; padding:12px 14px; border-radius:9px; display:flex; align-items:center; justify-content:space-between; background:#eef4f0; color:var(--green); }
+.decision-saved.pass { background:#f1f2f0; color:#68716d; }
+.decision-saved strong { font-size:12px; }
+.decision-saved span { font-size:10px; }
 .job-actions { display:flex; justify-content:flex-end; gap:10px; }
 .job-actions a,.job-actions button,.queue-table button { padding:8px 12px; border-radius:7px; font-size:11px; font-weight:700; text-decoration:none; }
 .job-actions a { color:#44514c; border:1px solid var(--line); }

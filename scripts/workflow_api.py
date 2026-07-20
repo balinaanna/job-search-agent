@@ -10,6 +10,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
+from surface_fit_queue import join_results, load_leads, load_valid_analyses
 from validate_job_lead import load_json
 from workflow_store import WorkflowStore
 
@@ -41,12 +42,19 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             except KeyError:
                 self.respond(404, {"error": "Workflow run not found."})
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "workflow":
+            run = self.store.latest_for_lead(parts[2])
+            self.respond(200, run or {"status": "not_started"})
+            return
         self.respond(404, {"error": "Not found."})
 
     def do_POST(self) -> None:
         parts = urlparse(self.path).path.strip("/").split("/")
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "analyze":
             self.request_analysis(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "decision":
+            self.record_decision(parts[2])
             return
         self.respond(404, {"error": "Not found."})
 
@@ -71,6 +79,54 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             stderr=subprocess.DEVNULL,
         )
         self.respond(202, run)
+
+    def record_decision(self, lead_id: str) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self.respond(400, {"error": "Invalid decision request."})
+            return
+        decision = payload.get("decision")
+        if decision not in {"pursue", "pass", "decide_later"}:
+            self.respond(400, {"error": "Decision must be pursue, pass, or decide_later."})
+            return
+
+        lead_path = self.leads_directory / f"{lead_id}.json"
+        if not lead_path.exists():
+            self.respond(404, {"error": "Job lead not found."})
+            return
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] == "analysis_failed":
+            leads = load_leads(self.leads_directory)
+            analyses = load_valid_analyses(ROOT / "jobs/analyzed", ROOT / "profile/evidence.yaml")
+            results, _ = join_results(leads, analyses)
+            match = next((result for result in results if result.lead["lead_id"] == lead_id), None)
+            if match is None:
+                self.respond(409, {"error": "A validated fit analysis is required before deciding."})
+                return
+            run = self.store.record_completed_analysis(
+                lead_id, str(match.analysis_path), actor="workflow_api"
+            )
+        if run["status"] == decision:
+            self.respond(200, run)
+            return
+        try:
+            run = self.store.transition(
+                run["id"], decision, "user", details={"explicit_user_decision": True}
+            )
+        except ValueError as exc:
+            self.respond(409, {"error": str(exc)})
+            return
+
+        lead = load_json(lead_path)
+        lead["status"]["reviewed"] = True
+        note = f"User decision: {decision.replace('_', ' ')}."
+        notes = lead["status"].setdefault("notes", [])
+        notes[:] = [item for item in notes if not item.startswith("User decision:")]
+        notes.append(note)
+        lead_path.write_text(json.dumps(lead, indent=2) + "\n", encoding="utf-8")
+        self.respond(200, run)
 
     def respond(self, status: int, payload: dict) -> None:
         body = json.dumps(payload).encode("utf-8")

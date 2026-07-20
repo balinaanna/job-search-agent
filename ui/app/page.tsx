@@ -1,5 +1,6 @@
 import data from "./dashboard-data.json";
 import { AnalyzeButton } from "./AnalyzeButton";
+import { DecisionButtons } from "./DecisionButtons";
 
 const recommendationLabel: Record<string, string> = {
   strong_apply: "Strong match",
@@ -71,6 +72,7 @@ export default function Home() {
                   <small>Discovery estimate {primaryJob.discoveryScore}</small>
                 </div>
                 <p className="risk"><strong>Main consideration:</strong> {primaryJob.risk}</p>
+                <DecisionButtons leadId={primaryJob.id} />
                 <div className="job-actions"><a className="secondary-action" href={primaryJob.postingUrl} target="_blank" rel="noreferrer">View posting</a><button type="button">Review fit analysis →</button></div>
               </article>
             ) : <div className="empty-state">No completed job analyses yet.</div>}

@@ -60,3 +60,15 @@ class WorkflowStoreTests(unittest.TestCase):
         self.assertEqual(strict["required"], ["name", "details"])
         self.assertEqual(strict["properties"]["details"]["required"], ["note"])
         self.assertNotIn("required", schema)
+
+    def test_completed_analysis_can_be_imported_for_a_user_decision(self) -> None:
+        run = self.store.record_completed_analysis("lead-1", "analysis.json")
+        decided = self.store.transition(run["id"], "pursue", "user")
+        self.assertEqual(decided["status"], "pursue")
+        self.assertEqual(len(self.store.events(run["id"])), 2)
+
+    def test_decide_later_can_change_to_pass(self) -> None:
+        run = self.store.record_completed_analysis("lead-1", "analysis.json")
+        later = self.store.transition(run["id"], "decide_later", "user")
+        decided = self.store.transition(later["id"], "pass", "user")
+        self.assertEqual(decided["status"], "pass")

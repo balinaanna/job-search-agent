@@ -83,6 +83,35 @@ class WorkflowStore:
             self._event(run_id, None, "analysis_requested", actor, {})
         return self.get(run_id)
 
+    def record_completed_analysis(
+        self, lead_id: str, result_path: str, actor: str = "system_import"
+    ) -> dict[str, Any]:
+        existing = self.latest_for_lead(lead_id)
+        if existing and existing["status"] in {
+            "analysis_completed",
+            "decide_later",
+            "pursue",
+            "pass",
+        }:
+            return existing
+        run_id = str(uuid.uuid4())
+        timestamp = now()
+        with self.connection:
+            self.connection.execute(
+                """INSERT INTO workflow_runs
+                   (id, lead_id, workflow, status, result_path, created_at, updated_at)
+                   VALUES (?, ?, 'job_analysis', 'analysis_completed', ?, ?, ?)""",
+                (run_id, lead_id, result_path, timestamp, timestamp),
+            )
+            self._event(
+                run_id,
+                None,
+                "analysis_completed",
+                actor,
+                {"imported_validated_analysis": True},
+            )
+        return self.get(run_id)
+
     def transition(
         self,
         run_id: str,
@@ -142,4 +171,3 @@ class WorkflowStore:
                VALUES (?, ?, ?, ?, ?, ?)""",
             (run_id, from_status, to_status, actor, json.dumps(details), now()),
         )
-
