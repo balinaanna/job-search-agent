@@ -71,5 +71,6 @@ test("capture runtime visibly identifies its installed version", () => {
   const source = fs.readFileSync(new URL("./content-script.js", import.meta.url), "utf8");
   const capture = fs.readFileSync(new URL("./job-capture.js", import.meta.url), "utf8");
   assert.match(source, /Capture this job · v/);
-  assert.match(capture, /Adapter 0\.5\.2 could not identify/);
+  assert.match(capture, /Adapter 0\.5\.3 could not identify/);
+  assert.match(capture, /about the job\|job description\|about this job/);
 });
