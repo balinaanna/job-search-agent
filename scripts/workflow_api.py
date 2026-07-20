@@ -58,6 +58,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-plan":
             self.get_cover_letter_plan(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-review":
+            self.get_cover_letter_review(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def do_POST(self) -> None:
@@ -101,6 +104,12 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-draft":
             self.request_cover_letter_draft(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-review":
+            self.request_cover_letter_review(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "cover-letter-decision":
+            self.record_cover_letter_decision(parts[2])
+            return
         self.respond(404, {"error": "Not found."})
 
     def get_resume_review(self, lead_id: str) -> None:
@@ -135,6 +144,17 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             self.respond(404, {"error": str(exc)})
             return
         self.respond(200, plan)
+
+    def get_cover_letter_review(self, lead_id: str) -> None:
+        try:
+            workspace = find_workspace(lead_id)
+            review = load_json(workspace / "cover_letter_review.json")
+            trace = load_json(workspace / "cover_letter_trace.json")
+            letter = (workspace / "cover_letter.md").read_text(encoding="utf-8")
+        except (FileNotFoundError, ValueError, json.JSONDecodeError, OSError) as exc:
+            self.respond(404, {"error": str(exc)})
+            return
+        self.respond(200, {"letter": letter, "review": review, "trace": trace})
 
     def request_analysis(self, lead_id: str) -> None:
         lead_path = self.leads_directory / f"{lead_id}.json"
@@ -364,6 +384,53 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         self.respond(202, run)
+
+    def request_cover_letter_review(self, lead_id: str) -> None:
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] not in {"cover_letter_draft_completed", "cover_letter_review_failed"}:
+            self.respond(409, {"error": "A validated cover letter draft is required before review."})
+            return
+        try:
+            run = self.store.transition(run["id"], "cover_letter_review_requested", "user")
+        except ValueError as exc:
+            self.respond(409, {"error": str(exc)})
+            return
+        subprocess.Popen(
+            [sys.executable, str(ROOT / "scripts/run_cover_letter_review_worker.py"), run["id"]], cwd=ROOT,
+            start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        self.respond(202, run)
+
+    def record_cover_letter_decision(self, lead_id: str) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self.respond(400, {"error": "Invalid cover letter decision request."})
+            return
+        action = payload.get("action")
+        notes = payload.get("notes", "")
+        if action not in {"approve", "request_revision"} or not isinstance(notes, str):
+            self.respond(400, {"error": "Choose approve or request_revision."})
+            return
+        if action == "request_revision" and not notes.strip():
+            self.respond(400, {"error": "Tell the agent what you want changed."})
+            return
+        run = self.store.latest_for_lead(lead_id)
+        if run is None or run["status"] != "cover_letter_review_completed":
+            self.respond(409, {"error": "Complete the cover letter review before making this decision."})
+            return
+        review = load_json(find_workspace(lead_id) / "cover_letter_review.json")
+        blocking = any(item.get("severity") in {"critical", "high"} for item in review.get("findings", []))
+        if action == "approve" and (review.get("verdict") != "ready" or review.get("score", 0) < 90 or blocking):
+            self.respond(409, {"error": "Resolve the review findings and reach a Ready verdict before approval."})
+            return
+        status = "cover_letter_approved" if action == "approve" else "cover_letter_revision_requested"
+        run = self.store.transition(
+            run["id"], status, "user",
+            details={"explicit_user_approval": action == "approve", "notes": notes.strip()},
+        )
+        self.respond(200, run)
 
     def request_resume_plan(self, lead_id: str) -> None:
         run = self.store.latest_for_lead(lead_id)
