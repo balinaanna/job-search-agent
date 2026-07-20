@@ -232,6 +232,7 @@ h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .job-result>header { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:11px; }
 .job-result h3 { margin:0 0 4px; font-size:14px; }
 .job-result header p { margin:0; color:var(--muted); font-size:10px; }
+.job-date{display:block;margin-top:4px;color:#7b8580;font-size:9px}.workflow-route{display:flex;align-items:center;gap:9px;margin:10px 0 13px;padding:9px 11px;border-radius:8px;background:#f1f6f3;color:var(--green);font-size:9px}.workflow-route span{color:var(--muted)}
 .job-result .company-avatar { width:37px; height:37px; font-size:17px; }
 .awaiting-badge { padding:5px 8px; border-radius:14px; background:#f0f1ef; color:#68716d; font-size:9px; font-weight:750; }
 .job-result-score { display:flex; align-items:baseline; justify-content:flex-end; gap:5px; margin-top:8px; text-align:right; }

@@ -47,6 +47,9 @@ test("dashboard uses all exported workflow data and responsive styling", async (
   assert.match(page, /explicit approval/);
   assert.match(jobsView, /filtered\.slice\(0, visible\)/);
   assert.match(jobsView, /Show 10 more/);
+  assert.match(jobsView, /Posted.*First seen|postedDate.*firstSeenAt/s);
+  assert.match(jobsView, /Application workflow connected/);
+  assert.match(jobsView, /Strategy.*Resume.*Cover letter.*Package.*Apply/s);
   assert.match(css, /@media \(max-width:950px\)/);
   assert.match(css, /@media \(max-width:600px\)/);
   const parsed = JSON.parse(data);

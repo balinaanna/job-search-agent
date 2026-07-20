@@ -21,6 +21,8 @@ def job_record(result: Any) -> dict[str, Any]:
         "role": lead["identity"]["role"],
         "location": lead["location"].get("raw"),
         "postingUrl": lead["source"]["posting_url"],
+        "postedDate": lead["source"].get("posted_date"),
+        "firstSeenAt": lead["source"].get("first_seen_at") or lead["source"].get("collected_at"),
         "discoveryScore": lead["discovery"].get("preliminary_score"),
         "fitScore": analysis["score"]["total_score"],
         "recommendation": analysis["recommendation"],
@@ -37,6 +39,8 @@ def awaiting_record(lead: dict[str, Any]) -> dict[str, Any]:
         "role": lead["identity"]["role"],
         "location": lead["location"].get("raw"),
         "postingUrl": lead["source"]["posting_url"],
+        "postedDate": lead["source"].get("posted_date"),
+        "firstSeenAt": lead["source"].get("first_seen_at") or lead["source"].get("collected_at"),
         "discoveryScore": lead["discovery"].get("preliminary_score"),
     }
 
