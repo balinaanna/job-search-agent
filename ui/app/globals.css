@@ -233,6 +233,7 @@ h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .job-result h3 { margin:0 0 4px; font-size:14px; }
 .job-result header p { margin:0; color:var(--muted); font-size:10px; }
 .job-date{display:block;margin-top:4px;color:#7b8580;font-size:9px}.workflow-route{display:flex;align-items:center;gap:9px;margin:10px 0 13px;padding:9px 11px;border-radius:8px;background:#f1f6f3;color:var(--green);font-size:9px}.workflow-route span{color:var(--muted)}
+.alert-job-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px}.alert-job-actions>a{white-space:nowrap}.alert-job-actions>span{color:var(--muted);font-size:9px}.alert-job-actions .analyze-control{display:flex;align-items:center;gap:5px}.alert-job-actions .analyze-control button{padding:7px 9px;border:0;border-radius:7px;background:var(--green);color:#fff;font-size:9px;font-weight:700}.alert-job-actions .analyze-control span{display:none}.alert-job-actions .decision-control>span,.alert-job-actions .decision-control small{display:none}.alert-job-actions .decision-control>div{display:flex;gap:4px}.alert-job-actions .decision-control button{padding:6px 7px;font-size:8px}
 .job-result .company-avatar { width:37px; height:37px; font-size:17px; }
 .awaiting-badge { padding:5px 8px; border-radius:14px; background:#f0f1ef; color:#68716d; font-size:9px; font-weight:750; }
 .job-result-score { display:flex; align-items:baseline; justify-content:flex-end; gap:5px; margin-top:8px; text-align:right; }

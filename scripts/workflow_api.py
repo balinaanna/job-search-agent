@@ -162,7 +162,14 @@ class WorkflowHandler(BaseHTTPRequestHandler):
                 self.respond(500, {"error": str(exc)})
             return
         if parts == ["api", "job-alerts"]:
-            self.respond(200, {"jobs": self.alert_store.list()})
+            jobs = self.alert_store.list()
+            leads_by_url = {lead["source"]["posting_url"]: lead["lead_id"] for lead in load_leads(self.leads_directory)}
+            for job in jobs:
+                if job["status"] == "captured" and not job.get("lead_id") and job["posting_url"] in leads_by_url:
+                    self.alert_store.mark_captured(job["source"], job["posting_url"], leads_by_url[job["posting_url"]]); job["lead_id"] = leads_by_url[job["posting_url"]]
+                run = self.store.latest_for_lead(job["lead_id"]) if job.get("lead_id") else None
+                job["workflow_status"] = run["status"] if run else "not_started"
+            self.respond(200, {"jobs": jobs})
             return
         if parts == ["api", "gmail-alerts"]:
             self.respond(200, load_gmail_config(ROOT / "data/gmail-alerts.json"))
@@ -430,7 +437,10 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             path = save_captured_posting(payload, ROOT / "data/raw-job-postings")
             pipeline = subprocess.run([sys.executable, "scripts/run_job_discovery.py", "--skip-collection"], cwd=ROOT, check=True, capture_output=True, text=True)
             subprocess.run([sys.executable, "scripts/export_dashboard_data.py"], cwd=ROOT, check=True, capture_output=True, text=True)
-            self.alert_store.mark_captured(payload["source"], payload["role"])
+            captured_url = json.loads(path.read_text(encoding="utf-8"))["posting_url"]
+            lead = next((item for item in load_leads(ROOT / "data/job-leads") if item["source"]["posting_url"] == captured_url), None)
+            if not lead: raise ValueError("The captured posting was processed but its job record could not be linked.")
+            self.alert_store.mark_captured(payload["source"], captured_url, lead["lead_id"])
         except (ValueError, KeyError, OSError, json.JSONDecodeError, subprocess.CalledProcessError) as exc:
             detail = ((exc.stdout or "") + "\n" + (exc.stderr or "")).strip() if isinstance(exc, subprocess.CalledProcessError) else str(exc)
             self.respond(400, {"error": detail[-2000:] or "Captured posting could not be processed."}); return

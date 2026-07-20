@@ -23,6 +23,13 @@ class JobAlertInboxTests(unittest.TestCase):
             self.assertEqual(result["added"], 0); self.assertEqual(result["duplicates"], 1)
             store.close()
 
+    def test_links_captured_alert_to_generated_lead(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = AlertInboxStore(Path(directory) / "jobs.db")
+            content = '<a href="https://www.linkedin.com/jobs/view/12345">AI Engineer</a>'
+            store.import_alert("linkedin", content); store.mark_captured("linkedin", "https://www.linkedin.com/jobs/view/12345", "lead-123")
+            job = store.list()[0]; self.assertEqual(job["status"], "captured"); self.assertEqual(job["lead_id"], "lead-123"); store.close()
+
     def test_rejects_empty_or_unknown_alerts(self):
         with self.assertRaisesRegex(ValueError, "Source"):
             parse_alert("other", "email")

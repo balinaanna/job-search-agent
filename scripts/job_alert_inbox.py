@@ -105,6 +105,8 @@ class AlertInboxStore:
     def __init__(self, path: Path):
         self.connection = sqlite3.connect(path); self.connection.row_factory = sqlite3.Row
         self.connection.execute("""CREATE TABLE IF NOT EXISTS alert_jobs (id TEXT PRIMARY KEY, source TEXT NOT NULL, title TEXT NOT NULL, posting_url TEXT NOT NULL UNIQUE, status TEXT NOT NULL, received_at TEXT NOT NULL)""")
+        columns = {row[1] for row in self.connection.execute("PRAGMA table_info(alert_jobs)")}
+        if "lead_id" not in columns: self.connection.execute("ALTER TABLE alert_jobs ADD COLUMN lead_id TEXT")
         self.connection.execute("""CREATE TABLE IF NOT EXISTS gmail_alert_messages (uid TEXT PRIMARY KEY, processed_at TEXT NOT NULL)""")
         self.connection.commit()
     def import_alert(self, source: str, content: str) -> dict:
@@ -112,15 +114,15 @@ class AlertInboxStore:
         with self.connection:
             for job in jobs:
                 job_id = hashlib.sha256(job["posting_url"].encode()).hexdigest()[:20]
-                cursor = self.connection.execute("INSERT OR IGNORE INTO alert_jobs VALUES (?, ?, ?, ?, 'needs_capture', ?)", (job_id, source, job["title"], job["posting_url"], timestamp))
+                cursor = self.connection.execute("INSERT OR IGNORE INTO alert_jobs(id,source,title,posting_url,status,received_at) VALUES (?, ?, ?, ?, 'needs_capture', ?)", (job_id, source, job["title"], job["posting_url"], timestamp))
                 added += cursor.rowcount
         return {"found": len(jobs), "added": added, "duplicates": len(jobs) - added, "jobs": self.list()}
     def list(self) -> list[dict]:
         rows = self.connection.execute("SELECT * FROM alert_jobs ORDER BY received_at DESC").fetchall()
         return [dict(row) for row in rows]
-    def mark_captured(self, source: str, title: str) -> None:
+    def mark_captured(self, source: str, posting_url: str, lead_id: str) -> None:
         with self.connection:
-            self.connection.execute("UPDATE alert_jobs SET status='captured' WHERE source=? AND lower(title)=lower(?)", (source, title))
+            self.connection.execute("UPDATE alert_jobs SET status='captured', lead_id=? WHERE source=? AND posting_url=?", (lead_id, source, canonical_job_url(posting_url, source) or posting_url))
     def gmail_processed(self, uid: str) -> bool:
         return self.connection.execute("SELECT 1 FROM gmail_alert_messages WHERE uid=?", (uid,)).fetchone() is not None
     def mark_gmail_processed(self, uid: str) -> None:
