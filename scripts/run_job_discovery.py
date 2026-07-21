@@ -40,6 +40,7 @@ DEFAULT_CRITERIA_PATH = Path("strategy/job_search_criteria.json")
 DEFAULT_SCHEMA_PATH = Path(
     "hermes-skills/job-discovery/references/job-lead-schema.json"
 )
+DEFAULT_SOURCE_REPORT_PATH = Path("data/discovery-source-report.json")
 
 
 def write_json(path: Path, value: dict[str, Any]) -> None:
@@ -206,15 +207,27 @@ def collect_configured_sources(
     sources_path: Path,
     raw_directory: Path,
     criteria_path: Path = DEFAULT_CRITERIA_PATH,
-) -> tuple[int, int, int]:
+    report_path: Path = DEFAULT_SOURCE_REPORT_PATH,
+) -> tuple[int, int, int, list[dict[str, Any]]]:
     sources = load_sources(sources_path)
     criteria = load_json(criteria_path)
     collected_at = datetime.now(timezone.utc).isoformat()
     postings: list[dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
     for source in sources:
-        postings.extend(collect_source(source_with_search_preferences(source, criteria), collected_at))
+        source_id = f"{source['platform']}:{source.get('board_token') or source.get('site') or 'search'}"
+        try:
+            collected = collect_source(source_with_search_preferences(source, criteria), collected_at)
+            postings.extend(collected)
+            results.append({"id": source_id, "name": source["company"], "platform": source["platform"], "status": "completed", "postings": len(collected), "error": None})
+        except CollectionError as exc:
+            results.append({"id": source_id, "name": source["company"], "platform": source["platform"], "status": "failed", "postings": 0, "error": str(exc)})
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(json.dumps({"generated_at": collected_at, "sources": results}, indent=2) + "\n", encoding="utf-8")
+    if results and not any(result["status"] == "completed" for result in results):
+        raise CollectionError("Every configured job source failed. Review the source report.")
     created, updated = write_postings(postings, raw_directory)
-    return len(postings), created, updated
+    return len(postings), created, updated, results
 
 
 def eluta_location(value: str) -> str:
@@ -272,7 +285,7 @@ def main() -> int:
     args = parse_args()
     try:
         if not args.skip_collection:
-            total, created_raw, updated_raw = collect_configured_sources(
+            total, created_raw, updated_raw, source_results = collect_configured_sources(
                 args.sources,
                 args.raw_directory,
                 args.criteria,
@@ -281,6 +294,8 @@ def main() -> int:
                 f"Collection: {total} posting(s); "
                 f"created {created_raw}, refreshed {updated_raw}."
             )
+            failed_sources = sum(result["status"] == "failed" for result in source_results)
+            print(f"Sources: {len(source_results) - failed_sources} succeeded; {failed_sources} failed.")
 
         summary = run_pipeline(
             args.raw_directory,

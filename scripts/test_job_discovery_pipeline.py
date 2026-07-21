@@ -7,9 +7,10 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from normalize_job_lead import build_job_lead
-from run_job_discovery import copy_status_for_refresh, refreshed_lead, run_pipeline, source_with_search_preferences
+from run_job_discovery import collect_configured_sources, copy_status_for_refresh, refreshed_lead, run_pipeline, source_with_search_preferences
 from validate_job_lead import load_json
 
 
@@ -24,6 +25,33 @@ SCHEMA_PATH = ROOT / (
 
 
 class JobDiscoveryPipelineTests(unittest.TestCase):
+    def test_collection_preserves_success_when_another_source_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sources = root / "sources.json"
+            criteria = root / "criteria.json"
+            report = root / "report.json"
+            raw = root / "raw"
+            sources.write_text(json.dumps({"schema_version": 1, "sources": [
+                {"company": "Working", "platform": "greenhouse", "board_token": "working"},
+                {"company": "Unavailable", "platform": "greenhouse", "board_token": "unavailable"},
+            ]}))
+            criteria.write_text(json.dumps({"search_strategy": {"primary_targets": []}, "locations": {"preferred": []}}))
+            posting = {"company": "Working", "platform": "greenhouse", "external_job_id": "1", "posting_url": "https://example.com/job/1"}
+
+            def collect(source, _timestamp):
+                if source["company"] == "Unavailable":
+                    from collect_job_postings import CollectionError
+                    raise CollectionError("temporary failure")
+                return [posting]
+
+            with patch("run_job_discovery.collect_source", side_effect=collect):
+                total, created, updated, results = collect_configured_sources(sources, raw, criteria, report)
+
+            self.assertEqual((total, created, updated), (1, 1, 0))
+            self.assertEqual([result["status"] for result in results], ["completed", "failed"])
+            self.assertEqual(json.loads(report.read_text())["sources"][1]["error"], "temporary failure")
+
     def test_eluta_uses_bounded_search_settings(self) -> None:
         source = {
             "company": "Eluta Canada",

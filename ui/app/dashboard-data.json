@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-21T19:15:45.770591+00:00",
+  "generatedAt": "2026-07-21T21:25:00.688050+00:00",
   "summary": {
-    "discovered": 242,
-    "awaitingAnalysis": 18,
+    "discovered": 243,
+    "awaitingAnalysis": 19,
     "readyToPursue": 0,
     "stretch": 1,
     "applicationsInProgress": 0
@@ -312,6 +312,16 @@
       "postedDate": "2026-07-15",
       "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
       "discoveryScore": 75
+    },
+    {
+      "id": "rivian-and-volkswagen-group-technol-software-engineering-intern-applications-fall-spring-co-67a2ea601e",
+      "company": "Rivian and Volkswagen Group Technologies",
+      "role": "Software Engineering Intern - Applications (Fall-Spring Co-op)",
+      "location": "Vancouver BC",
+      "postingUrl": "https://www.eluta.ca/spl/software-engineering-intern-applications-fall-spring-co-op-9c96f2d174827371bce19e7b8c1c5c4b",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-21T21:24:36.745516+00:00",
+      "discoveryScore": 74
     },
     {
       "id": "grafana-labs-staff-backend-engineer-grafana-enterprise-canada-remote-c677052b56",

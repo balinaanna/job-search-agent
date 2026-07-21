@@ -315,12 +315,18 @@ def eluta_posting(detail_url: str, payload: str, collected_at: str, query: str) 
 def eluta_postings(source: dict[str, Any], collected_at: str, fetcher: Callable[[str], str] = fetch_text) -> list[dict[str, Any]]:
     limit = source.get("max_results_per_search", 10)
     postings: dict[str, dict[str, Any]] = {}
+    detail_errors: list[str] = []
     for query in source["queries"]:
         for location in source["locations"]:
             search_url = eluta_search_url(query, location)
             for detail_url in eluta_result_urls(fetcher(search_url))[:limit]:
                 if detail_url not in postings:
-                    postings[detail_url] = eluta_posting(detail_url, fetcher(detail_url), collected_at, f"{query} in {location}")
+                    try:
+                        postings[detail_url] = eluta_posting(detail_url, fetcher(detail_url), collected_at, f"{query} in {location}")
+                    except CollectionError as exc:
+                        detail_errors.append(f"{detail_url}: {exc}")
+    if not postings and detail_errors:
+        raise CollectionError(f"Eluta returned {len(detail_errors)} unusable job detail page(s).")
     return list(postings.values())
 
 

@@ -16,6 +16,7 @@ jobs/inbox/
 # Runtime job discovery data
 data/jobs.db
 data/gmail-alerts.json
+data/discovery-source-report.json
 data/job-leads/*
 !data/job-leads/.gitkeep
 data/raw-job-postings/*

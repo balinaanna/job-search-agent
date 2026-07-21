@@ -13,6 +13,10 @@ def main() -> int:
         discovery = subprocess.run([sys.executable, "scripts/run_job_discovery.py"], cwd=ROOT, check=True, capture_output=True, text=True)
         dashboard = subprocess.run([sys.executable, "scripts/export_dashboard_data.py"], cwd=ROOT, check=True, capture_output=True, text=True)
         data = json.loads((ROOT / "ui/app/dashboard-data.json").read_text(encoding="utf-8")); summary = {**data["summary"], "generatedAt": data["generatedAt"]}
+        report_path = ROOT / "data/discovery-source-report.json"
+        report = json.loads(report_path.read_text(encoding="utf-8")) if report_path.exists() else {"sources": []}
+        summary["sourceResults"] = report["sources"]
+        summary["partialFailure"] = any(source["status"] == "failed" for source in report["sources"])
         log_path.write_text(discovery.stdout + dashboard.stdout, encoding="utf-8")
         store.transition(run_id, "completed", summary=summary); return 0
     except (subprocess.CalledProcessError, OSError, json.JSONDecodeError) as exc:

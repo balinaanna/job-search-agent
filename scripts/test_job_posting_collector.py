@@ -13,6 +13,7 @@ from collect_job_postings import (
     greenhouse_url,
     html_to_text,
     eluta_posting,
+    eluta_postings,
     eluta_result_urls,
     eluta_search_url,
     lever_postings,
@@ -125,6 +126,31 @@ class JobPostingCollectorTests(unittest.TestCase):
         self.assertEqual(posting["location_raw"], "Vancouver BC")
         self.assertEqual(posting["posted_date"], "2026-07-21")
         self.assertIn("human review controls", posting["description_text"])
+
+    def test_eluta_skips_one_malformed_detail_without_losing_valid_jobs(self) -> None:
+        search = '''
+        <div class="organic-job" data-url="spl/broken-aaa111"></div>
+        <div class="organic-job" data-url="spl/valid-bbb222"></div>
+        '''
+        valid = '''
+        <h1 class="job-title"><span>AI Engineer</span></h1>
+        <h5 class="employer-name"><span>Example AI</span></h5>
+        <h5 class="city"><span>Vancouver BC</span></h5>
+        <div class="short-text"><p>Build and test reliable Python AI applications with APIs, validation, monitoring, deployment, and documented human review controls.</p></div>
+        '''
+
+        def fetch(url: str) -> str:
+            if "jobs-in" in url:
+                return search
+            return "<html>incomplete</html>" if "broken" in url else valid
+
+        postings = eluta_postings(
+            {"queries": ["AI Engineer"], "locations": ["Vancouver BC"], "max_results_per_search": 5},
+            COLLECTED_AT,
+            fetch,
+        )
+        self.assertEqual(len(postings), 1)
+        self.assertEqual(postings[0]["role"], "AI Engineer")
 
     def test_salary_period_normalizes_lever_variants(self) -> None:
         self.assertEqual(salary_period("per-year-salary"), "year")
