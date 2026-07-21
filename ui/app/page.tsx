@@ -6,7 +6,6 @@ import { JobsView } from "./JobsView";
 import { FindJobsButton } from "./FindJobsButton";
 import { SearchSettings } from "./SearchSettings";
 import { AlertInbox } from "./AlertInbox";
-import { ProfileManager } from "./ProfileManager";
 
 function updatedLabel(value: string) { return new Intl.DateTimeFormat("en-CA", { hour: "numeric", minute: "2-digit", timeZone: "America/Vancouver" }).format(new Date(value)); }
 
@@ -26,7 +25,7 @@ export default function Home() {
           <a className="nav-item" href="#jobs"><span>◎</span> Jobs <b>{data.summary.awaitingAnalysis + data.analyzedJobs.length}</b></a>
           <a className="nav-item" href="#alert-inbox"><span>✉</span> Alert inbox</a>
           <a className="nav-item" href="#applications"><span>▤</span> Applications</a>
-          <a className="nav-item" href="#profile"><span>◇</span> Career profile</a>
+          <a className="nav-item" href="/profile"><span>◇</span> Career profile</a>
         </nav>
         <div className="sidebar-note">
           <span className="status-dot" />
@@ -76,7 +75,6 @@ export default function Home() {
           </aside>
         </section>
 
-        <ProfileManager />
         <footer>Live local job data · Updated {updatedLabel(data.generatedAt)} · No application can be submitted without explicit approval.</footer>
       </section>
     </main>

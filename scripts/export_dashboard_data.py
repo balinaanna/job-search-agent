@@ -55,7 +55,9 @@ def build_dashboard_data(
         for lead in load_leads(leads_directory)
         if urlparse(lead["source"]["posting_url"]).hostname != "example.com"
     ]
-    analyses = load_valid_analyses(analyses_directory, evidence_path)
+    # Old analyses remain visible after profile edits so the UI can mark them stale
+    # and offer re-analysis. They must not be reused for downstream materials.
+    analyses = load_valid_analyses(analyses_directory, evidence_path, allow_stale_evidence=True)
     results, awaiting = join_results(leads, analyses)
     jobs = [job_record(result) for result in results]
     apply_count = sum(

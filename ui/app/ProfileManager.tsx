@@ -17,7 +17,7 @@ function profileRequestError(response:Response, value:{error?:string}) {
 }
 
 export function ProfileManager() {
-  const [status,setStatus]=useState<ProfileStatus|null>(null), [files,setFiles]=useState<File[]>([]), [instructions,setInstructions]=useState(""), [run,setRun]=useState<ProfileRun|null>(null), [message,setMessage]=useState(""), [reviewing,setReviewing]=useState(false), [inputKey,setInputKey]=useState(0), [selectedItems,setSelectedItems]=useState<number[]>([]);
+  const [status,setStatus]=useState<ProfileStatus|null>(null), [files,setFiles]=useState<File[]>([]), [instructions,setInstructions]=useState(""), [promptUpdate,setPromptUpdate]=useState(""), [run,setRun]=useState<ProfileRun|null>(null), [message,setMessage]=useState(""), [reviewing,setReviewing]=useState(false), [inputKey,setInputKey]=useState(0), [selectedItems,setSelectedItems]=useState<number[]>([]);
   const working=Boolean(run&&["requested","running","approval_running"].includes(run.status));
   const awaitingReview=run?.status==="proposal_ready";
   useEffect(()=>{fetch("http://localhost:8787/api/profile").then(response=>response.ok?response.json():null).then(value=>{if(value){setStatus(value);if(value.latest_run){setRun(value.latest_run);if(value.latest_run.status==="proposal_ready")setSelectedItems((value.latest_run.summary?.review_items||[]).map((_:unknown,index:number)=>index));}}}).catch(()=>undefined);},[]);
@@ -27,7 +27,7 @@ export function ProfileManager() {
       const response=await fetch(`http://localhost:8787/api/profile/runs/${run.id}`); if(!response.ok)return;
       const next=await response.json(); setRun(next);
       if(next.status==="proposal_ready"){if(!next.error)setSelectedItems((next.summary?.review_items||[]).map((_:unknown,index:number)=>index));setMessage(next.error||"Proposal ready. Review every change before applying it.");}
-      if(next.status==="completed"){setMessage("Selected changes applied. Existing fit analyses are now marked for review.");setFiles([]);setInstructions("");setInputKey(key=>key+1);setStatus(current=>current?{...current,profile_version:next.after_version,latest_run:next}:current);window.dispatchEvent(new Event("jobs-changed"));}
+      if(next.status==="completed"){setMessage("Selected changes applied. Existing fit analyses are now marked for review.");setFiles([]);setInstructions("");setPromptUpdate("");setInputKey(key=>key+1);setStatus(current=>current?{...current,profile_version:next.after_version,latest_run:next}:current);window.dispatchEvent(new Event("jobs-changed"));}
       if(next.status==="failed")setMessage(next.error||"Profile proposal failed.");
     },1500);
     return()=>window.clearInterval(timer);
@@ -40,6 +40,12 @@ export function ProfileManager() {
     catch(error){setMessage(error instanceof TypeError?"Profile service is offline.":error instanceof Error?error.message:"Profile proposal could not start.");}
   }
 
+  async function updateFromPrompt(){
+    setMessage("Preparing your requested profile changes…");
+    try{const response=await fetch("http://localhost:8787/api/profile/update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({instructions:promptUpdate})});const value=await response.json();if(!response.ok)throw new Error(profileRequestError(response,value));setRun(value);setMessage("Update proposal queued. Nothing will change without your approval.");}
+    catch(error){setMessage(error instanceof TypeError?"Profile service is offline.":error instanceof Error?error.message:"Profile update could not start.");}
+  }
+
   async function review(action:"approve"|"reject"){
     if(!run)return; setReviewing(true);
     try{const response=await fetch(`http://localhost:8787/api/profile/runs/${run.id}/${action}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({selected_items:selectedItems})});const value=await response.json();if(!response.ok)throw new Error(profileRequestError(response,value));setRun(value);
@@ -50,11 +56,11 @@ export function ProfileManager() {
 
   const latest=run||status?.latest_run, proposal=latest?.status==="proposal_ready"?latest.summary:null;
   return <section className="profile-manager" id="profile">
-    <div className="section-heading"><div><p className="eyebrow">VERIFIED CAREER PROFILE</p><h2>Rebuild profile from resumes</h2></div><span>Version {status?.profile_version||"loading"}</span></div>
-    <p>Upload up to 10 PDF resumes. The agent prepares a reconciled proposal for career, evidence, skills, and technologies. Your protected contacts and current profile remain unchanged until you approve.</p>
-    <input key={inputKey} aria-label="Resume PDFs" type="file" accept="application/pdf,.pdf" multiple onChange={event=>setFiles(Array.from(event.target.files||[]))}/>
-    <textarea aria-label="Profile rebuild instructions" rows={3} value={instructions} onChange={event=>setInstructions(event.target.value)} placeholder="Optional rules, e.g. omit a role, preserve a title, or consolidate older work."/>
-    <div className="profile-rebuild-actions"><span>{files.length?`${files.length} PDF${files.length===1?"":"s"} selected`:"No resumes selected"}</span><button disabled={working||awaitingReview||files.length<1||files.length>10} onClick={rebuild}>{working?"Preparing proposal…":awaitingReview?"Review proposal below":"Upload and prepare proposal"}</button></div>
+    <div className="section-heading"><div><p className="eyebrow">PROFILE UPDATES</p><h2>Update your verified career profile</h2></div><span>Version {status?.profile_version||"loading"}</span></div>
+    <div className="profile-update-methods">
+      <section><strong>Upload resumes</strong><p>Add up to 10 PDF resumes. The agent reconciles supported facts across your profile.</p><input key={inputKey} aria-label="Resume PDFs" type="file" accept="application/pdf,.pdf" multiple onChange={event=>setFiles(Array.from(event.target.files||[]))}/><textarea aria-label="Profile rebuild instructions" rows={3} value={instructions} onChange={event=>setInstructions(event.target.value)} placeholder="Optional rules for processing these resumes."/><div className="profile-rebuild-actions"><span>{files.length?`${files.length} PDF${files.length===1?"":"s"} selected`:"No resumes selected"}</span><button disabled={working||awaitingReview||files.length<1||files.length>10} onClick={rebuild}>{working?"Preparing proposal…":awaitingReview?"Review proposal below":"Upload and prepare proposal"}</button></div></section>
+      <section><strong>Request a profile change</strong><p>Describe a correction or removal in plain English. It will become a proposal for your review.</p><textarea aria-label="Profile update request" rows={6} value={promptUpdate} onChange={event=>setPromptUpdate(event.target.value)} placeholder={'Examples:\nRemove Outlier experience completely.\nUpdate my Techery Software Engineer start date to June 2015.'}/><div className="profile-rebuild-actions"><span>{promptUpdate.length}/5,000 characters</span><button disabled={working||awaitingReview||!promptUpdate.trim()||promptUpdate.length>5000} onClick={updateFromPrompt}>{working?"Preparing proposal…":awaitingReview?"Review proposal below":"Prepare update proposal"}</button></div></section>
+    </div>
     {message&&<small role="status">{message}</small>}
     {proposal&&<section className="profile-proposal" aria-label="Profile change proposal">
       <header><div><strong>Review proposed profile</strong><span>{proposal.files_processed.length} resume(s) processed · {(proposal.changed_sections||[]).join(", ")||"No sections changed"}</span></div><span>Not applied</span></header>

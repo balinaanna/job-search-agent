@@ -28,7 +28,7 @@ from write_resume_with_codex import find_workspace
 from prepare_application_answers import append_recovery_questions, apply_answer_review, validate_form_fill_confirmation, validate_submission_authorization, validate_submission_result
 from run_resume_pdf_worker import PDF_SCHEMA, pdf_environment, pdf_python
 from surface_fit_queue import join_results, load_leads, load_valid_analyses
-from validate_job_lead import load_json
+from validate_job_lead import JobLeadValidationError, load_json
 from workflow_store import WorkflowStore
 from application_tracker import initial_tracker, update_tracker
 from discovery_store import DiscoveryStore
@@ -45,6 +45,16 @@ from profile_version import profile_version, analysis_profile_version
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def master_profile_data() -> dict:
+    return {
+        "version": profile_version(ROOT / "profile"),
+        "career": yaml.safe_load((ROOT / "profile/career.yaml").read_text(encoding="utf-8")),
+        "skills": yaml.safe_load((ROOT / "profile/skills.yaml").read_text(encoding="utf-8"))["skills"],
+        "technologies": yaml.safe_load((ROOT / "profile/technologies.yaml").read_text(encoding="utf-8"))["technologies"],
+        "evidence": yaml.safe_load((ROOT / "profile/evidence.yaml").read_text(encoding="utf-8"))["evidence"],
+    }
+
+
 def enrich_jobs_with_workflow(data: dict, store: WorkflowStore) -> dict:
     current_profile = profile_version(ROOT / "profile")
     for group, fallback in (("analyzedJobs", "analysis_completed"), ("awaitingAnalysis", "not_started")):
@@ -55,7 +65,7 @@ def enrich_jobs_with_workflow(data: dict, store: WorkflowStore) -> dict:
             analyzed_version = None
             if group == "analyzedJobs":
                 try: analyzed_version = analysis_profile_version(find_analysis(job["id"]).parent)
-                except FileNotFoundError: pass
+                except (FileNotFoundError, JobLeadValidationError): pass
             job["profileVersion"] = current_profile
             job["analysisProfileVersion"] = analyzed_version
             job["profileStale"] = group == "analyzedJobs" and analyzed_version != current_profile
@@ -153,6 +163,12 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if parts == ["api", "profile"]:
             self.get_profile_status()
+            return
+        if parts == ["api", "profile", "master"]:
+            self.get_master_profile()
+            return
+        if parts == ["api", "profile", "master-resume.pdf"]:
+            self.get_master_resume_pdf()
             return
         if len(parts) == 4 and parts[:3] == ["api", "profile", "runs"]:
             try: self.respond(200, self.profile_store.get(parts[3]))
@@ -252,6 +268,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if parts == ["api", "profile", "rebuild"]:
             self.request_profile_rebuild()
+            return
+        if parts == ["api", "profile", "update"]:
+            self.request_profile_update()
             return
         if len(parts) == 5 and parts[:3] == ["api", "profile", "runs"] and parts[4] in {"approve", "reject"}:
             self.review_profile_rebuild(parts[3], parts[4])
@@ -853,6 +872,26 @@ class WorkflowHandler(BaseHTTPRequestHandler):
     def get_profile_status(self) -> None:
         self.respond(200, {"profile_version": profile_version(ROOT / "profile"), "latest_run": self.profile_store.latest()})
 
+    def get_master_profile(self) -> None:
+        try:
+            self.respond(200, master_profile_data())
+        except (OSError, KeyError, yaml.YAMLError) as exc:
+            self.respond(500, {"error": f"Career profile could not be loaded: {exc}"})
+
+    def get_master_resume_pdf(self) -> None:
+        try:
+            bundled_python = Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3"
+            renderer_python = bundled_python if bundled_python.exists() else Path(sys.executable)
+            data_path = ROOT / "data/profile-rebuilds/master-profile-export.json"
+            data_path.parent.mkdir(parents=True, exist_ok=True)
+            data_path.write_text(json.dumps(master_profile_data()), encoding="utf-8")
+            completed = subprocess.run([str(renderer_python), "scripts/render_master_resume_pdf.py", "--data", str(data_path)], cwd=ROOT, check=True, capture_output=True, text=True)
+            path = ROOT / completed.stdout.strip().splitlines()[-1]
+            body = path.read_bytes()
+        except (subprocess.CalledProcessError, OSError, IndexError) as exc:
+            self.respond(500, {"error": f"Master resume PDF could not be created: {exc}"}); return
+        self.send_response(200); self.send_header("Content-Type", "application/pdf"); self.send_header("Content-Length", str(len(body))); self.send_header("Content-Disposition", 'attachment; filename="Anna_Stupachenko_Master_Resume.pdf"'); self.end_headers(); self.wfile.write(body)
+
     def request_profile_rebuild(self) -> None:
         try:
             length = int(self.headers.get("Content-Length", "0"))
@@ -887,6 +926,20 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             for name, (_, payload) in zip(names, uploads): (directory / name).write_bytes(payload)
             subprocess.Popen([sys.executable, str(ROOT / "scripts/run_profile_rebuild_worker.py"), run["id"]], cwd=ROOT, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except (ValueError, OSError) as exc:
+            self.respond(400, {"error": str(exc)}); return
+        self.respond(202, run)
+
+    def request_profile_update(self) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+            instructions = payload.get("instructions", "").strip()
+            if not instructions or len(instructions) > 5000:
+                raise ValueError("Enter profile update instructions between 1 and 5,000 characters.")
+            run = self.profile_store.request([], instructions, profile_version(ROOT / "profile"))
+            (ROOT / "data/profile-rebuilds" / run["id"] / "uploads").mkdir(parents=True, exist_ok=True)
+            subprocess.Popen([sys.executable, str(ROOT / "scripts/run_profile_rebuild_worker.py"), run["id"]], cwd=ROOT, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except (ValueError, OSError, json.JSONDecodeError) as exc:
             self.respond(400, {"error": str(exc)}); return
         self.respond(202, run)
 

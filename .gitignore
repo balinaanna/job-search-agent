@@ -13,6 +13,7 @@ applications/*
 jobs/analyzed/
 jobs/inbox/
 profile/history/
+output/pdf/
 
 # Runtime job discovery data
 data/jobs.db

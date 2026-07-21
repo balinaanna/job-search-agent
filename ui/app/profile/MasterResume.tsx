@@ -1,0 +1,28 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+
+type Item = Record<string, unknown>;
+type MasterProfile = {version:string;career:{candidate:Item;contact:Item;career_summary:Item;employment:Item[];education:Item[];training_and_certifications:Item[];projects:Item[]};skills:Record<string,Item[]>;technologies:Record<string,Item[]>;evidence:Item[]};
+const words=(value:string)=>value.replaceAll("_"," ").replace(/\b\w/g,letter=>letter.toUpperCase());
+const string=(value:unknown)=>typeof value==="string"?value:"";
+const list=(value:unknown)=>Array.isArray(value)?value.filter(item=>typeof item==="string") as string[]:[];
+const dates=(value:unknown)=>{const item=(value||{}) as Item;return [item.start,item.end].filter(Boolean).join(" – ");};
+
+export function MasterResume(){
+  const [profile,setProfile]=useState<MasterProfile|null>(null),[error,setError]=useState("");
+  const load=useCallback(()=>fetch("http://localhost:8787/api/profile/master").then(async response=>{const value=await response.json();if(!response.ok)throw new Error(value.error);setProfile(value);}).catch(value=>setError(value instanceof Error?value.message:"Career profile could not be loaded.")),[]);
+  useEffect(()=>{void load();const changed=()=>void load();window.addEventListener("jobs-changed",changed);return()=>window.removeEventListener("jobs-changed",changed);},[load]);
+  if(!profile)return <section className="master-resume loading"><p>{error||"Loading your verified career profile…"}</p></section>;
+  const {career}=profile, candidate=career.candidate, contact=career.contact, summary=career.career_summary;
+  return <section className="master-resume">
+    <header><div><p className="eyebrow">MASTER RESUME</p><h1>{string(candidate.name)}</h1><p>{string(summary.positioning)}</p><small>{[contact.location,contact.email,contact.phone,contact.linkedin].filter(Boolean).join(" · ")}</small></div><a className="download-master-resume" href="http://localhost:8787/api/profile/master-resume.pdf">Download PDF</a></header>
+    <nav className="profile-section-nav" aria-label="Master resume sections"><a href="#experience">Experience</a><a href="#projects">Projects</a><a href="#skills">Skills</a><a href="#technologies">Technologies</a><a href="#education">Education</a><a href="#evidence">Evidence</a></nav>
+    <section id="experience" className="master-section"><div className="master-section-title"><span>01</span><div><p className="eyebrow">CAREER HISTORY</p><h2>Work experience</h2></div></div><div className="experience-timeline">{career.employment.map(role=><article key={string(role.id)}><span className="timeline-dot"/><div className="role-heading"><div><h3>{string(role.official_title)}</h3><strong>{string(role.organization)}</strong></div><span>{dates(role.dates)}</span></div><small>{[role.location,role.engagement_type].filter(Boolean).join(" · ")}</small><p>{string(role.summary)}</p><ul>{list(role.responsibilities).map(item=><li key={item}>{item}</li>)}</ul></article>)}</div></section>
+    <section id="projects" className="master-section"><div className="master-section-title"><span>02</span><div><p className="eyebrow">SELECTED WORK</p><h2>Projects</h2></div></div><div className="master-card-grid">{career.projects.map(project=><article key={string(project.id)}><span>{string(project.type)}</span><h3>{string(project.name)}</h3><small>{[project.organization,project.status,dates(project.dates)].filter(Boolean).join(" · ")}</small><p>{string(project.summary)}</p></article>)}</div></section>
+    <section id="skills" className="master-section"><div className="master-section-title"><span>03</span><div><p className="eyebrow">VERIFIED CAPABILITIES</p><h2>Skills</h2></div></div><div className="inventory-groups">{Object.entries(profile.skills).map(([group,items])=><article key={group}><h3>{words(group)}</h3><div>{items.map(item=><span key={string(item.id)}>{string(item.name)}<small>{string(item.proficiency)}</small></span>)}</div></article>)}</div></section>
+    <section id="technologies" className="master-section"><div className="master-section-title"><span>04</span><div><p className="eyebrow">TOOLS & PLATFORMS</p><h2>Technologies</h2></div></div><div className="inventory-groups">{Object.entries(profile.technologies).map(([group,items])=><article key={group}><h3>{words(group)}</h3><div>{items.map(item=><span key={string(item.id)}>{string(item.name)}<small>{string(item.level)}</small></span>)}</div></article>)}</div></section>
+    <section id="education" className="master-section"><div className="master-section-title"><span>05</span><div><p className="eyebrow">EDUCATION</p><h2>Education & certifications</h2></div></div><div className="credential-list">{career.education.map(item=><article key={string(item.id)}><h3>{string(item.credential)} · {string(item.field)}</h3><p>{string(item.institution)} · {string(item.location)}</p><span>{dates(item.dates)}</span></article>)}{career.training_and_certifications.map(item=><article key={string(item.id)}><h3>{string(item.name)}</h3><p>{string(item.note)}</p><span>{string(item.completion)}</span></article>)}</div></section>
+    <section id="evidence" className="master-section"><div className="master-section-title"><span>06</span><div><p className="eyebrow">DEFENSIBLE ACCOMPLISHMENTS</p><h2>Evidence library</h2></div></div><div className="evidence-grid">{profile.evidence.map(item=><article key={string(item.id)}><span>{string(item.type)}</span><h3>{string(item.title)}</h3><p>{string(item.context)}</p>{list(item.outcomes).length>0&&<ul>{list(item.outcomes).map(outcome=><li key={outcome}>{outcome}</li>)}</ul>}<small>Confidence: {string(item.confidence)}</small></article>)}</div></section>
+  </section>;
+}

@@ -55,6 +55,7 @@ def load_leads(directory: Path) -> list[dict[str, Any]]:
 def load_valid_analyses(
     directory: Path,
     evidence_path: Path,
+    allow_stale_evidence: bool = False,
 ) -> list[tuple[Path, dict[str, Any]]]:
     if not directory.exists():
         return []
@@ -71,7 +72,7 @@ def load_valid_analyses(
         analysis_errors = validate_scores(analysis)
         analysis_errors.extend(validate_recommendation(analysis))
         unknown = sorted(collect_referenced_ids(analysis) - evidence_ids)
-        if unknown:
+        if unknown and not allow_stale_evidence:
             analysis_errors.append("Unknown evidence IDs: " + ", ".join(unknown))
         errors.extend(f"{path}: {error}" for error in analysis_errors)
         if not analysis_errors:

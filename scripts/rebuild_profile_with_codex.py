@@ -118,7 +118,7 @@ Additional user instructions: {instructions or 'None provided.'}
 def prepare_profile_rebuild(run_id: str, files: list[Path], instructions: str, generator: Callable[[Path, str], dict] = codex_proposal) -> dict:
     run_directory = ROOT / "data/profile-rebuilds" / run_id
     extracted, skipped = extract_resumes(files, run_directory / "extracted")
-    if not extracted:
+    if files and not extracted:
         raise ValueError("None of the uploaded PDFs contained enough searchable resume text.")
     profile_directory = ROOT / "profile"
     original_contact = yaml.safe_load((profile_directory / "career.yaml").read_text())["contact"]
