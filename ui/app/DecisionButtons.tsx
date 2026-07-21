@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 
 type Run = { id: string; status: string; error?: string | null };
 type Finding = { finding_id: string; severity: string; location: string; problem: string; why_it_matters: string; revision_instruction: string };
@@ -54,22 +55,24 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
     }
   }
 
-  if (["pursue", "strategy_requested", "strategy_running", "strategy_failed", "strategy_completed", "resume_plan_requested", "resume_plan_running", "resume_plan_failed", "resume_plan_completed", "resume_draft_requested", "resume_draft_running", "resume_draft_failed", "resume_draft_completed", "resume_review_requested", "resume_review_running", "resume_review_failed"].includes(status)) return <PrepareResumeForReview leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["resume_revision_completed", "resume_review_completed"].includes(status)) return <ResumeReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["resume_approved", "resume_finalization_requested", "resume_finalization_running", "resume_finalization_failed", "resume_finalization_completed", "resume_pdf_requested", "resume_pdf_running", "resume_pdf_failed"].includes(status)) return <PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="resume_pdf_review_required" title="Finalize approved resume" buttonLabel="Prepare resume PDF for review" readyMessage="The resume PDF is ready for your visual review." steps={resumePdfSteps} />;
-  if (status === "resume_pdf_review_required") return <ResumePdfAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["resume_pdf_completed", "cover_letter_plan_requested", "cover_letter_plan_running", "cover_letter_plan_failed"].includes(status)) return <PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="cover_letter_plan_completed" title="Plan cover letter" buttonLabel="Prepare cover letter decision" readyMessage="The cover letter recommendation is ready for your decision." steps={coverLetterPlanSteps} />;
-  if (["cover_letter_plan_completed", "cover_letter_draft_requested", "cover_letter_draft_running", "cover_letter_draft_failed"].includes(status)) return <CoverLetterDraftAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["cover_letter_draft_completed", "cover_letter_revision_completed", "cover_letter_review_requested", "cover_letter_review_running", "cover_letter_review_failed"].includes(status)) return <PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="cover_letter_review_completed" title="Review cover letter" buttonLabel="Prepare cover letter for review" readyMessage="The cover letter review is ready for your decision." steps={coverLetterReviewSteps} />;
-  if (status === "cover_letter_review_completed") return <CoverLetterReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["cover_letter_approved", "cover_letter_finalization_requested", "cover_letter_finalization_running", "cover_letter_finalization_failed", "cover_letter_finalization_completed", "cover_letter_pdf_requested", "cover_letter_pdf_running", "cover_letter_pdf_failed"].includes(status)) return <PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="cover_letter_pdf_review_required" title="Finalize approved cover letter" buttonLabel="Prepare cover letter PDF for review" readyMessage="The cover letter PDF is ready for your visual review." steps={coverLetterPdfSteps} />;
-  if (status === "cover_letter_pdf_review_required") return <CoverLetterPdfAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["cover_letter_pdf_completed", "cover_letter_skipped", "application_package_requested", "application_package_running", "application_package_failed"].includes(status)) return <PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="application_package_completed" title="Assemble application package" buttonLabel="Build approved application package" readyMessage="The approved application package is ready." steps={applicationPackageSteps} />;
-  if (status === "application_package_completed") return <ApplicationPackageAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["form_questions_saved", "application_answers_requested", "application_answers_running", "application_answers_failed", "application_answers_completed"].includes(status)) return <ApplicationAnswersAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["application_answers_approved", "form_filling_started", "submission_review_required", "submission_authorized", "submission_in_progress", "submission_blocked", "application_submitted"].includes(status)) return <FormFillAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["cover_letter_revision_requested", "cover_letter_revision_running", "cover_letter_revision_failed"].includes(status)) return <CoverLetterRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["resume_revision_requested", "resume_revision_running", "resume_revision_failed"].includes(status)) return <ResumeRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  const inWorkspace = (action: ReactNode) => <ApplicationWorkspace status={status}>{action}</ApplicationWorkspace>;
+
+  if (["pursue", "strategy_requested", "strategy_running", "strategy_failed", "strategy_completed", "resume_plan_requested", "resume_plan_running", "resume_plan_failed", "resume_plan_completed", "resume_draft_requested", "resume_draft_running", "resume_draft_failed", "resume_draft_completed", "resume_review_requested", "resume_review_running", "resume_review_failed"].includes(status)) return inWorkspace(<PrepareResumeForReview leadId={leadId} initialStatus={status} onStatus={setStatus} />);
+  if (["resume_revision_completed", "resume_review_completed"].includes(status)) return inWorkspace(<ResumeReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />);
+  if (["resume_approved", "resume_finalization_requested", "resume_finalization_running", "resume_finalization_failed", "resume_finalization_completed", "resume_pdf_requested", "resume_pdf_running", "resume_pdf_failed"].includes(status)) return inWorkspace(<PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="resume_pdf_review_required" title="Finalize approved resume" buttonLabel="Prepare resume PDF for review" readyMessage="The resume PDF is ready for your visual review." steps={resumePdfSteps} />);
+  if (status === "resume_pdf_review_required") return inWorkspace(<ResumePdfAction leadId={leadId} initialStatus={status} onStatus={setStatus} />);
+  if (["resume_pdf_completed", "cover_letter_plan_requested", "cover_letter_plan_running", "cover_letter_plan_failed"].includes(status)) return inWorkspace(<PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="cover_letter_plan_completed" title="Plan cover letter" buttonLabel="Prepare cover letter decision" readyMessage="The cover letter recommendation is ready for your decision." steps={coverLetterPlanSteps} />);
+  if (["cover_letter_plan_completed", "cover_letter_draft_requested", "cover_letter_draft_running", "cover_letter_draft_failed"].includes(status)) return inWorkspace(<CoverLetterDraftAction leadId={leadId} initialStatus={status} onStatus={setStatus} />);
+  if (["cover_letter_draft_completed", "cover_letter_revision_completed", "cover_letter_review_requested", "cover_letter_review_running", "cover_letter_review_failed"].includes(status)) return inWorkspace(<PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="cover_letter_review_completed" title="Review cover letter" buttonLabel="Prepare cover letter for review" readyMessage="The cover letter review is ready for your decision." steps={coverLetterReviewSteps} />);
+  if (status === "cover_letter_review_completed") return inWorkspace(<CoverLetterReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />);
+  if (["cover_letter_approved", "cover_letter_finalization_requested", "cover_letter_finalization_running", "cover_letter_finalization_failed", "cover_letter_finalization_completed", "cover_letter_pdf_requested", "cover_letter_pdf_running", "cover_letter_pdf_failed"].includes(status)) return inWorkspace(<PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="cover_letter_pdf_review_required" title="Finalize approved cover letter" buttonLabel="Prepare cover letter PDF for review" readyMessage="The cover letter PDF is ready for your visual review." steps={coverLetterPdfSteps} />);
+  if (status === "cover_letter_pdf_review_required") return inWorkspace(<CoverLetterPdfAction leadId={leadId} initialStatus={status} onStatus={setStatus} />);
+  if (["cover_letter_pdf_completed", "cover_letter_skipped", "application_package_requested", "application_package_running", "application_package_failed"].includes(status)) return inWorkspace(<PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="application_package_completed" title="Assemble application package" buttonLabel="Build approved application package" readyMessage="The approved application package is ready." steps={applicationPackageSteps} />);
+  if (status === "application_package_completed") return inWorkspace(<ApplicationPackageAction leadId={leadId} initialStatus={status} onStatus={setStatus} />);
+  if (["form_questions_saved", "application_answers_requested", "application_answers_running", "application_answers_failed", "application_answers_completed"].includes(status)) return inWorkspace(<ApplicationAnswersAction leadId={leadId} initialStatus={status} onStatus={setStatus} />);
+  if (["application_answers_approved", "form_filling_started", "submission_review_required", "submission_authorized", "submission_in_progress", "submission_blocked", "application_submitted"].includes(status)) return inWorkspace(<FormFillAction leadId={leadId} initialStatus={status} onStatus={setStatus} />);
+  if (["cover_letter_revision_requested", "cover_letter_revision_running", "cover_letter_revision_failed"].includes(status)) return inWorkspace(<CoverLetterRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />);
+  if (["resume_revision_requested", "resume_revision_running", "resume_revision_failed"].includes(status)) return inWorkspace(<ResumeRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />);
   if (status === "pass") return <div className="decision-saved pass"><strong>{labels[status]}</strong><span>Removed from active consideration</span></div>;
 
   return <div className="decision-control">
@@ -81,6 +84,22 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
     </div>
     {message && <small role="status">{message}</small>}
   </div>;
+}
+
+const workspaceStages = ["Analysis", "Strategy", "Resume", "Cover letter", "Package", "Apply"];
+function workflowStage(status: string) {
+  if (status === "application_submitted") return 6;
+  if (status.startsWith("submission_") || status.startsWith("form_") || status.startsWith("application_answers")) return 5;
+  if (status.startsWith("application_package") || status === "cover_letter_skipped") return 4;
+  if (status.startsWith("cover_letter")) return 3;
+  if (status.startsWith("resume_")) return 2;
+  if (status.startsWith("strategy") || status === "pursue") return 1;
+  return 0;
+}
+function ApplicationWorkspace({ status, children }: { status: string; children: ReactNode }) {
+  const stage = workflowStage(status);
+  const reviewRequired = status.includes("review_required") || status.endsWith("review_completed") || status === "submission_review_required";
+  return <section className="application-workspace"><header><div><span>APPLICATION WORKSPACE</span><strong>{reviewRequired ? "Your review is required" : stage === 6 ? "Application recorded" : "Package in progress"}</strong></div><b>{stage === 6 ? "Complete" : workspaceStages[Math.min(stage, 5)]}</b></header><ol className="workflow-progress">{workspaceStages.map((label, index) => <li key={label} className={index < stage || stage === 6 ? "complete" : index === stage ? "current" : ""}><i>{index < stage || stage === 6 ? "✓" : index + 1}</i><span>{label}</span></li>)}</ol><div className="workspace-current"><small>CURRENT STEP · {status.replaceAll("_", " ")}</small>{children}</div><footer>Every document and application action remains behind its required review and approval.</footer></section>;
 }
 
 const preparationSteps: Record<string, { endpoint: string; label: string }> = {

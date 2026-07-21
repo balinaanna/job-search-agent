@@ -37,10 +37,11 @@ test("server-renders the job-search workspace", async () => {
 });
 
 test("dashboard uses all exported workflow data and responsive styling", async () => {
-  const [page, jobsView, alertInbox, css, data] = await Promise.all([
+  const [page, jobsView, alertInbox, decisions, css, data] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/JobsView.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/AlertInbox.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/DecisionButtons.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/dashboard-data.json", import.meta.url), "utf8"),
   ]);
@@ -55,6 +56,10 @@ test("dashboard uses all exported workflow data and responsive styling", async (
   assert.match(alertInbox, /Full workflow connected/);
   assert.match(alertInbox, /AnalyzeButton/);
   assert.match(alertInbox, /DecisionButtons/);
+  assert.match(decisions, /APPLICATION WORKSPACE/);
+  assert.match(decisions, /Analysis.*Strategy.*Resume.*Cover letter.*Package.*Apply/);
+  assert.match(decisions, /Every document and application action remains behind its required review and approval/);
+  assert.match(css, /\.workflow-progress/);
   assert.match(css, /@media \(max-width:950px\)/);
   assert.match(css, /@media \(max-width:600px\)/);
   const parsed = JSON.parse(data);
