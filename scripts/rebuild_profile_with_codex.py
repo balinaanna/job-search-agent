@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import difflib
 import os
 import shutil
 import subprocess
@@ -101,7 +102,7 @@ Additional user instructions: {instructions or 'None provided.'}
         return json.loads(result_path.read_text(encoding="utf-8"))
 
 
-def rebuild_profile(run_id: str, files: list[Path], instructions: str, generator: Callable[[Path, str], dict] = codex_proposal) -> dict:
+def prepare_profile_rebuild(run_id: str, files: list[Path], instructions: str, generator: Callable[[Path, str], dict] = codex_proposal) -> dict:
     run_directory = ROOT / "data/profile-rebuilds" / run_id
     extracted, skipped = extract_resumes(files, run_directory / "extracted")
     if not extracted:
@@ -110,26 +111,41 @@ def rebuild_profile(run_id: str, files: list[Path], instructions: str, generator
     original_contact = yaml.safe_load((profile_directory / "career.yaml").read_text())["contact"]
     proposal = generator(run_directory / "extracted", instructions)
     parsed = validate_proposal(profile_directory, proposal, original_contact)
-    backup = ROOT / "profile/history" / run_id; backup.mkdir(parents=True, exist_ok=True)
-    for name in PROFILE_FILES:
-        shutil.copy2(profile_directory / name, backup / name)
-    staged_files = {}
+    diffs = {}
     for name in PROFILE_FILES:
         staged = run_directory / name
         staged.write_text(yaml.safe_dump(parsed[name], sort_keys=False, allow_unicode=True, width=100), encoding="utf-8")
-        staged_files[name] = staged
-    try:
-        for name in PROFILE_FILES:
-            staged_files[name].replace(profile_directory / name)
-    except OSError:
-        for name in PROFILE_FILES:
-            shutil.copy2(backup / name, profile_directory / name)
-        raise
+        before = (profile_directory / name).read_text(encoding="utf-8").splitlines()
+        after = staged.read_text(encoding="utf-8").splitlines()
+        diffs[name] = "\n".join(difflib.unified_diff(before, after, fromfile=f"current/{name}", tofile=f"proposed/{name}", lineterm=""))
     return {
         "files_processed": [path.name for path in extracted],
         "files_skipped": skipped,
         "changes": proposal.get("changes", []),
         "warnings": proposal.get("warnings", []),
+        "diffs": diffs,
+    }
+
+
+def apply_profile_rebuild(run_id: str, expected_version: str) -> dict:
+    run_directory = ROOT / "data/profile-rebuilds" / run_id
+    profile_directory = ROOT / "profile"
+    if profile_version(profile_directory) != expected_version:
+        raise ValueError("The career profile changed while this proposal was waiting. Rebuild the proposal before approving it.")
+    for name in PROFILE_FILES:
+        if not (run_directory / name).exists():
+            raise ValueError(f"The proposed {name} file is missing.")
+    backup = ROOT / "profile/history" / run_id; backup.mkdir(parents=True, exist_ok=True)
+    for name in PROFILE_FILES:
+        shutil.copy2(profile_directory / name, backup / name)
+    try:
+        for name in PROFILE_FILES:
+            shutil.copy2(run_directory / name, profile_directory / name)
+    except OSError:
+        for name in PROFILE_FILES:
+            shutil.copy2(backup / name, profile_directory / name)
+        raise
+    return {
         "profile_version": profile_version(profile_directory),
         "backup": str(backup.relative_to(ROOT)),
     }

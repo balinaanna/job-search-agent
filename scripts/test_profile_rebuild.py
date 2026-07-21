@@ -2,12 +2,13 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import yaml
 
 from profile_rebuild_store import ProfileRebuildStore
 from profile_version import PROFILE_FILES, analysis_profile_version, profile_version
-from rebuild_profile_with_codex import validate_proposal
+from rebuild_profile_with_codex import apply_profile_rebuild, validate_proposal
 
 
 class ProfileVersionTests(unittest.TestCase):
@@ -65,6 +66,33 @@ class ProfileRebuildStoreTests(unittest.TestCase):
             self.assertEqual("after", completed["after_version"])
             self.assertEqual(["resume.pdf"], completed["files"])
             store.connection.close()
+
+
+class ProfileApprovalTests(unittest.TestCase):
+    def make_profile(self, root: Path):
+        profile = root / "profile"; profile.mkdir()
+        for name in PROFILE_FILES:
+            (profile / name).write_text(f"state: current-{name}\n", encoding="utf-8")
+        proposed = root / "data/profile-rebuilds/run-1"; proposed.mkdir(parents=True)
+        for name in PROFILE_FILES:
+            (proposed / name).write_text(f"state: proposed-{name}\n", encoding="utf-8")
+        return profile
+
+    def test_approval_applies_staged_files_and_keeps_backup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); profile = self.make_profile(root); before = profile_version(profile)
+            with patch("rebuild_profile_with_codex.ROOT", root):
+                result = apply_profile_rebuild("run-1", before)
+            self.assertEqual("state: proposed-career.yaml\n", (profile / "career.yaml").read_text())
+            self.assertEqual("state: current-career.yaml\n", (root / "profile/history/run-1/career.yaml").read_text())
+            self.assertEqual(profile_version(profile), result["profile_version"])
+
+    def test_approval_is_blocked_if_current_profile_changed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); profile = self.make_profile(root); before = profile_version(profile)
+            (profile / "skills.yaml").write_text("state: changed-after-proposal\n", encoding="utf-8")
+            with patch("rebuild_profile_with_codex.ROOT", root), self.assertRaisesRegex(ValueError, "changed while"):
+                apply_profile_rebuild("run-1", before)
 
 
 if __name__ == "__main__":

@@ -40,6 +40,7 @@ from export_dashboard_data import build_dashboard_data
 from gmail_alerts import keyring_set, load_config as load_gmail_config, poll_gmail, save_config as save_gmail_config
 from profile_rebuild_store import ProfileRebuildStore
 from profile_version import profile_version, analysis_profile_version
+from rebuild_profile_with_codex import apply_profile_rebuild
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -252,6 +253,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if parts == ["api", "profile", "rebuild"]:
             self.request_profile_rebuild()
+            return
+        if len(parts) == 5 and parts[:3] == ["api", "profile", "runs"] and parts[4] in {"approve", "reject"}:
+            self.review_profile_rebuild(parts[3], parts[4])
             return
         if parts == ["api", "search-settings"]:
             self.update_search_settings()
@@ -886,6 +890,23 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         except (ValueError, OSError) as exc:
             self.respond(400, {"error": str(exc)}); return
         self.respond(202, run)
+
+    def review_profile_rebuild(self, run_id: str, action: str) -> None:
+        try:
+            run = self.profile_store.get(run_id)
+            if run["status"] != "proposal_ready":
+                raise ValueError("This profile proposal is not awaiting review.")
+            if action == "reject":
+                self.respond(200, self.profile_store.update(run_id, "rejected", summary=run["summary"]))
+                return
+            applied = apply_profile_rebuild(run_id, run["before_version"])
+            summary = {**(run["summary"] or {}), **applied}
+            completed = self.profile_store.update(run_id, "completed", summary=summary, after_version=applied["profile_version"])
+        except KeyError:
+            self.respond(404, {"error": "Profile rebuild was not found."}); return
+        except (ValueError, OSError) as exc:
+            self.respond(409, {"error": str(exc)}); return
+        self.respond(200, completed)
 
     def get_interview_preparation(self, lead_id: str) -> None:
         try:

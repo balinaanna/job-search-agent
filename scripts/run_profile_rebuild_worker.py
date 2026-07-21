@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from profile_rebuild_store import ProfileRebuildStore
-from rebuild_profile_with_codex import ROOT, rebuild_profile
+from rebuild_profile_with_codex import ROOT, prepare_profile_rebuild
 
 
 def main() -> int:
@@ -13,8 +13,8 @@ def main() -> int:
     run = store.update(run_id, "running")
     files = [ROOT / "data/profile-rebuilds" / run_id / "uploads" / name for name in run["files"]]
     try:
-        summary = rebuild_profile(run_id, files, run["instructions"])
-        store.update(run_id, "completed", summary=summary, after_version=summary["profile_version"])
+        summary = prepare_profile_rebuild(run_id, files, run["instructions"])
+        store.update(run_id, "proposal_ready", summary=summary)
         return 0
     except Exception as exc:
         store.update(run_id, "failed", error=str(exc)[-4000:])
