@@ -54,9 +54,8 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
     }
   }
 
-  if (["strategy_completed", "resume_plan_requested", "resume_plan_running", "resume_plan_failed"].includes(status)) return <ApplicationStart leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["resume_plan_completed", "resume_draft_requested", "resume_draft_running", "resume_draft_failed"].includes(status)) return <ResumeDraftAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["resume_draft_completed", "resume_revision_completed", "resume_review_requested", "resume_review_running", "resume_review_failed", "resume_review_completed"].includes(status)) return <ResumeReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (["pursue", "strategy_requested", "strategy_running", "strategy_failed", "strategy_completed", "resume_plan_requested", "resume_plan_running", "resume_plan_failed", "resume_plan_completed", "resume_draft_requested", "resume_draft_running", "resume_draft_failed", "resume_draft_completed", "resume_review_requested", "resume_review_running", "resume_review_failed"].includes(status)) return <PrepareResumeForReview leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (["resume_revision_completed", "resume_review_completed"].includes(status)) return <ResumeReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["resume_approved", "resume_finalization_requested", "resume_finalization_running", "resume_finalization_failed"].includes(status)) return <ResumeFinalizationAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["resume_finalization_completed", "resume_pdf_requested", "resume_pdf_running", "resume_pdf_failed", "resume_pdf_review_required"].includes(status)) return <ResumePdfAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["resume_pdf_completed", "cover_letter_plan_requested", "cover_letter_plan_running", "cover_letter_plan_failed"].includes(status)) return <CoverLetterPlanAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
@@ -69,7 +68,6 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
   if (["application_answers_approved", "form_filling_started", "submission_review_required", "submission_authorized", "submission_in_progress", "submission_blocked", "application_submitted"].includes(status)) return <FormFillAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["cover_letter_revision_requested", "cover_letter_revision_running", "cover_letter_revision_failed"].includes(status)) return <CoverLetterRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["resume_revision_requested", "resume_revision_running", "resume_revision_failed"].includes(status)) return <ResumeRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["pursue", "strategy_requested", "strategy_running", "strategy_failed"].includes(status)) return <StrategyAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (status === "pass") return <div className="decision-saved pass"><strong>{labels[status]}</strong><span>Removed from active consideration</span></div>;
 
   return <div className="decision-control">
@@ -81,6 +79,35 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
     </div>
     {message && <small role="status">{message}</small>}
   </div>;
+}
+
+const preparationSteps: Record<string, { endpoint: string; label: string }> = {
+  pursue: { endpoint: "strategy", label: "Building application strategy" }, strategy_failed: { endpoint: "strategy", label: "Retrying application strategy" },
+  strategy_completed: { endpoint: "resume-plan", label: "Planning the tailored resume" }, resume_plan_failed: { endpoint: "resume-plan", label: "Retrying resume planning" },
+  resume_plan_completed: { endpoint: "resume-draft", label: "Drafting the tailored resume" }, resume_draft_failed: { endpoint: "resume-draft", label: "Retrying resume drafting" },
+  resume_draft_completed: { endpoint: "resume-review", label: "Reviewing evidence and quality" }, resume_review_failed: { endpoint: "resume-review", label: "Retrying resume review" },
+};
+
+function PrepareResumeForReview({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {
+  const [busy, setBusy] = useState(false), [message, setMessage] = useState("Ready to build the strategy and tailored resume, then stop for your review.");
+  const wait = () => new Promise((resolve) => window.setTimeout(resolve, 1200));
+  async function prepare() {
+    setBusy(true);
+    try {
+      let current = initialStatus;
+      for (let attempts = 0; attempts < 240; attempts += 1) {
+        if (current === "resume_review_completed") { setMessage("Resume review is ready for your decision."); onStatus(current); return; }
+        const failed = current.endsWith("_failed");
+        const step = preparationSteps[current];
+        if (step) { setMessage(`${step.label}…`); const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/${step.endpoint}`, { method: "POST" }); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || `${step.label} could not start.`); current = payload.status; continue; }
+        if (failed) throw new Error("Preparation stopped because a stage needs attention.");
+        await wait(); const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`); if (!response.ok) throw new Error("Workflow status is unavailable."); current = (await response.json()).status;
+      }
+      throw new Error("Preparation is still running. You can safely resume it here.");
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Preparation stopped."); }
+    finally { setBusy(false); }
+  }
+  return <div className="strategy-action"><div><strong>Prepare application</strong><span>{message}</span></div><button disabled={busy} onClick={prepare}>{busy ? "Preparing…" : "Prepare resume for review"}</button></div>;
 }
 
 function StrategyAction({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {
