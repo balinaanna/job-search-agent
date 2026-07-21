@@ -319,7 +319,8 @@ def eluta_postings(source: dict[str, Any], collected_at: str, fetcher: Callable[
         for location in source["locations"]:
             search_url = eluta_search_url(query, location)
             for detail_url in eluta_result_urls(fetcher(search_url))[:limit]:
-                postings.setdefault(detail_url, eluta_posting(detail_url, fetcher(detail_url), collected_at, f"{query} in {location}"))
+                if detail_url not in postings:
+                    postings[detail_url] = eluta_posting(detail_url, fetcher(detail_url), collected_at, f"{query} in {location}")
     return list(postings.values())
 
 
@@ -470,6 +471,12 @@ def validate_source(source: Any, index: int) -> dict[str, Any]:
         limit = source.get("max_results_per_search", 10)
         if not isinstance(limit, int) or not 1 <= limit <= 10:
             raise CollectionError(f"sources[{index}].max_results_per_search must be between 1 and 10.")
+        for field in ("max_queries", "max_locations"):
+            maximum = source.get(field, 3)
+            if not isinstance(maximum, int) or not 1 <= maximum <= 10:
+                raise CollectionError(f"sources[{index}].{field} must be between 1 and 10.")
+        if not isinstance(source.get("derive_from_search_settings", False), bool):
+            raise CollectionError(f"sources[{index}].derive_from_search_settings must be true or false.")
     else:
         raise CollectionError(
             f"sources[{index}].platform must be greenhouse, lever, or eluta."

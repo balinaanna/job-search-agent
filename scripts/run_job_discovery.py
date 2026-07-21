@@ -205,14 +205,35 @@ def run_pipeline(
 def collect_configured_sources(
     sources_path: Path,
     raw_directory: Path,
+    criteria_path: Path = DEFAULT_CRITERIA_PATH,
 ) -> tuple[int, int, int]:
     sources = load_sources(sources_path)
+    criteria = load_json(criteria_path)
     collected_at = datetime.now(timezone.utc).isoformat()
     postings: list[dict[str, Any]] = []
     for source in sources:
-        postings.extend(collect_source(source, collected_at))
+        postings.extend(collect_source(source_with_search_preferences(source, criteria), collected_at))
     created, updated = write_postings(postings, raw_directory)
     return len(postings), created, updated
+
+
+def eluta_location(value: str) -> str:
+    if "remote" in value.casefold():
+        return "Remote"
+    return value.replace(", British Columbia", " BC").replace("British Columbia", "BC")
+
+
+def source_with_search_preferences(source: dict[str, Any], criteria: dict[str, Any]) -> dict[str, Any]:
+    if source.get("platform") != "eluta" or not source.get("derive_from_search_settings"):
+        return source
+    roles = [item["title"] for item in criteria["search_strategy"]["primary_targets"]]
+    locations = [eluta_location(value) for value in criteria["locations"]["preferred"]]
+    unique_locations = list(dict.fromkeys(locations))
+    return {
+        **source,
+        "queries": roles[: source.get("max_queries", 3)],
+        "locations": unique_locations[: source.get("max_locations", 3)],
+    }
 
 
 def parse_args() -> argparse.Namespace:
@@ -254,6 +275,7 @@ def main() -> int:
             total, created_raw, updated_raw = collect_configured_sources(
                 args.sources,
                 args.raw_directory,
+                args.criteria,
             )
             print(
                 f"Collection: {total} posting(s); "

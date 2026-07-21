@@ -9,7 +9,7 @@ import unittest
 from pathlib import Path
 
 from normalize_job_lead import build_job_lead
-from run_job_discovery import copy_status_for_refresh, refreshed_lead, run_pipeline
+from run_job_discovery import copy_status_for_refresh, refreshed_lead, run_pipeline, source_with_search_preferences
 from validate_job_lead import load_json
 
 
@@ -24,6 +24,33 @@ SCHEMA_PATH = ROOT / (
 
 
 class JobDiscoveryPipelineTests(unittest.TestCase):
+    def test_eluta_uses_bounded_search_settings(self) -> None:
+        source = {
+            "company": "Eluta Canada",
+            "platform": "eluta",
+            "derive_from_search_settings": True,
+            "queries": ["Fallback"],
+            "locations": ["Fallback"],
+            "max_queries": 2,
+            "max_locations": 3,
+        }
+        criteria = {
+            "search_strategy": {"primary_targets": [
+                {"title": "AI Engineer"},
+                {"title": "Applied AI Engineer"},
+                {"title": "Software Engineer"},
+            ]},
+            "locations": {"preferred": [
+                "Remote within Canada",
+                "Richmond, British Columbia",
+                "Vancouver, British Columbia",
+                "Remote-first Canadian company",
+            ]},
+        }
+        configured = source_with_search_preferences(source, criteria)
+        self.assertEqual(configured["queries"], ["AI Engineer", "Applied AI Engineer"])
+        self.assertEqual(configured["locations"], ["Remote", "Richmond BC", "Vancouver BC"])
+
     def test_refresh_preserves_workflow_state_and_first_seen(self) -> None:
         raw = load_json(RAW_EXAMPLE_PATH)
         existing = build_job_lead(raw, criteria_version=1)
