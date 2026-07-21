@@ -15,6 +15,7 @@ import subprocess
 import sys
 import threading
 import time
+import yaml
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -30,6 +31,7 @@ from application_tracker import initial_tracker, update_tracker
 from discovery_store import DiscoveryStore
 from search_settings import load_search_settings, save_search_settings
 from job_alert_inbox import AlertInboxStore, canonical_job_url, save_captured_posting
+from interview_preparation import prepare_for_lead
 from gmail_alerts import keyring_set, load_config as load_gmail_config, poll_gmail, save_config as save_gmail_config
 
 
@@ -172,6 +174,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "job-posting":
             self.get_archived_posting(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "interview-preparation":
+            self.get_interview_preparation(parts[2])
+            return
         if parts == ["api", "browser-extension"]:
             self.get_browser_extension()
             return
@@ -239,6 +244,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-draft":
             self.request_resume_draft(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "interview-preparation":
+            self.prepare_interview(parts[2])
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "resume-review":
             self.request_resume_review(parts[2])
@@ -789,6 +797,17 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         except (ValueError, KeyError, json.JSONDecodeError) as exc:
             self.respond(500, {"error": f"Saved posting is incomplete: {exc}"}); return
         self.respond(200, posting)
+
+    def get_interview_preparation(self, lead_id: str) -> None:
+        path = ROOT / "jobs/analyzed" / lead_id / "interview_preparation.json"
+        if not path.exists(): self.respond(404, {"error": "Interview preparation has not been created yet."}); return
+        self.respond(200, load_json(path))
+
+    def prepare_interview(self, lead_id: str) -> None:
+        try: package, path = prepare_for_lead(ROOT, lead_id)
+        except (FileNotFoundError, ValueError, KeyError, json.JSONDecodeError, yaml.YAMLError) as exc:
+            self.respond(409, {"error": str(exc)}); return
+        self.respond(201, {**package, "saved_path": str(path.relative_to(ROOT))})
 
     def request_resume_review(self, lead_id: str) -> None:
         run = self.store.latest_for_lead(lead_id)
