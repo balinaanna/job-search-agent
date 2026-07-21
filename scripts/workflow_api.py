@@ -32,6 +32,7 @@ from discovery_store import DiscoveryStore
 from search_settings import load_search_settings, save_search_settings
 from job_alert_inbox import AlertInboxStore, canonical_job_url, save_captured_posting
 from interview_preparation import prepare_for_lead
+from build_strategy_with_codex import find_analysis
 from gmail_alerts import keyring_set, load_config as load_gmail_config, poll_gmail, save_config as save_gmail_config
 
 
@@ -799,7 +800,10 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         self.respond(200, posting)
 
     def get_interview_preparation(self, lead_id: str) -> None:
-        path = ROOT / "jobs/analyzed" / lead_id / "interview_preparation.json"
+        try:
+            path = find_analysis(lead_id).parent / "interview_preparation.json"
+        except FileNotFoundError:
+            self.respond(404, {"error": "Analyze this job before creating interview preparation."}); return
         if not path.exists(): self.respond(404, {"error": "Interview preparation has not been created yet."}); return
         self.respond(200, load_json(path))
 

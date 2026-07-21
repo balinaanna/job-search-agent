@@ -6,6 +6,8 @@ from pathlib import Path
 
 import yaml
 
+from build_strategy_with_codex import find_analysis
+
 
 def build_interview_preparation(lead: dict, analysis: dict, strategy: dict, story_library: dict) -> dict:
     stories_by_id = {story["id"]: story for story in story_library.get("stories", [])}
@@ -19,10 +21,25 @@ def build_interview_preparation(lead: dict, analysis: dict, strategy: dict, stor
 
 
 def prepare_for_lead(root: Path, lead_id: str) -> tuple[dict, Path]:
-    lead = json.loads((root / "data/job-leads" / f"{lead_id}.json").read_text())
-    analysis_dir = root / "jobs/analyzed" / lead_id
-    analysis = json.loads((analysis_dir / "analysis.json").read_text())
-    strategy = json.loads((analysis_dir / "candidate_strategy.json").read_text())
+    lead_path = root / "data/job-leads" / f"{lead_id}.json"
+    if not lead_path.exists():
+        raise ValueError("The saved job posting could not be found.")
+    lead = json.loads(lead_path.read_text())
+    if root == Path(__file__).resolve().parent.parent:
+        try:
+            analysis_path = find_analysis(lead_id)
+        except FileNotFoundError as exc:
+            raise ValueError("Analyze this job before creating interview preparation.") from exc
+    else:
+        analysis_path = root / "jobs/analyzed" / lead_id / "analysis.json"
+        if not analysis_path.exists():
+            raise ValueError("Analyze this job before creating interview preparation.")
+    analysis_dir = analysis_path.parent
+    strategy_path = analysis_dir / "candidate_strategy.json"
+    if not strategy_path.exists():
+        raise ValueError("Build the candidate strategy before creating interview preparation.")
+    analysis = json.loads(analysis_path.read_text())
+    strategy = json.loads(strategy_path.read_text())
     stories = yaml.safe_load((root / "profile/interview_stories.yaml").read_text())
     package = build_interview_preparation(lead, analysis, strategy, stories)
     output = analysis_dir / "interview_preparation.json"; output.write_text(json.dumps(package, indent=2, ensure_ascii=False) + "\n")

@@ -1,5 +1,9 @@
+import json
+import tempfile
 import unittest
-from interview_preparation import build_interview_preparation
+from pathlib import Path
+
+from interview_preparation import build_interview_preparation, prepare_for_lead
 
 class InterviewPreparationTests(unittest.TestCase):
     def test_uses_only_selected_verified_story(self):
@@ -11,5 +15,17 @@ class InterviewPreparationTests(unittest.TestCase):
         result=build_interview_preparation(lead,analysis,strategy,library)
         self.assertEqual(result["stories"][0]["evidence_id"],"ev1")
         self.assertEqual(result["most_likely_concern"],"gap")
+
+    def test_requires_analysis_before_preparing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            leads = root / "data/job-leads"
+            leads.mkdir(parents=True)
+            (leads / "x.json").write_text(json.dumps({"lead_id": "x"}))
+
+            with self.assertRaisesRegex(
+                ValueError, "Analyze this job before creating interview preparation"
+            ):
+                prepare_for_lead(root, "x")
 
 if __name__ == "__main__": unittest.main()
