@@ -6,6 +6,7 @@ import { JobsView } from "./JobsView";
 import { FindJobsButton } from "./FindJobsButton";
 import { SearchSettings } from "./SearchSettings";
 import { AlertInbox } from "./AlertInbox";
+import { ProfileManager } from "./ProfileManager";
 
 function updatedLabel(value: string) { return new Intl.DateTimeFormat("en-CA", { hour: "numeric", minute: "2-digit", timeZone: "America/Vancouver" }).format(new Date(value)); }
 
@@ -75,7 +76,8 @@ export default function Home() {
           </aside>
         </section>
 
-        <footer id="profile">Live local job data · Updated {updatedLabel(data.generatedAt)} · No application can be submitted without explicit approval.</footer>
+        <ProfileManager />
+        <footer>Live local job data · Updated {updatedLabel(data.generatedAt)} · No application can be submitted without explicit approval.</footer>
       </section>
     </main>
   );

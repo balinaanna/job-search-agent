@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 from workflow_store import WorkflowStore
+from profile_version import profile_version, analysis_profile_version
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -30,6 +31,11 @@ def finalize_analysis(
     lead["status"]["lead_status"] = "analysis_completed"
     lead["status"]["reviewed"] = True
     lead_path.write_text(json.dumps(lead, indent=2) + "\n", encoding="utf-8")
+    result_directory = Path(result_path).parent
+    (result_directory / "analysis_metadata.json").write_text(json.dumps({
+        "profile_version": profile_version(ROOT / "profile"),
+        "analysis_run_id": run_id,
+    }, indent=2) + "\n", encoding="utf-8")
     subprocess.run(
         [sys.executable, "scripts/export_dashboard_data.py"],
         cwd=ROOT,
@@ -52,7 +58,7 @@ def main() -> int:
     run = store.transition(run_id, "analysis_running", "analysis_worker")
     lead_id = run["lead_id"]
     existing_result = ROOT / "jobs/analyzed" / lead_id / "analysis.json"
-    if existing_result.exists():
+    if existing_result.exists() and analysis_profile_version(existing_result.parent) == profile_version(ROOT / "profile"):
         try:
             finalize_analysis(store, run_id, lead_id, str(existing_result))
             return 0

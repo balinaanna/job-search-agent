@@ -16,6 +16,9 @@ import sys
 import threading
 import time
 import yaml
+import re
+from email import policy
+from email.parser import BytesParser
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -35,17 +38,27 @@ from interview_preparation import prepare_for_lead
 from build_strategy_with_codex import find_analysis
 from export_dashboard_data import build_dashboard_data
 from gmail_alerts import keyring_set, load_config as load_gmail_config, poll_gmail, save_config as save_gmail_config
+from profile_rebuild_store import ProfileRebuildStore
+from profile_version import profile_version, analysis_profile_version
 
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
 def enrich_jobs_with_workflow(data: dict, store: WorkflowStore) -> dict:
+    current_profile = profile_version(ROOT / "profile")
     for group, fallback in (("analyzedJobs", "analysis_completed"), ("awaitingAnalysis", "not_started")):
         for job in data[group]:
             run = store.latest_for_lead(job["id"])
             job["workflowStatus"] = run["status"] if run else fallback
             job["workflowUpdatedAt"] = run["updated_at"] if run else None
+            analyzed_version = None
+            if group == "analyzedJobs":
+                try: analyzed_version = analysis_profile_version(find_analysis(job["id"]).parent)
+                except FileNotFoundError: pass
+            job["profileVersion"] = current_profile
+            job["analysisProfileVersion"] = analyzed_version
+            job["profileStale"] = group == "analyzedJobs" and analyzed_version != current_profile
     return data
 
 
@@ -116,6 +129,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
     discovery_store: DiscoveryStore
     leads_directory: Path
     alert_store: AlertInboxStore
+    profile_store: ProfileRebuildStore
 
     def end_headers(self) -> None:
         origin = self.headers.get("Origin", "")
@@ -136,6 +150,13 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path); parts = parsed.path.strip("/").split("/")
         if parts == ["api", "jobs"]:
             self.get_jobs_workspace()
+            return
+        if parts == ["api", "profile"]:
+            self.get_profile_status()
+            return
+        if len(parts) == 4 and parts[:3] == ["api", "profile", "runs"]:
+            try: self.respond(200, self.profile_store.get(parts[3]))
+            except KeyError: self.respond(404, {"error": "Profile rebuild was not found."})
             return
         if len(parts) == 3 and parts[:2] == ["api", "runs"]:
             try:
@@ -228,6 +249,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         parts = urlparse(self.path).path.strip("/").split("/")
         if parts == ["api", "discovery"]:
             self.request_discovery()
+            return
+        if parts == ["api", "profile", "rebuild"]:
+            self.request_profile_rebuild()
             return
         if parts == ["api", "search-settings"]:
             self.update_search_settings()
@@ -823,6 +847,46 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             self.respond(500, {"error": f"Jobs workspace could not be loaded: {exc}"}); return
         self.respond(200, enrich_jobs_with_workflow(data, self.store))
 
+    def get_profile_status(self) -> None:
+        self.respond(200, {"profile_version": profile_version(ROOT / "profile"), "latest_run": self.profile_store.latest()})
+
+    def request_profile_rebuild(self) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            if length <= 0 or length > 80 * 1024 * 1024:
+                raise ValueError("Upload between 1 byte and 80 MB.")
+            content_type = self.headers.get("Content-Type", "")
+            if "multipart/form-data" not in content_type:
+                raise ValueError("Use multipart form data for resume uploads.")
+            raw = self.rfile.read(length)
+            message = BytesParser(policy=policy.default).parsebytes(
+                f"Content-Type: {content_type}\r\nMIME-Version: 1.0\r\n\r\n".encode() + raw
+            )
+            uploads: list[tuple[str, bytes]] = []; instructions = ""
+            for part in message.iter_parts():
+                name = part.get_param("name", header="content-disposition")
+                filename = part.get_filename()
+                payload = part.get_payload(decode=True) or b""
+                if name == "instructions" and not filename:
+                    instructions = payload.decode("utf-8", errors="replace")[:5000]
+                elif name == "resumes" and filename:
+                    safe = re.sub(r"[^A-Za-z0-9._-]+", "_", Path(filename).name)[:120]
+                    if not safe.casefold().endswith(".pdf") or not payload.startswith(b"%PDF"):
+                        raise ValueError(f"{filename} is not a valid PDF.")
+                    if len(payload) > 15 * 1024 * 1024:
+                        raise ValueError(f"{filename} exceeds the 15 MB per-file limit.")
+                    uploads.append((safe, payload))
+            if not 1 <= len(uploads) <= 10:
+                raise ValueError("Upload between 1 and 10 PDF resumes.")
+            names = [f"{index + 1:02d}-{name}" for index, (name, _) in enumerate(uploads)]
+            run = self.profile_store.request(names, instructions, profile_version(ROOT / "profile"))
+            directory = ROOT / "data/profile-rebuilds" / run["id"] / "uploads"; directory.mkdir(parents=True, exist_ok=True)
+            for name, (_, payload) in zip(names, uploads): (directory / name).write_bytes(payload)
+            subprocess.Popen([sys.executable, str(ROOT / "scripts/run_profile_rebuild_worker.py"), run["id"]], cwd=ROOT, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except (ValueError, OSError) as exc:
+            self.respond(400, {"error": str(exc)}); return
+        self.respond(202, run)
+
     def get_interview_preparation(self, lead_id: str) -> None:
         try:
             path = find_analysis(lead_id).parent / "interview_preparation.json"
@@ -1257,6 +1321,7 @@ def main() -> int:
     WorkflowHandler.store = WorkflowStore(args.database)
     WorkflowHandler.discovery_store = DiscoveryStore(args.database)
     WorkflowHandler.alert_store = AlertInboxStore(args.database)
+    WorkflowHandler.profile_store = ProfileRebuildStore(args.database)
     WorkflowHandler.leads_directory = args.leads
     threading.Thread(target=scheduled_discovery_loop, args=(args.database,), daemon=True).start()
     threading.Thread(target=gmail_alert_loop, args=(args.database,), daemon=True).start()

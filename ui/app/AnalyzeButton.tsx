@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 type Run = { id: string; status: string; error?: string | null };
 
-export function AnalyzeButton({ leadId }: { leadId: string }) {
+export function AnalyzeButton({ leadId, label = "Analyze" }: { leadId: string; label?: string }) {
   const [run, setRun] = useState<Run | null>(null);
   const [message, setMessage] = useState("");
 
@@ -16,8 +16,8 @@ export function AnalyzeButton({ leadId }: { leadId: string }) {
       const next = await response.json();
       setRun(next);
       if (next.status === "analysis_completed") {
-        setMessage("Analysis complete. Refreshing…");
-        window.setTimeout(() => window.location.reload(), 500);
+        setMessage("Analysis complete.");
+        window.dispatchEvent(new Event("jobs-changed"));
       }
       if (next.status === "analysis_failed") setMessage(next.error || "Analysis needs attention.");
     }, 1200);
@@ -41,5 +41,5 @@ export function AnalyzeButton({ leadId }: { leadId: string }) {
   }
 
   const working = run && ["analysis_requested", "analysis_running"].includes(run.status);
-  return <div className="analyze-control"><button type="button" disabled={Boolean(working)} onClick={analyze}>{working ? "Analyzing…" : "Analyze"}</button>{message && <span role="status">{message}</span>}</div>;
+  return <div className="analyze-control"><button type="button" disabled={Boolean(working)} onClick={analyze}>{working ? "Analyzing…" : label}</button>{message && <span role="status">{message}</span>}</div>;
 }

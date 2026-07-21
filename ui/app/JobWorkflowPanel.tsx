@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AnalyzeButton } from "./AnalyzeButton";
 import { DecisionButtons } from "./DecisionButtons";
 
-type Job = { id: string; company: string; role: string; postingUrl: string; stage: "analyzed" | "awaiting" };
+type Job = { id: string; company: string; role: string; postingUrl: string; stage: "analyzed" | "awaiting"; profileStale?: boolean };
 type Posting = { company: string; title: string; description: string; location: string; workplace_type: string; employment_type: string; posted_date?: string | null; captured_at: string; source: string };
 type Prep = { most_likely_concern: string; response_strategy: string; verify_before_interview: string[]; questions_to_ask: string[]; stories: Array<{ story_id: string; core_message: string; why_it_fits: string; sample_questions: string[]; evidence_id: string }> };
 

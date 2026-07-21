@@ -12,11 +12,13 @@ applications/*
 
 jobs/analyzed/
 jobs/inbox/
+profile/history/
 
 # Runtime job discovery data
 data/jobs.db
 data/gmail-alerts.json
 data/discovery-source-report.json
+data/profile-rebuilds/
 data/job-leads/*
 !data/job-leads/.gitkeep
 data/raw-job-postings/*
