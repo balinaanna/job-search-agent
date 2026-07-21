@@ -49,7 +49,7 @@
     const description = text(posting?.description) || firstText(document, fields.description) || semanticDescription(document);
     const location = locationValue(posting?.jobLocation) || firstText(document, fields.location);
     const missing = [!title && "title", !company && "employer", description.length < 200 && "complete description"].filter(Boolean);
-    if (missing.length) throw new Error(`Adapter 0.5.3 could not identify: ${missing.join(", ")}. Expand the job description, then try again.`);
+    if (missing.length) throw new Error(`Adapter 0.5.4 could not identify: ${missing.join(", ")}. Expand the job description, then try again.`);
     const canonical = postingUrl(url);
     return { source, company, role: title, posting_url: canonical, application_url: text(posting?.url) || canonical, description_text: description, location_raw: location || null, workplace_type_raw: posting?.jobLocationType === "TELECOMMUTE" ? "Remote" : null, employment_type_raw: text(posting?.employmentType) || null, posted_date: text(posting?.datePosted) || null };
   }

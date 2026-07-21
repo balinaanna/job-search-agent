@@ -55,6 +55,8 @@ test("background session storage is tab scoped", () => {
   assert.match(source, /sender\.tab\?\.id/);
   assert.match(source, /chrome\.storage\.session/);
   assert.match(source, /job-agent-clear-session/);
+  assert.match(source, /job-agent-capture/);
+  assert.match(source, /http:\/\/localhost:8787\/api\/job-alerts\/capture/);
 });
 
 test("capture adapter supports only the approved alert sources", async () => {
@@ -71,6 +73,7 @@ test("capture runtime visibly identifies its installed version", () => {
   const source = fs.readFileSync(new URL("./content-script.js", import.meta.url), "utf8");
   const capture = fs.readFileSync(new URL("./job-capture.js", import.meta.url), "utf8");
   assert.match(source, /Capture this job · v/);
-  assert.match(capture, /Adapter 0\.5\.3 could not identify/);
+  assert.match(source, /chrome\.runtime\.sendMessage\(\{ type: "job-agent-capture"/);
+  assert.match(capture, /Adapter 0\.5\.4 could not identify/);
   assert.match(capture, /about the job\|job description\|about this job/);
 });

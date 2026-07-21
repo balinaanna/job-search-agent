@@ -9,8 +9,8 @@
       captureButton.disabled = true; captureButton.textContent = "Capturing…";
       try {
         const posting = globalThis.JobAgentCapture.extract(document, location.href);
-        const response = await fetch("http://localhost:8787/api/job-alerts/capture", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(posting) });
-        const result = await response.json(); if (!response.ok) throw new Error(result.error || "Capture failed.");
+        const response = await chrome.runtime.sendMessage({ type: "job-agent-capture", posting });
+        if (!response?.ok) throw new Error(response?.payload?.error || "Workflow service could not be reached.");
         captureButton.textContent = "Captured for analysis"; captureButton.style.background = "#315f9a";
       } catch (error) { captureButton.textContent = error instanceof Error ? error.message : "Capture failed"; captureButton.style.maxWidth = "360px"; captureButton.style.background = "#9a5227"; captureButton.disabled = false; }
     });
