@@ -53,6 +53,7 @@ def allowed_titles(role):
     for key in ("approved_title_variants", "title_variants"):
         if isinstance(role.get(key), list):
             out |= {x for x in role[key] if isinstance(x, str)}
+            out |= {x["title"] for x in role[key] if isinstance(x, dict) and isinstance(x.get("title"), str)}
     return out
 
 def role_date(role, kind):
@@ -63,6 +64,23 @@ def role_date(role, kind):
     if isinstance(role.get("dates"), dict):
         return role["dates"].get(kind)
     return None
+
+def plan_date(entry, kind):
+    key = "start_date" if kind == "start" else "end_date"
+    if key in entry:
+        return entry[key]
+    if isinstance(entry.get("dates"), dict):
+        return entry["dates"].get(kind)
+    return None
+
+def planned_record_id(item, plan_name=None):
+    if isinstance(item.get("record_id"), str):
+        return item["record_id"]
+    if isinstance(item.get("verified_record_id"), str):
+        return item["verified_record_id"]
+    singular = plan_name.removesuffix("_plan") if isinstance(plan_name, str) else None
+    key = f"{singular}_id" if singular else None
+    return item.get(key) if key else None
 
 def main():
     p = argparse.ArgumentParser()
@@ -124,9 +142,9 @@ def main():
         role = role_map[rid]
         if entry.get("display_title") not in allowed_titles(role):
             errors.append(f"unapproved display title for {rid}")
-        if entry.get("start_date") != role_date(role, "start"):
+        if plan_date(entry, "start") != role_date(role, "start"):
             errors.append(f"start date mismatch for {rid}")
-        if entry.get("end_date") != role_date(role, "end"):
+        if plan_date(entry, "end") != role_date(role, "end"):
             errors.append(f"end date mismatch for {rid}")
         for j, bullet in enumerate(entry.get("planned_bullets", [])):
             if not isinstance(bullet, dict):
@@ -152,8 +170,13 @@ def main():
             if not isinstance(item, dict):
                 continue
             valid = skill_ids if item.get("record_type") == "skill" else tech_ids
-            if item.get("record_id") not in valid:
-                errors.append(f"unknown {item.get('record_type')} ID: {item.get('record_id')}")
+            record_id = planned_record_id(item)
+            record_type = item.get("record_type")
+            if record_type not in {"skill", "technology"}:
+                record_type = "skill" if record_id in skill_ids else "technology"
+                valid = skill_ids if record_type == "skill" else tech_ids
+            if record_id not in valid:
+                errors.append(f"unknown {record_type} ID: {record_id}")
 
     for item in plan.get("project_plan", []):
         if isinstance(item, dict) and item.get("project_id") not in project_ids:
@@ -161,8 +184,8 @@ def main():
 
     for name, valid in (("education_plan", education_ids), ("certification_plan", certification_ids)):
         for item in plan.get(name, []):
-            if isinstance(item, dict) and item.get("record_id") not in valid:
-                errors.append(f"unknown {name} ID: {item.get('record_id')}")
+            if isinstance(item, dict) and planned_record_id(item, name) not in valid:
+                errors.append(f"unknown {name} ID: {planned_record_id(item, name)}")
 
     if not (a.workspace/"resume_plan.md").exists():
         errors.append("resume_plan.md is missing")

@@ -134,14 +134,18 @@ function PrepareUntilGate({ leadId, initialStatus, onStatus, targetStatus, title
     setBusy(true);
     try {
       let current = initialStatus;
+      const attemptedEndpoints = new Set<string>();
+      let workflowError = "";
       for (let attempts = 0; attempts < 240; attempts += 1) {
         if (current === targetStatus) { setMessage(readyMessage); onStatus(current); return; }
         const step = steps[current];
         if (step) {
+          if (current.endsWith("_failed") && attemptedEndpoints.has(step.endpoint)) throw new Error(workflowError || `${step.label} failed. Review the error, then retry.`);
           setMessage(`${step.label}…`);
           const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/${step.endpoint}`, { method: "POST" });
           const payload = await response.json();
           if (!response.ok) throw new Error(payload.error || `${step.label} could not start.`);
+          attemptedEndpoints.add(step.endpoint);
           current = payload.status;
           continue;
         }
@@ -149,7 +153,7 @@ function PrepareUntilGate({ leadId, initialStatus, onStatus, targetStatus, title
         await wait();
         const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`);
         if (!response.ok) throw new Error("Workflow status is unavailable.");
-        current = (await response.json()).status;
+        const latest = await response.json(); current = latest.status; workflowError = latest.error || "";
       }
       throw new Error("Preparation is still running. You can safely resume it here.");
     } catch (error) { setMessage(error instanceof TypeError ? "Workflow service is offline." : error instanceof Error ? error.message : "Preparation stopped."); }
@@ -165,13 +169,14 @@ function PrepareResumeForReview({ leadId, initialStatus, onStatus }: { leadId: s
     setBusy(true);
     try {
       let current = initialStatus;
+      const attemptedEndpoints = new Set<string>();
+      let workflowError = "";
       for (let attempts = 0; attempts < 240; attempts += 1) {
         if (current === "resume_review_completed") { setMessage("Resume review is ready for your decision."); onStatus(current); return; }
-        const failed = current.endsWith("_failed");
         const step = preparationSteps[current];
-        if (step) { setMessage(`${step.label}…`); const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/${step.endpoint}`, { method: "POST" }); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || `${step.label} could not start.`); current = payload.status; continue; }
-        if (failed) throw new Error("Preparation stopped because a stage needs attention.");
-        await wait(); const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`); if (!response.ok) throw new Error("Workflow status is unavailable."); current = (await response.json()).status;
+        if (step) { if (current.endsWith("_failed") && attemptedEndpoints.has(step.endpoint)) throw new Error(workflowError || `${step.label} failed. Review the error, then retry.`); setMessage(`${step.label}…`); const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/${step.endpoint}`, { method: "POST" }); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || `${step.label} could not start.`); attemptedEndpoints.add(step.endpoint); current = payload.status; continue; }
+        if (current.endsWith("_failed")) throw new Error(workflowError || "Preparation stopped because a stage needs attention.");
+        await wait(); const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`); if (!response.ok) throw new Error("Workflow status is unavailable."); const latest = await response.json(); current = latest.status; workflowError = latest.error || "";
       }
       throw new Error("Preparation is still running. You can safely resume it here.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "Preparation stopped."); }
