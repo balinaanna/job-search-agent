@@ -9,6 +9,12 @@ type Summary = {
 type ProfileRun = { id:string; status:string; files:string[]; after_version?:string|null; error?:string|null; summary?:Summary|null };
 type ProfileStatus = { profile_version:string; latest_run?:ProfileRun|null };
 
+function profileRequestError(response:Response, value:{error?:string}) {
+  return response.status===404
+    ? "The running workflow service is an older version. Stop it and restart the app, then try again."
+    : value.error||"Profile request failed.";
+}
+
 export function ProfileManager() {
   const [status,setStatus]=useState<ProfileStatus|null>(null), [files,setFiles]=useState<File[]>([]), [instructions,setInstructions]=useState(""), [run,setRun]=useState<ProfileRun|null>(null), [message,setMessage]=useState(""), [reviewing,setReviewing]=useState(false), [inputKey,setInputKey]=useState(0);
   const working=Boolean(run&&["requested","running"].includes(run.status));
@@ -28,13 +34,13 @@ export function ProfileManager() {
   async function rebuild(){
     const body=new FormData(); files.forEach(file=>body.append("resumes",file)); body.append("instructions",instructions);
     setMessage("Uploading resumes and preparing a verified proposal…");
-    try{const response=await fetch("http://localhost:8787/api/profile/rebuild",{method:"POST",body});const value=await response.json();if(!response.ok)throw new Error(value.error);setRun(value);setMessage("Profile proposal queued. Nothing will change without your approval.");}
+    try{const response=await fetch("http://localhost:8787/api/profile/rebuild",{method:"POST",body});const value=await response.json();if(!response.ok)throw new Error(profileRequestError(response,value));setRun(value);setMessage("Profile proposal queued. Nothing will change without your approval.");}
     catch(error){setMessage(error instanceof TypeError?"Profile service is offline.":error instanceof Error?error.message:"Profile proposal could not start.");}
   }
 
   async function review(action:"approve"|"reject"){
     if(!run)return; setReviewing(true);
-    try{const response=await fetch(`http://localhost:8787/api/profile/runs/${run.id}/${action}`,{method:"POST"});const value=await response.json();if(!response.ok)throw new Error(value.error);setRun(value);
+    try{const response=await fetch(`http://localhost:8787/api/profile/runs/${run.id}/${action}`,{method:"POST"});const value=await response.json();if(!response.ok)throw new Error(profileRequestError(response,value));setRun(value);
       if(action==="approve"){setMessage("Profile rebuilt. Existing fit analyses are now marked for review.");setFiles([]);setInstructions("");setInputKey(key=>key+1);setStatus(current=>current?{...current,profile_version:value.after_version,latest_run:value}:current);window.dispatchEvent(new Event("jobs-changed"));}
       else setMessage("Proposal rejected. Your career profile was not changed.");
     }catch(error){setMessage(error instanceof Error?error.message:"Profile review could not be saved.");}finally{setReviewing(false);}
