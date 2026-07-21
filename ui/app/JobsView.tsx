@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AnalyzeButton } from "./AnalyzeButton";
-import { DecisionButtons } from "./DecisionButtons";
+import { JobWorkflowPanel } from "./JobWorkflowPanel";
 
 type BaseJob = { id: string; company: string; role: string; location: string | null; postingUrl: string; postedDate?: string | null; firstSeenAt?: string | null; discoveryScore: number | null };
 type AnalyzedJob = BaseJob & { fitScore: number; recommendation: string; risk: string; nextAction: string };
@@ -18,6 +17,7 @@ function dateLabel(job: JobRow) {
 
 export function JobsView({ analyzedJobs, awaitingAnalysis }: { analyzedJobs: AnalyzedJob[]; awaitingAnalysis: BaseJob[] }) {
   const [search, setSearch] = useState(""), [stage, setStage] = useState("all"), [fit, setFit] = useState("all"), [sort, setSort] = useState("priority"), [visible, setVisible] = useState(10);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const jobs = useMemo<JobRow[]>(() => [...analyzedJobs.map((job) => ({ ...job, stage: "analyzed" as const })), ...awaitingAnalysis.map((job) => ({ ...job, stage: "awaiting" as const }))], [analyzedJobs, awaitingAnalysis]);
   const filtered = useMemo(() => jobs.filter((job) => { const text = `${job.company} ${job.role} ${job.location || ""}`.toLowerCase(); if (search && !text.includes(search.toLowerCase())) return false; if (stage !== "all" && job.stage !== stage) return false; if (fit !== "all" && (job.stage !== "analyzed" || job.recommendation !== fit)) return false; return true; }).sort((left, right) => { if (sort === "company") return left.company.localeCompare(right.company); if (sort === "discovery") return (right.discoveryScore || 0) - (left.discoveryScore || 0); return (right.stage === "analyzed" ? right.fitScore : right.discoveryScore || 0) - (left.stage === "analyzed" ? left.fitScore : left.discoveryScore || 0); }), [jobs, search, stage, fit, sort]);
   const reset = () => setVisible(10);
@@ -29,8 +29,9 @@ export function JobsView({ analyzedJobs, awaitingAnalysis }: { analyzedJobs: Ana
       <div className="job-result-score"><strong>{job.stage === "analyzed" ? job.fitScore : job.discoveryScore || 0}</strong><span>{job.stage === "analyzed" ? "verified fit" : "preliminary"}</span></div>
       {job.stage === "analyzed" && <p className="risk"><strong>Main consideration:</strong> {job.risk}</p>}
       <div className="workflow-route"><strong>{job.stage === "analyzed" ? "Application workflow connected" : "Next: evidence-based fit analysis"}</strong>{job.stage === "analyzed" && <span>Decision → Strategy → Resume → Cover letter → Review → Package → Apply</span>}</div>
-      <div className="job-result-actions">{job.stage === "analyzed" ? <DecisionButtons leadId={job.id} /> : <AnalyzeButton leadId={job.id} />}<a href={job.postingUrl} target="_blank" rel="noreferrer">View posting</a></div>
+      <div className="job-result-actions"><button className="open-role-workflow" onClick={() => setSelectedJobId(job.id)}>{selectedJobId === job.id ? "Workflow open" : "Open workflow"}</button><a href={job.postingUrl} target="_blank" rel="noreferrer">View posting</a></div>
     </article>)}{filtered.length === 0 && <div className="empty-state">No jobs match these filters.</div>}</div>
+    {selectedJobId && jobs.find((job) => job.id === selectedJobId) && <JobWorkflowPanel job={jobs.find((job) => job.id === selectedJobId)!} onClose={() => setSelectedJobId(null)} />}
     {visible < filtered.length && <button className="load-more" onClick={() => setVisible((count) => count + 10)}>Show 10 more</button>}
   </section>;
 }

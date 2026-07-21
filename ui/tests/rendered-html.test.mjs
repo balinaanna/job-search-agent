@@ -52,6 +52,8 @@ test("dashboard uses all exported workflow data and responsive styling", async (
   assert.match(jobsView, /Posted.*First seen|postedDate.*firstSeenAt/s);
   assert.match(jobsView, /timeZone: "UTC"/);
   assert.match(jobsView, /Application workflow connected/);
+  assert.match(jobsView, /JobWorkflowPanel/);
+  assert.match(jobsView, /Open workflow/);
   assert.match(jobsView, /Strategy.*Resume.*Cover letter.*Package.*Apply/s);
   assert.match(alertInbox, /Ready to analyze/);
   assert.match(alertInbox, /AnalyzeButton/);
