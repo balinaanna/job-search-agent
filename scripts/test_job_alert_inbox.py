@@ -14,6 +14,12 @@ class JobAlertInboxTests(unittest.TestCase):
         self.assertEqual(indeed[0]["posting_url"], "https://ca.indeed.com/viewjob?jk=abc123")
         self.assertEqual(eluta[0]["title"], "Software Engineer")
 
+    def test_canonicalizes_linkedin_email_and_browser_urls_identically(self):
+        email_job = parse_alert("linkedin", '<a href="https://www.linkedin.com/comm/jobs/view/software-engineer-12345?tracking=x">Software Engineer</a>')
+        browser_job = parse_alert("linkedin", '<a href="https://www.linkedin.com/jobs/view/12345/">Software Engineer</a>')
+        self.assertEqual(email_job[0]["posting_url"], "https://www.linkedin.com/jobs/view/12345")
+        self.assertEqual(email_job[0]["posting_url"], browser_job[0]["posting_url"])
+
     def test_deduplicates_imported_jobs(self):
         with tempfile.TemporaryDirectory() as directory:
             store = AlertInboxStore(Path(directory) / "jobs.db")
@@ -28,6 +34,14 @@ class JobAlertInboxTests(unittest.TestCase):
             store = AlertInboxStore(Path(directory) / "jobs.db")
             content = '<a href="https://www.linkedin.com/jobs/view/12345">AI Engineer</a>'
             store.import_alert("linkedin", content); store.mark_captured("linkedin", "https://www.linkedin.com/jobs/view/12345", "lead-123")
+            job = store.list()[0]; self.assertEqual(job["status"], "captured"); self.assertEqual(job["lead_id"], "lead-123"); store.close()
+
+    def test_links_legacy_linkedin_comm_alert_to_browser_capture(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = AlertInboxStore(Path(directory) / "jobs.db")
+            store.connection.execute("INSERT INTO alert_jobs VALUES (?, ?, ?, ?, ?, ?, ?)", ("legacy", "linkedin", "AI Engineer", "https://www.linkedin.com/comm/jobs/view/12345", "needs_capture", "2026-07-21T00:00:00+00:00", None))
+            store.connection.commit()
+            store.mark_captured("linkedin", "https://www.linkedin.com/jobs/view/12345", "lead-123")
             job = store.list()[0]; self.assertEqual(job["status"], "captured"); self.assertEqual(job["lead_id"], "lead-123"); store.close()
 
     def test_rejects_empty_or_unknown_alerts(self):

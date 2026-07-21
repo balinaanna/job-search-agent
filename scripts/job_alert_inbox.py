@@ -56,7 +56,8 @@ def unwrap_url(value: str) -> str:
 def canonical_job_url(value: str, source: str) -> str | None:
     value = unwrap_url(value); parsed = urlparse(value); host = parsed.netloc.casefold().removeprefix("www.")
     if source == "linkedin" and host.endswith("linkedin.com") and "/jobs/view/" in parsed.path:
-        return urlunparse(("https", "www.linkedin.com", parsed.path.rstrip("/"), "", "", ""))
+        job_id = re.search(r"/jobs/view/(?:[^/?#]*-)?(\d+)(?:/|$)", parsed.path)
+        if job_id: return f"https://www.linkedin.com/jobs/view/{job_id.group(1)}"
     if source == "indeed" and host.endswith("indeed.com"):
         job_key = parse_qs(parsed.query).get("jk", [None])[0]
         if job_key and ("viewjob" in parsed.path or "clk" in parsed.path): return f"https://ca.indeed.com/viewjob?{urlencode({'jk': job_key})}"
@@ -121,8 +122,12 @@ class AlertInboxStore:
         rows = self.connection.execute("SELECT * FROM alert_jobs ORDER BY received_at DESC").fetchall()
         return [dict(row) for row in rows]
     def mark_captured(self, source: str, posting_url: str, lead_id: str) -> None:
+        canonical = canonical_job_url(posting_url, source) or posting_url
         with self.connection:
-            self.connection.execute("UPDATE alert_jobs SET status='captured', lead_id=? WHERE source=? AND posting_url=?", (lead_id, source, canonical_job_url(posting_url, source) or posting_url))
+            rows = self.connection.execute("SELECT id, posting_url FROM alert_jobs WHERE source=?", (source,)).fetchall()
+            matching_ids = [row["id"] for row in rows if (canonical_job_url(row["posting_url"], source) or row["posting_url"]) == canonical]
+            if matching_ids:
+                self.connection.executemany("UPDATE alert_jobs SET status='captured', lead_id=? WHERE id=?", [(lead_id, job_id) for job_id in matching_ids])
     def gmail_processed(self, uid: str) -> bool:
         return self.connection.execute("SELECT 1 FROM gmail_alert_messages WHERE uid=?", (uid,)).fetchone() is not None
     def mark_gmail_processed(self, uid: str) -> None:

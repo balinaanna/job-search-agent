@@ -29,7 +29,7 @@ from workflow_store import WorkflowStore
 from application_tracker import initial_tracker, update_tracker
 from discovery_store import DiscoveryStore
 from search_settings import load_search_settings, save_search_settings
-from job_alert_inbox import AlertInboxStore, save_captured_posting
+from job_alert_inbox import AlertInboxStore, canonical_job_url, save_captured_posting
 from gmail_alerts import keyring_set, load_config as load_gmail_config, poll_gmail, save_config as save_gmail_config
 
 
@@ -165,10 +165,16 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if parts == ["api", "job-alerts"]:
             jobs = self.alert_store.list()
-            leads_by_url = {lead["source"]["posting_url"]: lead["lead_id"] for lead in load_leads(self.leads_directory)}
+            leads_by_url = {}
+            for lead in load_leads(self.leads_directory):
+                source = lead["source"].get("platform")
+                posting_url = lead["source"]["posting_url"]
+                leads_by_url[(source, canonical_job_url(posting_url, source) or posting_url)] = lead["lead_id"]
             for job in jobs:
-                if job["status"] == "captured" and not job.get("lead_id") and job["posting_url"] in leads_by_url:
-                    self.alert_store.mark_captured(job["source"], job["posting_url"], leads_by_url[job["posting_url"]]); job["lead_id"] = leads_by_url[job["posting_url"]]
+                canonical = canonical_job_url(job["posting_url"], job["source"]) or job["posting_url"]
+                linked_lead = leads_by_url.get((job["source"], canonical))
+                if not job.get("lead_id") and linked_lead:
+                    self.alert_store.mark_captured(job["source"], job["posting_url"], linked_lead); job["status"] = "captured"; job["lead_id"] = linked_lead
                 run = self.store.latest_for_lead(job["lead_id"]) if job.get("lead_id") else None
                 job["workflow_status"] = run["status"] if run else "not_started"
             self.respond(200, {"jobs": jobs})
