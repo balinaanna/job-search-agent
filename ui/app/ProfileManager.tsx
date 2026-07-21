@@ -17,16 +17,17 @@ function profileRequestError(response:Response, value:{error?:string}) {
 }
 
 export function ProfileManager() {
-  const [status,setStatus]=useState<ProfileStatus|null>(null), [files,setFiles]=useState<File[]>([]), [instructions,setInstructions]=useState(""), [run,setRun]=useState<ProfileRun|null>(null), [message,setMessage]=useState(""), [reviewing,setReviewing]=useState(false), [inputKey,setInputKey]=useState(0);
-  const working=Boolean(run&&["requested","running"].includes(run.status));
+  const [status,setStatus]=useState<ProfileStatus|null>(null), [files,setFiles]=useState<File[]>([]), [instructions,setInstructions]=useState(""), [run,setRun]=useState<ProfileRun|null>(null), [message,setMessage]=useState(""), [reviewing,setReviewing]=useState(false), [inputKey,setInputKey]=useState(0), [selectedItems,setSelectedItems]=useState<number[]>([]);
+  const working=Boolean(run&&["requested","running","approval_running"].includes(run.status));
   const awaitingReview=run?.status==="proposal_ready";
-  useEffect(()=>{fetch("http://localhost:8787/api/profile").then(response=>response.ok?response.json():null).then(value=>{if(value){setStatus(value);if(value.latest_run)setRun(value.latest_run);}}).catch(()=>undefined);},[]);
+  useEffect(()=>{fetch("http://localhost:8787/api/profile").then(response=>response.ok?response.json():null).then(value=>{if(value){setStatus(value);if(value.latest_run){setRun(value.latest_run);if(value.latest_run.status==="proposal_ready")setSelectedItems((value.latest_run.summary?.review_items||[]).map((_:unknown,index:number)=>index));}}}).catch(()=>undefined);},[]);
   useEffect(()=>{
     if(!working||!run)return;
     const timer=window.setInterval(async()=>{
       const response=await fetch(`http://localhost:8787/api/profile/runs/${run.id}`); if(!response.ok)return;
       const next=await response.json(); setRun(next);
-      if(next.status==="proposal_ready")setMessage("Proposal ready. Review every change before applying it.");
+      if(next.status==="proposal_ready"){if(!next.error)setSelectedItems((next.summary?.review_items||[]).map((_:unknown,index:number)=>index));setMessage(next.error||"Proposal ready. Review every change before applying it.");}
+      if(next.status==="completed"){setMessage("Selected changes applied. Existing fit analyses are now marked for review.");setFiles([]);setInstructions("");setInputKey(key=>key+1);setStatus(current=>current?{...current,profile_version:next.after_version,latest_run:next}:current);window.dispatchEvent(new Event("jobs-changed"));}
       if(next.status==="failed")setMessage(next.error||"Profile proposal failed.");
     },1500);
     return()=>window.clearInterval(timer);
@@ -41,8 +42,8 @@ export function ProfileManager() {
 
   async function review(action:"approve"|"reject"){
     if(!run)return; setReviewing(true);
-    try{const response=await fetch(`http://localhost:8787/api/profile/runs/${run.id}/${action}`,{method:"POST"});const value=await response.json();if(!response.ok)throw new Error(profileRequestError(response,value));setRun(value);
-      if(action==="approve"){setMessage("Profile rebuilt. Existing fit analyses are now marked for review.");setFiles([]);setInstructions("");setInputKey(key=>key+1);setStatus(current=>current?{...current,profile_version:value.after_version,latest_run:value}:current);window.dispatchEvent(new Event("jobs-changed"));}
+    try{const response=await fetch(`http://localhost:8787/api/profile/runs/${run.id}/${action}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({selected_items:selectedItems})});const value=await response.json();if(!response.ok)throw new Error(profileRequestError(response,value));setRun(value);
+      if(action==="approve")setMessage("Validating and applying your selected changes…");
       else setMessage("Proposal rejected. Your career profile was not changed.");
     }catch(error){setMessage(error instanceof Error?error.message:"Profile review could not be saved.");}finally{setReviewing(false);}
   }
@@ -58,8 +59,8 @@ export function ProfileManager() {
     {proposal&&<section className="profile-proposal" aria-label="Profile change proposal">
       <header><div><strong>Review proposed profile</strong><span>{proposal.files_processed.length} resume(s) processed · {(proposal.changed_sections||[]).join(", ")||"No sections changed"}</span></div><span>Not applied</span></header>
       {proposal.warnings.length>0&&<div className="profile-proposal-warnings"><strong>Warnings to review</strong><ul>{proposal.warnings.map(item=><li key={item}>{item}</li>)}</ul></div>}
-      <div className="profile-fact-review">{proposal.review_items?.length?proposal.review_items.map((item,index)=><article key={`${item.category}-${item.fact}-${index}`}><span className={`fact-action ${item.action.toLowerCase()}`}>{item.action}</span><div><small>{item.category}</small><strong>{item.fact}</strong><p>{item.reason}</p></div></article>):proposal.changes.map(item=><article key={item}><span className="fact-action updated">Updated</span><div><small>Career profile</small><strong>{item}</strong></div></article>)}</div>
-      <div className="profile-review-actions"><button className="reject" disabled={reviewing} onClick={()=>review("reject")}>Reject proposal</button><button disabled={reviewing} onClick={()=>review("approve")}>{reviewing?"Saving decision…":"Approve and rebuild profile"}</button></div>
+      <div className="profile-fact-review">{proposal.review_items?.length?proposal.review_items.map((item,index)=><label className={selectedItems.includes(index)?"selected":"rejected"} key={`${item.category}-${item.fact}-${index}`}><input type="checkbox" checked={selectedItems.includes(index)} onChange={()=>setSelectedItems(current=>current.includes(index)?current.filter(value=>value!==index):[...current,index])}/><span className={`fact-action ${item.action.toLowerCase()}`}>{item.action}</span><div><small>{item.category}</small><strong>{item.fact}</strong><p>{item.reason}</p><em>{selectedItems.includes(index)?"Included in rebuild":"Rejected — will not be applied"}</em></div></label>):proposal.changes.map(item=><article key={item}><span className="fact-action updated">Updated</span><div><small>Career profile</small><strong>{item}</strong></div></article>)}</div>
+      <div className="profile-review-actions"><span>{proposal.review_items?.length?`${selectedItems.length} of ${proposal.review_items.length} changes selected`:`${proposal.changes.length} changes in proposal`}</span><button className="reject" disabled={reviewing} onClick={()=>review("reject")}>Reject entire proposal</button><button disabled={reviewing||Boolean(proposal.review_items?.length&&selectedItems.length===0)} onClick={()=>review("approve")}>{reviewing?"Saving decision…":"Approve selected and rebuild"}</button></div>
     </section>}
     {latest?.status==="completed"&&latest.summary&&<details className="profile-rebuild-summary"><summary>Latest approved rebuild</summary><strong>{latest.summary.files_processed.length} resume(s) processed</strong><ul>{latest.summary.changes.map(item=><li key={item}>{item}</li>)}</ul></details>}
   </section>;

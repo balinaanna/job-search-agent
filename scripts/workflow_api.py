@@ -40,7 +40,6 @@ from export_dashboard_data import build_dashboard_data
 from gmail_alerts import keyring_set, load_config as load_gmail_config, poll_gmail, save_config as save_gmail_config
 from profile_rebuild_store import ProfileRebuildStore
 from profile_version import profile_version, analysis_profile_version
-from rebuild_profile_with_codex import apply_profile_rebuild
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -899,14 +898,22 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             if action == "reject":
                 self.respond(200, self.profile_store.update(run_id, "rejected", summary=run["summary"]))
                 return
-            applied = apply_profile_rebuild(run_id, run["before_version"])
-            summary = {**(run["summary"] or {}), **applied}
-            completed = self.profile_store.update(run_id, "completed", summary=summary, after_version=applied["profile_version"])
+            length = int(self.headers.get("Content-Length", "0"))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+            items = (run.get("summary") or {}).get("review_items", [])
+            selected = payload.get("selected_items", list(range(len(items))))
+            if not isinstance(selected, list) or any(not isinstance(index, int) or isinstance(index, bool) or index < 0 or index >= len(items) for index in selected):
+                raise ValueError("The selected profile changes are invalid.")
+            selected = sorted(set(selected))
+            selection_path = ROOT / "data/profile-rebuilds" / run_id / "selection.json"
+            selection_path.write_text(json.dumps(selected), encoding="utf-8")
+            completed = self.profile_store.update(run_id, "approval_running", summary=run["summary"])
+            subprocess.Popen([sys.executable, str(ROOT / "scripts/run_profile_approval_worker.py"), run_id], cwd=ROOT, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except KeyError:
             self.respond(404, {"error": "Profile rebuild was not found."}); return
         except (ValueError, OSError) as exc:
             self.respond(409, {"error": str(exc)}); return
-        self.respond(200, completed)
+        self.respond(202, completed)
 
     def get_interview_preparation(self, lead_id: str) -> None:
         try:
