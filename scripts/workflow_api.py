@@ -40,6 +40,17 @@ def practice_confirmation_required(plan: dict, payload: dict) -> bool:
     return plan.get("application", {}).get("mode") == "practice_only" and payload.get("practice_only_confirmed") is not True
 
 
+def archived_posting(lead: dict) -> dict:
+    return {
+        "lead_id": lead["lead_id"], "company": lead["identity"]["company"], "title": lead["position"]["title"],
+        "description": lead["content"]["description_text"], "location": lead["location"]["raw"],
+        "workplace_type": lead["location"]["workplace_type"], "employment_type": lead["employment"]["employment_type"],
+        "salary": lead["employment"]["salary"], "posted_date": lead["application"].get("posted_date"),
+        "captured_at": lead["source"]["collected_at"], "source": lead["source"]["platform"],
+        "original_url": lead["source"]["posting_url"], "description_hash": lead["content"]["description_hash"],
+    }
+
+
 def scheduled_discovery_loop(database: Path) -> None:
     store = DiscoveryStore(database)
     while True:
@@ -157,6 +168,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-context":
             self.get_application_context(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "job-posting":
+            self.get_archived_posting(parts[2])
             return
         if parts == ["api", "browser-extension"]:
             self.get_browser_extension()
@@ -765,6 +779,16 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
             self.respond(404, {"error": str(exc)}); return
         self.respond(200, {"mode": plan.get("application", {}).get("mode", "active_application"), "fit": manifest.get("fit", {})})
+
+    def get_archived_posting(self, lead_id: str) -> None:
+        lead_path = self.leads_directory / f"{lead_id}.json"
+        if not lead_path.exists():
+            self.respond(404, {"error": "Saved job posting was not found."}); return
+        try:
+            posting = archived_posting(load_json(lead_path))
+        except (ValueError, KeyError, json.JSONDecodeError) as exc:
+            self.respond(500, {"error": f"Saved posting is incomplete: {exc}"}); return
+        self.respond(200, posting)
 
     def request_resume_review(self, lead_id: str) -> None:
         run = self.store.latest_for_lead(lead_id)

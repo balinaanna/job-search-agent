@@ -59,6 +59,8 @@ test("dashboard uses all exported workflow data and responsive styling", async (
   assert.match(alertInbox, /Open workflow/);
   assert.match(alertInbox, /job-workflow-detail/);
   assert.match(alertInbox, /Close application workspace/);
+  assert.match(alertInbox, /View saved posting/);
+  assert.match(alertInbox, /PERMANENT JOB ARCHIVE/);
   assert.match(decisions, /APPLICATION WORKSPACE/);
   assert.match(decisions, /Analysis.*Strategy.*Resume.*Cover letter.*Package.*Apply/);
   assert.match(decisions, /Every document and application action remains behind its required review and approval/);
