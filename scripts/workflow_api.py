@@ -33,6 +33,7 @@ from search_settings import load_search_settings, save_search_settings
 from job_alert_inbox import AlertInboxStore, canonical_job_url, save_captured_posting
 from interview_preparation import prepare_for_lead
 from build_strategy_with_codex import find_analysis
+from export_dashboard_data import build_dashboard_data
 from gmail_alerts import keyring_set, load_config as load_gmail_config, poll_gmail, save_config as save_gmail_config
 
 
@@ -124,6 +125,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path); parts = parsed.path.strip("/").split("/")
+        if parts == ["api", "jobs"]:
+            self.get_jobs_workspace()
+            return
         if len(parts) == 3 and parts[:2] == ["api", "runs"]:
             try:
                 run = self.store.get(parts[2])
@@ -798,6 +802,17 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         except (ValueError, KeyError, json.JSONDecodeError) as exc:
             self.respond(500, {"error": f"Saved posting is incomplete: {exc}"}); return
         self.respond(200, posting)
+
+    def get_jobs_workspace(self) -> None:
+        try:
+            data = build_dashboard_data(
+                self.leads_directory,
+                ROOT / "jobs/analyzed",
+                ROOT / "profile/evidence.yaml",
+            )
+        except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
+            self.respond(500, {"error": f"Jobs workspace could not be loaded: {exc}"}); return
+        self.respond(200, data)
 
     def get_interview_preparation(self, lead_id: str) -> None:
         try:

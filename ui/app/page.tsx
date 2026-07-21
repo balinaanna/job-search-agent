@@ -1,10 +1,18 @@
-import data from "./dashboard-data.json";
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import initialData from "./dashboard-data.json";
 import { JobsView } from "./JobsView";
 import { FindJobsButton } from "./FindJobsButton";
 import { SearchSettings } from "./SearchSettings";
 import { AlertInbox } from "./AlertInbox";
 
+function updatedLabel(value: string) { return new Intl.DateTimeFormat("en-CA", { hour: "numeric", minute: "2-digit", timeZone: "America/Vancouver" }).format(new Date(value)); }
+
 export default function Home() {
+  const [data, setData] = useState(initialData);
+  const refreshDashboard = useCallback(() => fetch("http://localhost:8787/api/jobs").then(async (response) => { const value = await response.json(); if (!response.ok) throw new Error(value.error); setData(value); }).catch(() => undefined), []);
+  useEffect(() => { void refreshDashboard(); const changed = () => void refreshDashboard(); window.addEventListener("jobs-changed", changed); const timer = window.setInterval(refreshDashboard, 5000); return () => { window.removeEventListener("jobs-changed", changed); window.clearInterval(timer); }; }, [refreshDashboard]);
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -67,7 +75,7 @@ export default function Home() {
           </aside>
         </section>
 
-        <footer id="profile">Updated from your local job-search data · No application can be submitted without explicit approval.</footer>
+        <footer id="profile">Live local job data · Updated {updatedLabel(data.generatedAt)} · No application can be submitted without explicit approval.</footer>
       </section>
     </main>
   );
