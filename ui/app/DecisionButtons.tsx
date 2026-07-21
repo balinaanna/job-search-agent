@@ -164,7 +164,9 @@ function PrepareUntilGate({ leadId, initialStatus, onStatus, targetStatus, title
 
 function PrepareResumeForReview({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {
   const [busy, setBusy] = useState(false), [message, setMessage] = useState("Ready to build the strategy and tailored resume, then stop for your review.");
+  const [practiceOnly, setPracticeOnly] = useState(false), [practiceConfirmed, setPracticeConfirmed] = useState(false);
   const wait = () => new Promise((resolve) => window.setTimeout(resolve, 1200));
+  useEffect(() => { if (!["resume_plan_completed", "resume_draft_failed"].includes(initialStatus)) return; fetch(`http://localhost:8787/api/jobs/${leadId}/application-context`).then((response) => response.ok ? response.json() : null).then((context) => setPracticeOnly(context?.mode === "practice_only")).catch(() => undefined); }, [leadId, initialStatus]);
   async function prepare() {
     setBusy(true);
     try {
@@ -174,7 +176,7 @@ function PrepareResumeForReview({ leadId, initialStatus, onStatus }: { leadId: s
       for (let attempts = 0; attempts < 240; attempts += 1) {
         if (current === "resume_review_completed") { setMessage("Resume review is ready for your decision."); onStatus(current); return; }
         const step = preparationSteps[current];
-        if (step) { if (current.endsWith("_failed") && attemptedEndpoints.has(step.endpoint)) throw new Error(workflowError || `${step.label} failed. Review the error, then retry.`); setMessage(`${step.label}…`); const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/${step.endpoint}`, { method: "POST" }); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || `${step.label} could not start.`); attemptedEndpoints.add(step.endpoint); current = payload.status; continue; }
+        if (step) { if (current.endsWith("_failed") && attemptedEndpoints.has(step.endpoint)) throw new Error(workflowError || `${step.label} failed. Review the error, then retry.`); setMessage(`${step.label}…`); const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/${step.endpoint}`, { method: "POST", headers: step.endpoint === "resume-draft" ? { "Content-Type": "application/json" } : undefined, body: step.endpoint === "resume-draft" ? JSON.stringify({ practice_only_confirmed: practiceConfirmed }) : undefined }); const payload = await response.json(); if (!response.ok) throw new Error(payload.error || `${step.label} could not start.`); attemptedEndpoints.add(step.endpoint); current = payload.status; continue; }
         if (current.endsWith("_failed")) throw new Error(workflowError || "Preparation stopped because a stage needs attention.");
         await wait(); const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`); if (!response.ok) throw new Error("Workflow status is unavailable."); const latest = await response.json(); current = latest.status; workflowError = latest.error || "";
       }
@@ -182,7 +184,7 @@ function PrepareResumeForReview({ leadId, initialStatus, onStatus }: { leadId: s
     } catch (error) { setMessage(error instanceof Error ? error.message : "Preparation stopped."); }
     finally { setBusy(false); }
   }
-  return <div className="strategy-action"><div><strong>Prepare application</strong><span>{message}</span></div><button disabled={busy} onClick={prepare}>{busy ? "Preparing…" : "Prepare resume for review"}</button></div>;
+  return <div className="strategy-action practice-aware"><div><strong>{practiceOnly ? "Practice-only resume" : "Prepare application"}</strong><span>{practiceOnly ? "Fit assessment: do not apply. Continue only to test or practise the package workflow." : message}</span>{practiceOnly && <label className="practice-confirmation"><input type="checkbox" checked={practiceConfirmed} onChange={(event) => setPracticeConfirmed(event.target.checked)} /> I understand this is not a recommended application and want to draft it for practice.</label>}</div><button disabled={busy || practiceOnly && !practiceConfirmed} onClick={prepare}>{busy ? "Preparing…" : practiceOnly ? "Continue as practice" : "Prepare resume for review"}</button>{practiceOnly && message && <small role="status">{message}</small>}</div>;
 }
 
 function StrategyAction({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {

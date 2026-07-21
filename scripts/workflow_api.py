@@ -36,6 +36,10 @@ from gmail_alerts import keyring_set, load_config as load_gmail_config, poll_gma
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def practice_confirmation_required(plan: dict, payload: dict) -> bool:
+    return plan.get("application", {}).get("mode") == "practice_only" and payload.get("practice_only_confirmed") is not True
+
+
 def scheduled_discovery_loop(database: Path) -> None:
     store = DiscoveryStore(database)
     while True:
@@ -150,6 +154,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-tracker":
             self.get_application_tracker(parts[2])
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-context":
+            self.get_application_context(parts[2])
             return
         if parts == ["api", "browser-extension"]:
             self.get_browser_extension()
@@ -736,8 +743,13 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             self.respond(409, {"error": "A validated resume plan is required before drafting."})
             return
         try:
-            run = self.store.transition(run["id"], "resume_draft_requested", "user")
-        except ValueError as exc:
+            length = int(self.headers.get("Content-Length", "0")); payload = json.loads(self.rfile.read(length) or b"{}")
+            plan = load_json(find_workspace(lead_id) / "resume_plan.json")
+            if practice_confirmation_required(plan, payload):
+                self.respond(409, {"error": "This job is marked do not apply. Confirm practice-only drafting before continuing.", "practice_confirmation_required": True})
+                return
+            run = self.store.transition(run["id"], "resume_draft_requested", "user", details={"practice_only_confirmed": plan.get("application", {}).get("mode") == "practice_only"})
+        except (ValueError, json.JSONDecodeError, FileNotFoundError) as exc:
             self.respond(409, {"error": str(exc)})
             return
         subprocess.Popen(
@@ -746,6 +758,13 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         self.respond(202, run)
+
+    def get_application_context(self, lead_id: str) -> None:
+        try:
+            workspace = find_workspace(lead_id); manifest = load_json(workspace / "application_manifest.json"); plan = load_json(workspace / "resume_plan.json")
+        except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+            self.respond(404, {"error": str(exc)}); return
+        self.respond(200, {"mode": plan.get("application", {}).get("mode", "active_application"), "fit": manifest.get("fit", {})})
 
     def request_resume_review(self, lead_id: str) -> None:
         run = self.store.latest_for_lead(lead_id)

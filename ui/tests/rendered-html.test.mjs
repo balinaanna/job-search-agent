@@ -59,6 +59,8 @@ test("dashboard uses all exported workflow data and responsive styling", async (
   assert.match(decisions, /APPLICATION WORKSPACE/);
   assert.match(decisions, /Analysis.*Strategy.*Resume.*Cover letter.*Package.*Apply/);
   assert.match(decisions, /Every document and application action remains behind its required review and approval/);
+  assert.match(decisions, /Practice-only resume/);
+  assert.match(decisions, /not a recommended application/);
   assert.match(css, /\.workflow-progress/);
   assert.match(css, /@media \(max-width:950px\)/);
   assert.match(css, /@media \(max-width:600px\)/);
