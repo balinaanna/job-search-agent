@@ -56,14 +56,16 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
 
   if (["pursue", "strategy_requested", "strategy_running", "strategy_failed", "strategy_completed", "resume_plan_requested", "resume_plan_running", "resume_plan_failed", "resume_plan_completed", "resume_draft_requested", "resume_draft_running", "resume_draft_failed", "resume_draft_completed", "resume_review_requested", "resume_review_running", "resume_review_failed"].includes(status)) return <PrepareResumeForReview leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["resume_revision_completed", "resume_review_completed"].includes(status)) return <ResumeReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["resume_approved", "resume_finalization_requested", "resume_finalization_running", "resume_finalization_failed"].includes(status)) return <ResumeFinalizationAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["resume_finalization_completed", "resume_pdf_requested", "resume_pdf_running", "resume_pdf_failed", "resume_pdf_review_required"].includes(status)) return <ResumePdfAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["resume_pdf_completed", "cover_letter_plan_requested", "cover_letter_plan_running", "cover_letter_plan_failed"].includes(status)) return <CoverLetterPlanAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (["resume_approved", "resume_finalization_requested", "resume_finalization_running", "resume_finalization_failed", "resume_finalization_completed", "resume_pdf_requested", "resume_pdf_running", "resume_pdf_failed"].includes(status)) return <PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="resume_pdf_review_required" title="Finalize approved resume" buttonLabel="Prepare resume PDF for review" readyMessage="The resume PDF is ready for your visual review." steps={resumePdfSteps} />;
+  if (status === "resume_pdf_review_required") return <ResumePdfAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (["resume_pdf_completed", "cover_letter_plan_requested", "cover_letter_plan_running", "cover_letter_plan_failed"].includes(status)) return <PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="cover_letter_plan_completed" title="Plan cover letter" buttonLabel="Prepare cover letter decision" readyMessage="The cover letter recommendation is ready for your decision." steps={coverLetterPlanSteps} />;
   if (["cover_letter_plan_completed", "cover_letter_draft_requested", "cover_letter_draft_running", "cover_letter_draft_failed"].includes(status)) return <CoverLetterDraftAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["cover_letter_draft_completed", "cover_letter_revision_completed", "cover_letter_review_requested", "cover_letter_review_running", "cover_letter_review_failed", "cover_letter_review_completed"].includes(status)) return <CoverLetterReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["cover_letter_approved", "cover_letter_finalization_requested", "cover_letter_finalization_running", "cover_letter_finalization_failed"].includes(status)) return <CoverLetterFinalizationAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["cover_letter_finalization_completed", "cover_letter_pdf_requested", "cover_letter_pdf_running", "cover_letter_pdf_failed", "cover_letter_pdf_review_required"].includes(status)) return <CoverLetterPdfAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
-  if (["cover_letter_pdf_completed", "cover_letter_skipped", "application_package_requested", "application_package_running", "application_package_failed", "application_package_completed"].includes(status)) return <ApplicationPackageAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (["cover_letter_draft_completed", "cover_letter_revision_completed", "cover_letter_review_requested", "cover_letter_review_running", "cover_letter_review_failed"].includes(status)) return <PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="cover_letter_review_completed" title="Review cover letter" buttonLabel="Prepare cover letter for review" readyMessage="The cover letter review is ready for your decision." steps={coverLetterReviewSteps} />;
+  if (status === "cover_letter_review_completed") return <CoverLetterReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (["cover_letter_approved", "cover_letter_finalization_requested", "cover_letter_finalization_running", "cover_letter_finalization_failed", "cover_letter_finalization_completed", "cover_letter_pdf_requested", "cover_letter_pdf_running", "cover_letter_pdf_failed"].includes(status)) return <PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="cover_letter_pdf_review_required" title="Finalize approved cover letter" buttonLabel="Prepare cover letter PDF for review" readyMessage="The cover letter PDF is ready for your visual review." steps={coverLetterPdfSteps} />;
+  if (status === "cover_letter_pdf_review_required") return <CoverLetterPdfAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
+  if (["cover_letter_pdf_completed", "cover_letter_skipped", "application_package_requested", "application_package_running", "application_package_failed"].includes(status)) return <PrepareUntilGate leadId={leadId} initialStatus={status} onStatus={setStatus} targetStatus="application_package_completed" title="Assemble application package" buttonLabel="Build approved application package" readyMessage="The approved application package is ready." steps={applicationPackageSteps} />;
+  if (status === "application_package_completed") return <ApplicationPackageAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["form_questions_saved", "application_answers_requested", "application_answers_running", "application_answers_failed", "application_answers_completed"].includes(status)) return <ApplicationAnswersAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["application_answers_approved", "form_filling_started", "submission_review_required", "submission_authorized", "submission_in_progress", "submission_blocked", "application_submitted"].includes(status)) return <FormFillAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
   if (["cover_letter_revision_requested", "cover_letter_revision_running", "cover_letter_revision_failed"].includes(status)) return <CoverLetterRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />;
@@ -87,6 +89,55 @@ const preparationSteps: Record<string, { endpoint: string; label: string }> = {
   resume_plan_completed: { endpoint: "resume-draft", label: "Drafting the tailored resume" }, resume_draft_failed: { endpoint: "resume-draft", label: "Retrying resume drafting" },
   resume_draft_completed: { endpoint: "resume-review", label: "Reviewing evidence and quality" }, resume_review_failed: { endpoint: "resume-review", label: "Retrying resume review" },
 };
+
+const resumePdfSteps = {
+  resume_approved: { endpoint: "resume-finalize", label: "Finalizing the approved resume" }, resume_finalization_failed: { endpoint: "resume-finalize", label: "Retrying resume finalization" },
+  resume_finalization_completed: { endpoint: "resume-pdf", label: "Rendering the resume PDF" }, resume_pdf_failed: { endpoint: "resume-pdf", label: "Retrying resume PDF rendering" },
+};
+const coverLetterPlanSteps = {
+  resume_pdf_completed: { endpoint: "cover-letter-plan", label: "Evaluating whether a cover letter adds value" }, cover_letter_plan_failed: { endpoint: "cover-letter-plan", label: "Retrying cover letter planning" },
+};
+const coverLetterReviewSteps = {
+  cover_letter_draft_completed: { endpoint: "cover-letter-review", label: "Reviewing cover letter evidence and quality" }, cover_letter_revision_completed: { endpoint: "cover-letter-review", label: "Reviewing the revised cover letter" }, cover_letter_review_failed: { endpoint: "cover-letter-review", label: "Retrying cover letter review" },
+};
+const coverLetterPdfSteps = {
+  cover_letter_approved: { endpoint: "cover-letter-finalize", label: "Finalizing the approved cover letter" }, cover_letter_finalization_failed: { endpoint: "cover-letter-finalize", label: "Retrying cover letter finalization" },
+  cover_letter_finalization_completed: { endpoint: "cover-letter-pdf", label: "Rendering the cover letter PDF" }, cover_letter_pdf_failed: { endpoint: "cover-letter-pdf", label: "Retrying cover letter PDF rendering" },
+};
+const applicationPackageSteps = {
+  cover_letter_pdf_completed: { endpoint: "application-package", label: "Assembling the approved application package" }, cover_letter_skipped: { endpoint: "application-package", label: "Assembling the resume-only application package" }, application_package_failed: { endpoint: "application-package", label: "Retrying application package assembly" },
+};
+
+function PrepareUntilGate({ leadId, initialStatus, onStatus, targetStatus, title, buttonLabel, readyMessage, steps }: { leadId: string; initialStatus: string; onStatus: (status: string) => void; targetStatus: string; title: string; buttonLabel: string; readyMessage: string; steps: Record<string, { endpoint: string; label: string }> }) {
+  const [busy, setBusy] = useState(false), [message, setMessage] = useState("Ready to continue safely to the next review point.");
+  const wait = () => new Promise((resolve) => window.setTimeout(resolve, 1200));
+  async function prepare() {
+    setBusy(true);
+    try {
+      let current = initialStatus;
+      for (let attempts = 0; attempts < 240; attempts += 1) {
+        if (current === targetStatus) { setMessage(readyMessage); onStatus(current); return; }
+        const step = steps[current];
+        if (step) {
+          setMessage(`${step.label}…`);
+          const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/${step.endpoint}`, { method: "POST" });
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload.error || `${step.label} could not start.`);
+          current = payload.status;
+          continue;
+        }
+        if (current.endsWith("_failed")) throw new Error("Preparation stopped because a stage needs attention.");
+        await wait();
+        const response = await fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`);
+        if (!response.ok) throw new Error("Workflow status is unavailable.");
+        current = (await response.json()).status;
+      }
+      throw new Error("Preparation is still running. You can safely resume it here.");
+    } catch (error) { setMessage(error instanceof TypeError ? "Workflow service is offline." : error instanceof Error ? error.message : "Preparation stopped."); }
+    finally { setBusy(false); }
+  }
+  return <div className="strategy-action"><div><strong>{title}</strong><span>{message}</span></div><button disabled={busy} onClick={prepare}>{busy ? "Preparing…" : buttonLabel}</button></div>;
+}
 
 function PrepareResumeForReview({ leadId, initialStatus, onStatus }: { leadId: string; initialStatus: string; onStatus: (status: string) => void }) {
   const [busy, setBusy] = useState(false), [message, setMessage] = useState("Ready to build the strategy and tailored resume, then stop for your review.");
