@@ -53,9 +53,12 @@ test("dashboard uses all exported workflow data and responsive styling", async (
   assert.match(jobsView, /timeZone: "UTC"/);
   assert.match(jobsView, /Application workflow connected/);
   assert.match(jobsView, /Strategy.*Resume.*Cover letter.*Package.*Apply/s);
-  assert.match(alertInbox, /Full workflow connected/);
+  assert.match(alertInbox, /Ready to analyze/);
   assert.match(alertInbox, /AnalyzeButton/);
   assert.match(alertInbox, /DecisionButtons/);
+  assert.match(alertInbox, /Open workflow/);
+  assert.match(alertInbox, /job-workflow-detail/);
+  assert.match(alertInbox, /Close application workspace/);
   assert.match(decisions, /APPLICATION WORKSPACE/);
   assert.match(decisions, /Analysis.*Strategy.*Resume.*Cover letter.*Package.*Apply/);
   assert.match(decisions, /Every document and application action remains behind its required review and approval/);
