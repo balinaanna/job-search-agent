@@ -25,7 +25,7 @@ def load_search_settings(criteria_path: Path, sources_path: Path, schedule_path:
         "frequency": schedule.get("frequency", "manual"),
         "sources": [
             {
-                "id": f"{item['platform']}:{item.get('board_token') or item.get('site')}",
+                "id": f"{item['platform']}:{item.get('board_token') or item.get('site') or 'search'}",
                 "company": item["company"],
                 "platform": item["platform"],
                 "enabled": item.get("enabled", True),
@@ -70,12 +70,12 @@ def save_search_settings(payload: dict[str, Any], criteria_path: Path, sources_p
     criteria["strategy_version"] = int(criteria.get("strategy_version", 0)) + 1
 
     source_config = _read(sources_path)
-    known_ids = {f"{item['platform']}:{item.get('board_token') or item.get('site')}" for item in source_config["sources"]}
+    known_ids = {f"{item['platform']}:{item.get('board_token') or item.get('site') or 'search'}" for item in source_config["sources"]}
     unknown = set(enabled_source_ids) - known_ids
     if unknown:
         raise ValueError("An unknown job source was selected.")
     for item in source_config["sources"]:
-        source_id = f"{item['platform']}:{item.get('board_token') or item.get('site')}"
+        source_id = f"{item['platform']}:{item.get('board_token') or item.get('site') or 'search'}"
         item["enabled"] = source_id in enabled_source_ids
     if not enabled_source_ids:
         raise ValueError("Enable at least one job source.")

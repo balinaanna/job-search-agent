@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-20T01:48:44.556861+00:00",
+  "generatedAt": "2026-07-21T19:15:45.770591+00:00",
   "summary": {
-    "discovered": 225,
-    "awaitingAnalysis": 15,
+    "discovered": 242,
+    "awaitingAnalysis": 18,
     "readyToPursue": 0,
     "stretch": 1,
     "applicationsInProgress": 0
@@ -14,6 +14,8 @@
       "role": "AI Engineer",
       "location": "Vancouver",
       "postingUrl": "https://job-boards.greenhouse.io/durable/jobs/5156304008",
+      "postedDate": "2026-03-17",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
       "discoveryScore": 96,
       "fitScore": 60,
       "recommendation": "selective_apply",
@@ -26,11 +28,51 @@
       "nextAction": "Treat this as a selective stretch application. Before preparing materials, Anna should decide whether she is comfortable with the quarterly attendance and a technical screen centered on current React/TypeScript and production AI systems."
     },
     {
+      "id": "zipline-intermediate-front-end-software-engineer-986cdcb24c",
+      "company": "Zipline",
+      "role": "Intermediate Front End Software Engineer",
+      "location": "Unspecified",
+      "postingUrl": "https://www.linkedin.com/jobs/view/4418022531",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-21T17:39:39.454019+00:00",
+      "discoveryScore": 72,
+      "fitScore": 56,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Professional software-engineering experience includes frontend implementation, troubleshooting, testing, and cross-functional SaaS delivery.",
+        "Experienced use of JavaScript, HTML, and CSS is verified across professional and current project contexts.",
+        "UX experience provides strong evidence of interface judgment, prototyping, usability work, and balancing design constraints."
+      ],
+      "risk": "The core screening stack—Ruby on Rails, Hotwire/Turbo/Stimulus, View Components, and Lookbook—is unsupported by the verified evidence, so a truthful application would not meet several explicit must-haves.",
+      "nextAction": "Do not apply. Prioritize remote roles that use Anna's technical and UX background in systems analysis, implementation, application support, product operations, or other people-facing work without mandatory Rails and Hotwire expertise."
+    },
+    {
+      "id": "grafana-labs-staff-ai-engineer-canada-remote-29e9f95e05",
+      "company": "Grafana Labs",
+      "role": "Staff AI Engineer | Canada | Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/5839190004",
+      "postedDate": "2026-03-27",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 89,
+      "fitScore": 45,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Approximately ten years of technology experience includes full-stack software development, APIs, databases, integrations, testing, and issue resolution.",
+        "Direct B2B SaaS and Salesforce-related systems experience aligns with the role's GTM environment.",
+        "Strong evidence supports workflow diagnosis, stakeholder communication, requirements translation, remote coordination, and explaining technical systems clearly."
+      ],
+      "risk": "The job's defining requirements—production multi-agent engineering, deep GCP and BigQuery experience, two or more years of production LLM work, and staff-level architecture ownership—are unsupported and cannot be addressed through truthful reframing.",
+      "nextAction": "Do not apply. Prioritize AI workflow, technical business analysis, systems analysis, implementation, or solutions roles that value Anna's AI-assisted application work and software foundation without requiring production multi-agent platform ownership."
+    },
+    {
       "id": "grafana-labs-staff-ai-engineer-grafana-ai-ml-canada-remote-8d8aaad1e4",
       "company": "Grafana Labs",
       "role": "Staff AI Engineer - Grafana AI/ML | Canada | Remote",
       "location": "Canada (Remote)",
       "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6100673004",
+      "postedDate": "2026-06-24",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
       "discoveryScore": 92,
       "fitScore": 41,
       "recommendation": "do_not_apply",
@@ -41,16 +83,25 @@
       ],
       "risk": "The role's core bar is staff-level production AI and observability engineering, while the verified profile shows a smaller AI application, general full-stack experience, and transferable troubleshooting without the required scale, cloud-native depth, or observability specialization.",
       "nextAction": "Do not apply. Prioritize AI workflow, technical business analysis, systems analysis, implementation, or application-consulting roles where the verified AI application and software background are strong differentiators without requiring staff-level production AI ownership."
-    }
-  ],
-  "awaitingAnalysis": [
+    },
     {
       "id": "grafana-labs-staff-software-engineer-adaptive-telemetry-databases-ca-9e973f86e0",
       "company": "Grafana Labs",
       "role": "Staff Software Engineer - Adaptive Telemetry, Databases | Canada | Remote",
       "location": "Canada (Remote)",
       "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6108385004",
-      "discoveryScore": 90
+      "postedDate": "2026-07-02",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 90,
+      "fitScore": 36,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Verified experience covers full-stack development, APIs, databases, real-time functionality, and integrated-system troubleshooting.",
+        "Anna has credible cross-functional delivery and influence-without-authority evidence from two MVP launches and SaaS workflow work.",
+        "The remote Canadian arrangement is fully compatible, and Anna has relevant distributed-team communication experience."
+      ],
+      "risk": "The job's core value is staff-level ownership of distributed telemetry systems, cloud-native architecture, reliability, performance, incidents, and engineering mentorship; these are not supported by the verified evidence.",
+      "nextAction": "Do not apply. Prioritize technical business analysis, systems analysis, implementation, application support, or product-operations roles where Anna's technical foundation and stakeholder-facing strengths are central without requiring unsupported staff-level platform ownership."
     },
     {
       "id": "grafana-labs-staff-software-engineer-platform-syseng-canada-remote-03736035f8",
@@ -58,15 +109,49 @@
       "role": "Staff Software Engineer - Platform, SysEng | Canada | Remote",
       "location": "Canada (Remote)",
       "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6108293004",
-      "discoveryScore": 90
+      "postedDate": "2026-07-02",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 90,
+      "fitScore": 36,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Verified full-stack experience includes backend, APIs, databases, real-time functionality, testing, deployment support, and issue resolution.",
+        "Recent Python and Docker application work provides limited transferable coding and container experience.",
+        "Strong evidence supports remote collaboration, cross-functional communication, requirements clarification, and influence without formal authority."
+      ],
+      "risk": "The job's core is staff-level distributed-platform engineering, but the verified profile does not support large-scale distributed systems, Kubernetes and cloud infrastructure, infrastructure as code, reliability engineering, on-call ownership, or staff-level technical leadership.",
+      "nextAction": "Do not apply. Prioritize technical business analyst, systems analyst, implementation, application support, project coordination, or lower-seniority software roles where Anna's engineering foundation and people-facing strengths are central and defensible."
     },
     {
-      "id": "grafana-labs-staff-ai-engineer-canada-remote-29e9f95e05",
-      "company": "Grafana Labs",
-      "role": "Staff AI Engineer | Canada | Remote",
-      "location": "Canada (Remote)",
-      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/5839190004",
-      "discoveryScore": 89
+      "id": "robots-pencils-senior-ai-engineer-2b2385142c",
+      "company": "Robots & Pencils",
+      "role": "Senior AI Engineer",
+      "location": "Lviv, Ukraine",
+      "postingUrl": "https://job-boards.greenhouse.io/robotsandpencils/jobs/5254751008",
+      "postedDate": "2026-06-11",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 81,
+      "fitScore": 36,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Anna has a verified professional full-stack software-engineering foundation.",
+        "She has built a Python Flask application integrating APIs, Hermes through Ollama, Docker, and structured AI-assisted outputs.",
+        "She has strong evidence of cross-functional technical investigation, API integration, and explaining technical work to non-specialists."
+      ],
+      "risk": "The job's core screening requirements are senior production AI/ML engineering capabilities that the verified profile does not support and, in several cases, explicitly prohibits claiming.",
+      "nextAction": "Do not apply. Prioritize AI workflow, implementation, systems analysis, application consulting, or technically informed client-facing roles where the existing AI application and software background are directly relevant without requiring unsupported production ML expertise."
+    }
+  ],
+  "awaitingAnalysis": [
+    {
+      "id": "d3-security-management-systems-inc-agentic-ai-engineer-cf271c3b11",
+      "company": "D3 Security Management Systems Inc.",
+      "role": "Agentic AI Engineer",
+      "location": "Vancouver BC",
+      "postingUrl": "https://www.eluta.ca/spl/agentic-ai-engineer-160549d5e218b74c22bd769e73944fef",
+      "postedDate": "2026-07-21",
+      "firstSeenAt": "2026-07-21T19:14:25.505605+00:00",
+      "discoveryScore": 91
     },
     {
       "id": "grafana-labs-staff-ai-engineer-canada-remote-fe491b18cf",
@@ -74,7 +159,29 @@
       "role": "Staff AI Engineer | Canada | Remote",
       "location": "Canada (Remote)",
       "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/5806327004",
+      "postedDate": "2026-02-17",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
       "discoveryScore": 89
+    },
+    {
+      "id": "jobgether-software-engineer-frontend-aeac6df26b",
+      "company": "Jobgether",
+      "role": "Software Engineer, Frontend",
+      "location": "Unspecified",
+      "postingUrl": "https://www.linkedin.com/jobs/view/4442006856",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-21T17:38:49.655955+00:00",
+      "discoveryScore": 88
+    },
+    {
+      "id": "later-media-inc-ai-automation-engineer-co-op-7c7eafe8c9",
+      "company": "Later Media Inc.",
+      "role": "AI Automation Engineer Co-op",
+      "location": "Vancouver BC",
+      "postingUrl": "https://www.eluta.ca/spl/ai-automation-engineer-co-op-2cb6f175a0c33ba927b06c09619027a5",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-21T19:14:25.505605+00:00",
+      "discoveryScore": 88
     },
     {
       "id": "novoed-sr-ai-engineer-27b0ec4bd3",
@@ -82,6 +189,18 @@
       "role": "Sr. AI Engineer",
       "location": "Remote - Canada",
       "postingUrl": "https://job-boards.greenhouse.io/novoed/jobs/8055650",
+      "postedDate": "2026-07-10",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 88
+    },
+    {
+      "id": "workday-canada-senior-software-engineer-evisort-ai-python-typescript-87c3505c9f",
+      "company": "Workday Canada",
+      "role": "Senior Software Engineer - Evisort AI (Python/Typescript)",
+      "location": "Vancouver BC",
+      "postingUrl": "https://www.eluta.ca/spl/senior-software-engineer-evisort-ai-python-typescript-6083817e3f702e73c50cb4b61028786f",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-21T19:14:25.505605+00:00",
       "discoveryScore": 88
     },
     {
@@ -90,7 +209,19 @@
       "role": "Senior AI Engineer | Canada | Remote",
       "location": "Canada (Remote)",
       "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6092954004",
+      "postedDate": "2026-06-18",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
       "discoveryScore": 87
+    },
+    {
+      "id": "amazon-canada-machine-learning-engineer-aice-ai-center-of-excellence-0c3c4a2cb3",
+      "company": "Amazon Canada",
+      "role": "Machine Learning Engineer, AICE - AI Center of Excellence",
+      "location": "Vancouver BC",
+      "postingUrl": "https://www.eluta.ca/spl/machine-learning-engineer-aice-ai-center-of-excellence-79866b9b042e1af787c83fd5a1bb7824",
+      "postedDate": "2026-07-17",
+      "firstSeenAt": "2026-07-21T19:14:25.505605+00:00",
+      "discoveryScore": 82
     },
     {
       "id": "robots-pencils-principal-ai-engineer-fedc15db90",
@@ -98,15 +229,99 @@
       "role": "Principal AI Engineer",
       "location": "Lviv, Ukraine",
       "postingUrl": "https://job-boards.greenhouse.io/robotsandpencils/jobs/5254738008",
+      "postedDate": "2026-06-11",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
       "discoveryScore": 81
     },
     {
-      "id": "robots-pencils-senior-ai-engineer-2b2385142c",
+      "id": "grafana-labs-staff-backend-engineer-second-horizon-canada-remote-037718cc2d",
+      "company": "Grafana Labs",
+      "role": "Staff Backend Engineer - Second Horizon | Canada | Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6111473004",
+      "postedDate": "2026-07-08",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 79
+    },
+    {
+      "id": "grafana-labs-staff-backend-engineer-databases-tempo-canada-remote-2fc8196df5",
+      "company": "Grafana Labs",
+      "role": "Staff Backend Engineer - Databases Tempo | Canada | Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/5982443004",
+      "postedDate": "2026-04-27",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 78
+    },
+    {
+      "id": "grafana-labs-staff-software-engineer-platform-application-core-servi-4746553344",
+      "company": "Grafana Labs",
+      "role": "Staff Software Engineer - Platform, Application Core Services | Canada | Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/5985793004",
+      "postedDate": "2026-04-30",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 78
+    },
+    {
+      "id": "grafana-labs-staff-software-engineer-canada-remote-1e6565ec66",
+      "company": "Grafana Labs",
+      "role": "Staff Software Engineer | Canada |Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6011797004",
+      "postedDate": "2026-06-02",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 78
+    },
+    {
+      "id": "amazon-canada-senior-security-engineer-ai-security-7f7b3436b5",
+      "company": "Amazon Canada",
+      "role": "Senior Security Engineer, AI Security",
+      "location": "Vancouver BC",
+      "postingUrl": "https://www.eluta.ca/spl/senior-security-engineer-ai-security-0768d237507d69260e5a45c831b49e9d",
+      "postedDate": "2026-07-17",
+      "firstSeenAt": "2026-07-21T19:14:25.505605+00:00",
+      "discoveryScore": 77
+    },
+    {
+      "id": "grafana-labs-staff-backend-engineer-grafana-app-platform-canada-remo-69d3f8c623",
+      "company": "Grafana Labs",
+      "role": "Staff Backend Engineer - Grafana App Platform | Canada | Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/5988483004",
+      "postedDate": "2026-05-06",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 77
+    },
+    {
+      "id": "grafana-labs-senior-software-engineer-databases-sre-canada-remote-fa129da9a1",
+      "company": "Grafana Labs",
+      "role": "Senior Software Engineer - Databases, SRE | Canada | Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6119900004",
+      "postedDate": "2026-07-20",
+      "firstSeenAt": "2026-07-21T19:14:25.505605+00:00",
+      "discoveryScore": 75
+    },
+    {
+      "id": "robots-pencils-staff-full-stack-engineer-a9cd42d8c7",
       "company": "Robots & Pencils",
-      "role": "Senior AI Engineer",
-      "location": "Lviv, Ukraine",
-      "postingUrl": "https://job-boards.greenhouse.io/robotsandpencils/jobs/5254751008",
-      "discoveryScore": 81
+      "role": "Staff Full Stack Engineer",
+      "location": "Calgary, Alberta, Canada, Toronto, Ontario, Canada",
+      "postingUrl": "https://job-boards.greenhouse.io/robotsandpencils/jobs/5323177008",
+      "postedDate": "2026-07-15",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 75
+    },
+    {
+      "id": "grafana-labs-staff-backend-engineer-grafana-enterprise-canada-remote-c677052b56",
+      "company": "Grafana Labs",
+      "role": "Staff Backend Engineer - Grafana Enterprise | Canada | Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6007413004",
+      "postedDate": "2026-05-28",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 70
     }
   ]
 }

@@ -2,6 +2,21 @@
   "schema_version": 1,
   "sources": [
     {
+      "company": "Eluta Canada",
+      "platform": "eluta",
+      "queries": [
+        "AI Engineer",
+        "Software Engineer",
+        "Business Systems Analyst"
+      ],
+      "locations": [
+        "Vancouver BC",
+        "Remote"
+      ],
+      "max_results_per_search": 10,
+      "enabled": true
+    },
+    {
       "company": "Durable",
       "platform": "greenhouse",
       "board_token": "durable",

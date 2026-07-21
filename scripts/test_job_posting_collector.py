@@ -12,6 +12,9 @@ from collect_job_postings import (
     greenhouse_postings,
     greenhouse_url,
     html_to_text,
+    eluta_posting,
+    eluta_result_urls,
+    eluta_search_url,
     lever_postings,
     lever_url,
     lever_description,
@@ -81,6 +84,47 @@ class JobPostingCollectorTests(unittest.TestCase):
             lever_url("example", "eu"),
             "https://api.eu.lever.co/v0/postings/example?mode=json",
         )
+
+    def test_eluta_search_url_uses_query_and_location(self) -> None:
+        self.assertEqual(
+            eluta_search_url("AI Engineer", "Vancouver BC"),
+            "https://www.eluta.ca/AI-Engineer-jobs-in-Vancouver-BC",
+        )
+
+    def test_eluta_search_extracts_stable_detail_urls(self) -> None:
+        payload = '''
+        <div class="organic-job odd" data-url="spl/ai-engineer-abc123?imo=12"></div>
+        <div class="organic-job even" data-url="spl/backend-engineer-def456"></div>
+        '''
+        self.assertEqual(
+            eluta_result_urls(payload),
+            [
+                "https://www.eluta.ca/spl/ai-engineer-abc123",
+                "https://www.eluta.ca/spl/backend-engineer-def456",
+            ],
+        )
+
+    def test_eluta_detail_maps_complete_posting(self) -> None:
+        payload = '''
+        <h1 class="job-title"><a><span>Agentic AI Engineer</span></a></h1>
+        <h5 class="employer-name"><a><span>Example Security Inc.</span></a></h5>
+        <h5 class="city"><span>Vancouver BC</span></h5>
+        <h5 class="contract"><span>full-time</span></h5>
+        <div class="short-text"><div><p>Build reliable AI agents with Python, APIs, validation, testing, deployment, and human review controls for enterprise workflows.</p></div></div>
+        <script type="application/ld+json">{"datePosted":"2026-07-21T04:02:29","validThrough":"2026-08-25T00:00:00"}</script>
+        '''
+        posting = eluta_posting(
+            "https://www.eluta.ca/spl/agentic-ai-engineer-abc123",
+            payload,
+            COLLECTED_AT,
+            "AI Engineer in Vancouver BC",
+        )
+        self.assertEqual(posting["platform"], "eluta")
+        self.assertEqual(posting["company"], "Example Security Inc.")
+        self.assertEqual(posting["role"], "Agentic AI Engineer")
+        self.assertEqual(posting["location_raw"], "Vancouver BC")
+        self.assertEqual(posting["posted_date"], "2026-07-21")
+        self.assertIn("human review controls", posting["description_text"])
 
     def test_salary_period_normalizes_lever_variants(self) -> None:
         self.assertEqual(salary_period("per-year-salary"), "year")

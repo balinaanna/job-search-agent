@@ -78,6 +78,7 @@
           "enum": [
             "linkedin",
             "indeed",
+            "eluta",
             "greenhouse",
             "lever",
             "ashby",

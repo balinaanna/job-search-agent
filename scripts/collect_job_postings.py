@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from html import unescape
@@ -12,7 +13,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, Callable
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote
+from urllib.parse import quote, urljoin, urlparse, urlunparse
 from urllib.request import Request, urlopen
 
 
@@ -85,6 +86,29 @@ def fetch_json(url: str, timeout: float = 30.0) -> Any:
         return json.loads(payload)
     except json.JSONDecodeError as exc:
         raise CollectionError(f"Source returned invalid JSON: {url}") from exc
+
+
+def fetch_text(url: str, timeout: float = 30.0) -> str:
+    request = Request(
+        url,
+        headers={"Accept": "text/html", "User-Agent": USER_AGENT},
+    )
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            return response.read().decode("utf-8", errors="replace")
+    except HTTPError as exc:
+        raise CollectionError(f"HTTP {exc.code} while collecting {url}") from exc
+    except URLError as exc:
+        try:
+            result = subprocess.run(
+                ["curl", "-fsSL", "--max-time", str(int(timeout)), "-A", USER_AGENT, url],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            return result.stdout
+        except (OSError, subprocess.CalledProcessError) as fallback:
+            raise CollectionError(f"Unable to collect {url}: {exc.reason}") from fallback
 
 
 def required_string(value: Any, path: str) -> str:
@@ -181,6 +205,122 @@ def greenhouse_url(board_token: str) -> str:
 def lever_url(site: str, region: str) -> str:
     host = "api.eu.lever.co" if region == "eu" else "api.lever.co"
     return f"https://{host}/v0/postings/{quote(site, safe='')}?mode=json"
+
+
+def eluta_search_url(query: str, location: str) -> str:
+    terms = "-".join(quote(part, safe="") for part in query.split())
+    place = "-".join(quote(part, safe="") for part in location.split())
+    return f"https://www.eluta.ca/{terms}-jobs-in-{place}"
+
+
+class ElutaSearchParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.urls: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        values = dict(attrs)
+        classes = (values.get("class") or "").split()
+        path = values.get("data-url")
+        if tag.casefold() == "div" and "organic-job" in classes and path:
+            parsed = urlparse(urljoin("https://www.eluta.ca/", path))
+            self.urls.append(urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", "")))
+
+
+class ElutaDetailParser(HTMLParser):
+    VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
+    TARGETS = {
+        "job-title": "title",
+        "employer-name": "company",
+        "city": "location",
+        "contract": "employment_type",
+        "short-text": "description",
+    }
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.values: dict[str, str] = {}
+        self.current: str | None = None
+        self.depth = 0
+        self.parts: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if self.current:
+            if tag.casefold() not in self.VOID_TAGS:
+                self.depth += 1
+            if tag.casefold() in PlainTextHTMLParser.BLOCK_TAGS:
+                self.parts.append("\n")
+            return
+        classes = (dict(attrs).get("class") or "").split()
+        key = next((value for name, value in self.TARGETS.items() if name in classes), None)
+        if key:
+            self.current = key
+            self.depth = 1
+            self.parts = []
+
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if self.current and tag.casefold() in PlainTextHTMLParser.BLOCK_TAGS:
+            self.parts.append("\n")
+
+    def handle_data(self, data: str) -> None:
+        if self.current:
+            self.parts.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if not self.current:
+            return
+        self.depth -= 1
+        if self.depth == 0:
+            text = "\n".join(" ".join(line.split()) for line in "".join(self.parts).splitlines() if line.split())
+            self.values[self.current] = text
+            self.current = None
+            self.parts = []
+
+
+def eluta_result_urls(payload: str) -> list[str]:
+    parser = ElutaSearchParser()
+    parser.feed(payload)
+    return list(dict.fromkeys(parser.urls))
+
+
+def eluta_posting(detail_url: str, payload: str, collected_at: str, query: str) -> dict[str, Any]:
+    parser = ElutaDetailParser()
+    parser.feed(payload)
+    values = parser.values
+    description = required_string(values.get("description"), "Eluta description")
+    identifier = re.search(r'"identifier"\s*:\s*"([^"]+)"', payload)
+    posted = re.search(r'"datePosted"\s*:\s*"([^"]+)"', payload)
+    deadline = re.search(r'"validThrough"\s*:\s*"([^"]+)"', payload)
+    external_id = detail_url.rstrip("/").rsplit("-", 1)[-1]
+    return {
+        "company": required_string(values.get("company"), "Eluta employer"),
+        "role": required_string(values.get("title"), "Eluta title"),
+        "posting_url": detail_url,
+        "application_url": detail_url,
+        "external_job_id": external_id or (identifier.group(1) if identifier else None),
+        "platform": "eluta",
+        "description_text": description,
+        "location_raw": optional_string(values.get("location")),
+        "workplace_type_raw": None,
+        "employment_type_raw": optional_string(values.get("employment_type")),
+        "department": None,
+        "salary": {"minimum": None, "maximum": None, "currency": None, "period": None, "source": None},
+        "posted_date": optional_date(posted.group(1) if posted else None),
+        "deadline": optional_date(deadline.group(1) if deadline else None),
+        "collected_at": collected_at,
+        "search_query": f"{query} on Eluta",
+    }
+
+
+def eluta_postings(source: dict[str, Any], collected_at: str, fetcher: Callable[[str], str] = fetch_text) -> list[dict[str, Any]]:
+    limit = source.get("max_results_per_search", 10)
+    postings: dict[str, dict[str, Any]] = {}
+    for query in source["queries"]:
+        for location in source["locations"]:
+            search_url = eluta_search_url(query, location)
+            for detail_url in eluta_result_urls(fetcher(search_url))[:limit]:
+                postings.setdefault(detail_url, eluta_posting(detail_url, fetcher(detail_url), collected_at, f"{query} in {location}"))
+    return list(postings.values())
 
 
 def greenhouse_postings(
@@ -322,9 +462,17 @@ def validate_source(source: Any, index: int) -> dict[str, Any]:
             raise CollectionError(
                 f"sources[{index}].region must be global or eu."
             )
+    elif platform == "eluta":
+        for field in ("queries", "locations"):
+            values = source.get(field)
+            if not isinstance(values, list) or not values or not all(isinstance(value, str) and value.strip() for value in values):
+                raise CollectionError(f"sources[{index}].{field} must be a non-empty string array.")
+        limit = source.get("max_results_per_search", 10)
+        if not isinstance(limit, int) or not 1 <= limit <= 10:
+            raise CollectionError(f"sources[{index}].max_results_per_search must be between 1 and 10.")
     else:
         raise CollectionError(
-            f"sources[{index}].platform must be greenhouse or lever."
+            f"sources[{index}].platform must be greenhouse, lever, or eluta."
         )
     return source
 
@@ -333,15 +481,18 @@ def collect_source(
     source: dict[str, Any],
     collected_at: str,
     fetcher: Callable[[str], Any] = fetch_json,
+    text_fetcher: Callable[[str], str] = fetch_text,
 ) -> list[dict[str, Any]]:
     platform = source["platform"]
     if platform == "greenhouse":
         payload = fetcher(greenhouse_url(source["board_token"]))
         return greenhouse_postings(source, payload, collected_at)
 
-    region = source.get("region", "global")
-    payload = fetcher(lever_url(source["site"], region))
-    return lever_postings(source, payload, collected_at)
+    if platform == "lever":
+        region = source.get("region", "global")
+        payload = fetcher(lever_url(source["site"], region))
+        return lever_postings(source, payload, collected_at)
+    return eluta_postings(source, collected_at, text_fetcher)
 
 
 def load_sources(path: Path) -> list[dict[str, Any]]:
@@ -404,7 +555,7 @@ def write_postings(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Collect public Greenhouse and Lever job postings."
+        description="Collect public Greenhouse, Lever, and Eluta job postings."
     )
     parser.add_argument("--sources", type=Path, default=DEFAULT_SOURCES_PATH)
     parser.add_argument(

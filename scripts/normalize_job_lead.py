@@ -239,6 +239,7 @@ def infer_platform(
     valid_platforms = {
         "linkedin",
         "indeed",
+        "eluta",
         "greenhouse",
         "lever",
         "ashby",
@@ -263,6 +264,9 @@ def infer_platform(
 
     if "indeed." in host:
         return "indeed"
+
+    if "eluta.ca" in host:
+        return "eluta"
 
     if "greenhouse.io" in host:
         return "greenhouse"
