@@ -40,6 +40,15 @@ from gmail_alerts import keyring_set, load_config as load_gmail_config, poll_gma
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def enrich_jobs_with_workflow(data: dict, store: WorkflowStore) -> dict:
+    for group, fallback in (("analyzedJobs", "analysis_completed"), ("awaitingAnalysis", "not_started")):
+        for job in data[group]:
+            run = store.latest_for_lead(job["id"])
+            job["workflowStatus"] = run["status"] if run else fallback
+            job["workflowUpdatedAt"] = run["updated_at"] if run else None
+    return data
+
+
 def practice_confirmation_required(plan: dict, payload: dict) -> bool:
     return plan.get("application", {}).get("mode") == "practice_only" and payload.get("practice_only_confirmed") is not True
 
@@ -812,7 +821,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             )
         except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
             self.respond(500, {"error": f"Jobs workspace could not be loaded: {exc}"}); return
-        self.respond(200, data)
+        self.respond(200, enrich_jobs_with_workflow(data, self.store))
 
     def get_interview_preparation(self, lead_id: str) -> None:
         try:

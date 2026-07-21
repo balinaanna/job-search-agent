@@ -7,10 +7,23 @@ import unittest
 from pathlib import Path
 
 from workflow_store import WorkflowStore
+from workflow_api import enrich_jobs_with_workflow
 from analyze_job_with_codex import strict_output_schema
 
 
 class WorkflowStoreTests(unittest.TestCase):
+    def test_live_jobs_include_latest_workflow_status(self):
+        run = self.store.record_completed_analysis("lead-live", "analysis.json")
+        self.store.transition(run["id"], "pursue", "user")
+        data = {
+            "analyzedJobs": [{"id": "lead-live"}, {"id": "legacy-analysis"}],
+            "awaitingAnalysis": [{"id": "new-lead"}],
+        }
+        result = enrich_jobs_with_workflow(data, self.store)
+        self.assertEqual(result["analyzedJobs"][0]["workflowStatus"], "pursue")
+        self.assertEqual(result["analyzedJobs"][1]["workflowStatus"], "analysis_completed")
+        self.assertEqual(result["awaitingAnalysis"][0]["workflowStatus"], "not_started")
+
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
         self.store = WorkflowStore(Path(self.temp.name) / "jobs.db")
