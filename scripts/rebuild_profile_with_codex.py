@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import difflib
 import os
 import shutil
 import subprocess
@@ -75,9 +74,20 @@ def codex_proposal(extracted_directory: Path, instructions: str) -> dict:
         "properties": {
             **{name.replace(".yaml", "_yaml"): {"type": "string"} for name in PROFILE_FILES},
             "changes": {"type": "array", "items": {"type": "string"}},
+            "review_items": {"type": "array", "items": {
+                "type": "object",
+                "properties": {
+                    "category": {"type": "string", "enum": ["Experience", "Skills", "Technologies", "Evidence", "Profile guidance"]},
+                    "action": {"type": "string", "enum": ["Added", "Updated", "Removed"]},
+                    "fact": {"type": "string"},
+                    "reason": {"type": "string"},
+                },
+                "required": ["category", "action", "fact", "reason"],
+                "additionalProperties": False,
+            }},
             "warnings": {"type": "array", "items": {"type": "string"}},
         },
-        "required": [*(name.replace(".yaml", "_yaml") for name in PROFILE_FILES), "changes", "warnings"],
+        "required": [*(name.replace(".yaml", "_yaml") for name in PROFILE_FILES), "changes", "review_items", "warnings"],
         "additionalProperties": False,
     }
     prompt = f"""
@@ -87,6 +97,9 @@ Return complete YAML text for career.yaml, skills.yaml, technologies.yaml, and e
 Preserve the existing career.contact mapping exactly. Never invent or exaggerate facts.
 Reconcile conflicts conservatively, preserve credibility/prohibited-exaggeration notes,
 deduplicate facts, and use conservative proficiency labels. Do not modify files.
+Provide review_items as concise, plain-language facts for a non-technical user. Describe
+what was added, updated, or removed and why the uploaded resumes support that change.
+Do not mention YAML, field names, evidence IDs, schemas, or internal file structure in review_items.
 Additional user instructions: {instructions or 'None provided.'}
 """.strip()
     executable = os.environ.get("CODEX_EXECUTABLE", "/Applications/ChatGPT.app/Contents/Resources/codex")
@@ -111,19 +124,21 @@ def prepare_profile_rebuild(run_id: str, files: list[Path], instructions: str, g
     original_contact = yaml.safe_load((profile_directory / "career.yaml").read_text())["contact"]
     proposal = generator(run_directory / "extracted", instructions)
     parsed = validate_proposal(profile_directory, proposal, original_contact)
-    diffs = {}
+    changed_sections = []
+    section_labels = {"career.yaml": "Experience", "skills.yaml": "Skills", "technologies.yaml": "Technologies", "evidence.yaml": "Supporting evidence"}
     for name in PROFILE_FILES:
         staged = run_directory / name
         staged.write_text(yaml.safe_dump(parsed[name], sort_keys=False, allow_unicode=True, width=100), encoding="utf-8")
-        before = (profile_directory / name).read_text(encoding="utf-8").splitlines()
-        after = staged.read_text(encoding="utf-8").splitlines()
-        diffs[name] = "\n".join(difflib.unified_diff(before, after, fromfile=f"current/{name}", tofile=f"proposed/{name}", lineterm=""))
+        current_value = yaml.safe_load((profile_directory / name).read_text(encoding="utf-8"))
+        if current_value != parsed[name]:
+            changed_sections.append(section_labels[name])
     return {
         "files_processed": [path.name for path in extracted],
         "files_skipped": skipped,
         "changes": proposal.get("changes", []),
+        "review_items": proposal.get("review_items", []),
         "warnings": proposal.get("warnings", []),
-        "diffs": diffs,
+        "changed_sections": changed_sections,
     }
 
 

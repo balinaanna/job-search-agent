@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 
 type Summary = {
   files_processed:string[]; files_skipped:string[]; changes:string[]; warnings:string[];
-  diffs:Record<string,string>; profile_version?:string; backup?:string;
+  review_items?:Array<{category:string;action:"Added"|"Updated"|"Removed";fact:string;reason:string}>;
+  changed_sections?:string[]; profile_version?:string; backup?:string;
 };
 type ProfileRun = { id:string; status:string; files:string[]; after_version?:string|null; error?:string|null; summary?:Summary|null };
 type ProfileStatus = { profile_version:string; latest_run?:ProfileRun|null };
@@ -55,10 +56,9 @@ export function ProfileManager() {
     <div className="profile-rebuild-actions"><span>{files.length?`${files.length} PDF${files.length===1?"":"s"} selected`:"No resumes selected"}</span><button disabled={working||awaitingReview||files.length<1||files.length>10} onClick={rebuild}>{working?"Preparing proposal…":awaitingReview?"Review proposal below":"Upload and prepare proposal"}</button></div>
     {message&&<small role="status">{message}</small>}
     {proposal&&<section className="profile-proposal" aria-label="Profile change proposal">
-      <header><div><strong>Review proposed profile</strong><span>{proposal.files_processed.length} resume(s) processed · {Object.values(proposal.diffs).filter(Boolean).length} files changed</span></div><span>Not applied</span></header>
+      <header><div><strong>Review proposed profile</strong><span>{proposal.files_processed.length} resume(s) processed · {(proposal.changed_sections||[]).join(", ")||"No sections changed"}</span></div><span>Not applied</span></header>
       {proposal.warnings.length>0&&<div className="profile-proposal-warnings"><strong>Warnings to review</strong><ul>{proposal.warnings.map(item=><li key={item}>{item}</li>)}</ul></div>}
-      {proposal.changes.length>0&&<div><strong>Proposed changes</strong><ul>{proposal.changes.map(item=><li key={item}>{item}</li>)}</ul></div>}
-      <div className="profile-file-diffs">{Object.entries(proposal.diffs).map(([name,diff])=><details key={name} open={name==="career.yaml"}><summary>{name}<span>{diff?"Changed":"No changes"}</span></summary>{diff?<pre>{diff}</pre>:<p>No content changes proposed.</p>}</details>)}</div>
+      <div className="profile-fact-review">{proposal.review_items?.length?proposal.review_items.map((item,index)=><article key={`${item.category}-${item.fact}-${index}`}><span className={`fact-action ${item.action.toLowerCase()}`}>{item.action}</span><div><small>{item.category}</small><strong>{item.fact}</strong><p>{item.reason}</p></div></article>):proposal.changes.map(item=><article key={item}><span className="fact-action updated">Updated</span><div><small>Career profile</small><strong>{item}</strong></div></article>)}</div>
       <div className="profile-review-actions"><button className="reject" disabled={reviewing} onClick={()=>review("reject")}>Reject proposal</button><button disabled={reviewing} onClick={()=>review("approve")}>{reviewing?"Saving decision…":"Approve and rebuild profile"}</button></div>
     </section>}
     {latest?.status==="completed"&&latest.summary&&<details className="profile-rebuild-summary"><summary>Latest approved rebuild</summary><strong>{latest.summary.files_processed.length} resume(s) processed</strong><ul>{latest.summary.changes.map(item=><li key={item}>{item}</li>)}</ul></details>}
