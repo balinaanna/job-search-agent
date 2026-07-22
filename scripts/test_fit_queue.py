@@ -102,6 +102,19 @@ class FitQueueTests(unittest.TestCase):
         self.assertEqual(63, results[0].analysis["score"]["total_score"])
         self.assertEqual([], awaiting)
 
+    def test_canonical_workspace_matches_when_model_rephrases_company_and_source(self) -> None:
+        analysis = analysis_for(self.lead, 60, "selective_apply")
+        analysis["job"]["company"] = f"{self.lead['identity']['company']} on behalf of a partner"
+        analysis["job"]["source"] = "Captured job-board lead"
+
+        results, awaiting = join_results(
+            [self.lead],
+            [(Path(self.lead["lead_id"]) / "analysis.json", analysis)],
+        )
+
+        self.assertEqual([self.lead["lead_id"]], [item.lead["lead_id"] for item in results])
+        self.assertEqual([], awaiting)
+
 
 if __name__ == "__main__":
     unittest.main()

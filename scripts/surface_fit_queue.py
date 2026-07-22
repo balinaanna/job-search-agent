@@ -87,6 +87,7 @@ def join_results(
     leads: list[dict[str, Any]],
     analyses: list[tuple[Path, dict[str, Any]]],
 ) -> tuple[list[FitResult], list[dict[str, Any]]]:
+    by_id = {lead["lead_id"]: lead for lead in leads}
     by_source = {
         lead["source"]["posting_url"]: lead
         for lead in leads
@@ -97,8 +98,12 @@ def join_results(
     latest_by_lead: dict[str, tuple[tuple[int, int, int], FitResult]] = {}
 
     for index, (path, analysis) in enumerate(analyses):
+        # Canonical analysis workspaces are named with the immutable lead ID.
+        # Prefer that exact relationship over model-authored company/source text.
+        lead = by_id.get(path.parent.name)
         source = analysis["job"].get("source")
-        lead = by_source.get(source) if source else None
+        if lead is None:
+            lead = by_source.get(source) if source else None
         if lead is None:
             lead = by_identity.get(analysis_identity(analysis))
         if lead is None:

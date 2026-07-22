@@ -4,9 +4,22 @@ import { useEffect, useState } from "react";
 
 type Run = { id: string; status: string; error?: string | null };
 
-export function AnalyzeButton({ leadId, label = "Analyze" }: { leadId: string; label?: string }) {
+export function AnalyzeButton({ leadId, label = "Analyze", onStatus }: { leadId: string; label?: string; onStatus?: (status: string) => void }) {
   const [run, setRun] = useState<Run | null>(null);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`)
+      .then(response => response.ok ? response.json() : null)
+      .then(latest => {
+        if (!latest?.status) return;
+        setRun(latest);
+        onStatus?.(latest.status);
+        if (["analysis_requested", "analysis_running"].includes(latest.status)) setMessage("Evidence-based analysis is running. You can leave this page.");
+        if (latest.status === "analysis_failed") setMessage("Analysis needs attention. You can retry.");
+      })
+      .catch(() => undefined);
+  }, [leadId, onStatus]);
 
   useEffect(() => {
     if (!run || !["analysis_requested", "analysis_running"].includes(run.status)) return;
@@ -15,6 +28,7 @@ export function AnalyzeButton({ leadId, label = "Analyze" }: { leadId: string; l
       if (!response.ok) return;
       const next = await response.json();
       setRun(next);
+      onStatus?.(next.status);
       if (next.status === "analysis_completed") {
         setMessage("Analysis complete.");
         window.dispatchEvent(new Event("jobs-changed"));
@@ -22,7 +36,7 @@ export function AnalyzeButton({ leadId, label = "Analyze" }: { leadId: string; l
       if (next.status === "analysis_failed") setMessage(next.error || "Analysis needs attention.");
     }, 1200);
     return () => window.clearInterval(timer);
-  }, [run]);
+  }, [run, onStatus]);
 
   async function analyze() {
     setMessage("Starting evidence-based analysis…");
@@ -31,6 +45,7 @@ export function AnalyzeButton({ leadId, label = "Analyze" }: { leadId: string; l
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Analysis could not start.");
       setRun(payload);
+      onStatus?.(payload.status);
       setMessage("Analysis queued. You can leave this page while it runs.");
     } catch (error) {
       const unavailable = error instanceof TypeError;
@@ -41,5 +56,6 @@ export function AnalyzeButton({ leadId, label = "Analyze" }: { leadId: string; l
   }
 
   const working = run && ["analysis_requested", "analysis_running"].includes(run.status);
-  return <div className="analyze-control"><button type="button" disabled={Boolean(working)} onClick={analyze}>{working ? "Analyzing…" : label}</button>{message && <span role="status">{message}</span>}</div>;
+  const completed = run?.status === "analysis_completed" && label === "Analyze";
+  return <div className="analyze-control"><button type="button" disabled={Boolean(working||completed)} onClick={analyze}>{working ? "Analyzing…" : completed ? "Analysis complete" : label}</button>{message && <span role="status">{message}</span>}</div>;
 }

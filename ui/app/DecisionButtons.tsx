@@ -144,10 +144,13 @@ function workflowStage(status: string) {
   if (status.startsWith("strategy") || status === "pursue") return 1;
   return 0;
 }
-function ApplicationWorkspace({ status, children }: { status: string; children: ReactNode }) {
+export function ApplicationWorkspace({ status, children }: { status: string; children: ReactNode }) {
   const stage = workflowStage(status);
   const reviewRequired = status.includes("review_required") || status.endsWith("review_completed") || status === "submission_review_required";
-  return <section className="application-workspace"><header><div><span>APPLICATION PROCESS</span><strong>{reviewRequired ? "Your review is required" : stage === 6 ? "Application recorded" : "Package in progress"}</strong></div><b>{stage === 6 ? "Complete" : workspaceStages[Math.min(stage, 5)]}</b></header><ol className="workflow-progress">{workspaceStages.map((label, index) => <li key={label} className={index < stage || stage === 6 ? "complete" : index === stage ? "current" : ""}><i>{index < stage || stage === 6 ? "✓" : index + 1}</i><span>{label}</span></li>)}</ol><div className="workspace-current"><small>CURRENT STEP · {status.replaceAll("_", " ")}</small>{children}</div><footer>Every document and application action remains behind its required review and approval.</footer></section>;
+  const analysisRunning = ["analysis_requested", "analysis_running"].includes(status);
+  const analysisCompleted = status === "analysis_completed";
+  const progressLabel = reviewRequired ? "Your review is required" : stage === 6 ? "Application recorded" : analysisRunning ? "Analysis in progress" : analysisCompleted ? "Analysis complete" : stage === 0 ? "Ready for analysis" : "Package in progress";
+  return <section className="application-workspace"><header><div><span>APPLICATION PROCESS</span><strong>{progressLabel}</strong></div><b>{stage === 6 ? "Complete" : workspaceStages[Math.min(stage, 5)]}</b></header><ol className="workflow-progress">{workspaceStages.map((label, index) => {const complete=index<stage||stage===6||analysisCompleted&&index===0;return <li key={label} className={`${complete?"complete":!analysisCompleted&&index===stage?"current":""}${analysisRunning&&index===0?" processing":""}`}><i>{complete?"✓":index+1}</i><span>{label}</span></li>;})}</ol><div className="workspace-current"><small>CURRENT STEP · {status.replaceAll("_", " ")}</small>{children}</div><footer>Every document and application action remains behind its required review and approval.</footer></section>;
 }
 
 const preparationSteps: Record<string, { endpoint: string; label: string }> = {

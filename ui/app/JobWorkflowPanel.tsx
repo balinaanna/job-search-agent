@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnalyzeButton } from "./AnalyzeButton";
-import { DecisionButtons } from "./DecisionButtons";
+import { ApplicationWorkspace, DecisionButtons } from "./DecisionButtons";
 
 type Job={id:string;company:string;role:string;postingUrl:string;stage:"analyzed"|"awaiting";location?:string|null;postedDate?:string|null;firstSeenAt?:string|null;source?:string;fitScore?:number;discoveryScore?:number|null;recommendation?:string;reasons?:string[];risk?:string;nextAction?:string;workflowStatus?:string;workflowUpdatedAt?:string|null;profileStale?:boolean};
 type Posting={company:string;title:string;description:string;location:string;workplace_type:string;employment_type:string;posted_date?:string|null;captured_at:string;source:string};
@@ -13,6 +13,7 @@ function readable(value:string|undefined){return (value||"Not started").replaceA
 function date(value:string|null|undefined){return value?new Intl.DateTimeFormat("en-CA",{month:"short",day:"numeric",year:"numeric",timeZone:"UTC"}).format(new Date(value)):"Not available";}
 
 export function JobWorkflowPanel({job,onClose}:{job:Job;onClose:()=>void}){
+  const [workflowStatus,setWorkflowStatus]=useState(job.workflowStatus||"not_started");
   const [posting,setPosting]=useState<Posting|null>(null),[showPosting,setShowPosting]=useState(false),[postingMessage,setPostingMessage]=useState("");
   const [prep,setPrep]=useState<Prep|null>(null),[showPrep,setShowPrep]=useState(false),[prepMessage,setPrepMessage]=useState("");
   async function archive(){setShowPosting(value=>!value);if(posting)return;try{const response=await fetch(`http://localhost:8787/api/jobs/${job.id}/job-posting`);const value=await response.json();if(!response.ok)throw new Error(value.error);setPosting(value);}catch(error){setPostingMessage(error instanceof Error?error.message:"Saved posting unavailable.");}}
@@ -28,6 +29,6 @@ export function JobWorkflowPanel({job,onClose}:{job:Job;onClose:()=>void}){
     {job.profileStale&&<section className="workflow-stale-analysis"><div><span>PROFILE UPDATED</span><strong>This fit is based on an older career profile</strong><p>Your verified profile changed after this fit was calculated. Re-analyze to use the latest evidence.</p></div><AnalyzeButton leadId={job.id} label="Re-analyze fit"/></section>}
     {showPosting&&<aside className="saved-posting">{posting?<><header><div><span>PERMANENT JOB ARCHIVE</span><strong>{posting.company} · {posting.title}</strong></div><small>Captured {posting.captured_at.slice(0,10)} · {posting.source}</small></header><dl><div><dt>Location</dt><dd>{posting.location||"Not provided"}</dd></div><div><dt>Work arrangement</dt><dd>{posting.workplace_type.replaceAll("_"," ")}</dd></div><div><dt>Employment</dt><dd>{posting.employment_type.replaceAll("_"," ")}</dd></div><div><dt>Posted</dt><dd>{posting.posted_date||"Not provided"}</dd></div></dl><details open><summary>Full saved description</summary><div className="saved-description">{posting.description}</div></details></>:<p>{postingMessage||"Loading saved posting…"}</p>}</aside>}
     {showPrep&&<section className="interview-preparation">{prep?<><div className="interview-concern"><strong>Most likely concern</strong><p>{prep.most_likely_concern}</p><span>{prep.response_strategy}</span></div><div className="interview-stories">{prep.stories.map(story=><article key={story.story_id}><strong>{story.core_message}</strong><span>{story.why_it_fits}</span><small>Evidence: {story.evidence_id}</small><details><summary>Likely questions</summary><ul>{story.sample_questions.map(question=><li key={question}>{question}</li>)}</ul></details></article>)}</div><div className="interview-lists"><section><strong>Verify before interview</strong><ul>{prep.verify_before_interview.map(item=><li key={item}>{item}</li>)}</ul></section><section><strong>Questions to ask</strong><ul>{prep.questions_to_ask.map(item=><li key={item}>{item}</li>)}</ul></section></div></>:<p>{prepMessage}</p>}</section>}
-    <main>{job.stage==="analyzed"?<DecisionButtons leadId={job.id}/>:<AnalyzeButton leadId={job.id}/>}</main>
+    <main>{job.stage==="analyzed"?<DecisionButtons leadId={job.id}/>:<ApplicationWorkspace status={workflowStatus}><AnalyzeButton leadId={job.id} onStatus={setWorkflowStatus}/></ApplicationWorkspace>}</main>
   </section>;
 }
