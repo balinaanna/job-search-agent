@@ -20,6 +20,11 @@ class JobAlertInboxTests(unittest.TestCase):
         self.assertEqual(email_job[0]["posting_url"], "https://www.linkedin.com/jobs/view/12345")
         self.assertEqual(email_job[0]["posting_url"], browser_job[0]["posting_url"])
 
+    def test_keeps_direct_reviewed_ats_links_from_alerts(self):
+        jobs = parse_alert("linkedin", '<a href="https://job-boards.greenhouse.io/acme/jobs/12345?source=email">Platform Engineer</a>')
+        self.assertEqual(jobs[0]["source"], "greenhouse")
+        self.assertEqual(jobs[0]["posting_url"], "https://job-boards.greenhouse.io/acme/jobs/12345")
+
     def test_deduplicates_imported_jobs(self):
         with tempfile.TemporaryDirectory() as directory:
             store = AlertInboxStore(Path(directory) / "jobs.db")

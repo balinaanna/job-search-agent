@@ -1,6 +1,6 @@
 import unittest
 
-from safe_capture_policy import UnsafeCaptureURL, validate_automatic_capture_url
+from safe_capture_policy import UnsafeCaptureURL, automatic_capture_plan, capture_capability, validate_automatic_capture_url
 
 
 class SafeCapturePolicyTests(unittest.TestCase):
@@ -26,3 +26,11 @@ class SafeCapturePolicyTests(unittest.TestCase):
             validate_automatic_capture_url("https://careers.example.com/jobs/1")
         with self.assertRaisesRegex(UnsafeCaptureURL, "HTTPS"):
             validate_automatic_capture_url("http://api.lever.co/v0/postings/example")
+
+    def test_builds_reviewed_api_plans_for_public_ats_links(self) -> None:
+        greenhouse = automatic_capture_plan("https://job-boards.greenhouse.io/acme/jobs/12345?source=alert")
+        lever = automatic_capture_plan("https://jobs.lever.co/acme/abc-123")
+        self.assertEqual(greenhouse["api_url"], "https://boards-api.greenhouse.io/v1/boards/acme/jobs/12345")
+        self.assertEqual(lever["api_url"], "https://api.lever.co/v0/postings/acme/abc-123")
+        self.assertEqual(capture_capability("https://www.linkedin.com/jobs/view/1")["mode"], "manual_required")
+        self.assertEqual(capture_capability("https://jobs.lever.co/acme/abc-123")["mode"], "automatic_available")

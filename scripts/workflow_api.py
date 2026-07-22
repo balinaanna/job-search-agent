@@ -33,7 +33,10 @@ from workflow_store import WorkflowStore
 from application_tracker import initial_tracker, update_tracker
 from discovery_store import DiscoveryStore
 from search_settings import load_search_settings, save_search_settings
+from collect_job_postings import CollectionError
 from job_alert_inbox import AlertInboxStore, canonical_job_url, save_captured_posting
+from safe_capture_enrichment import enrich_alert_posting
+from safe_capture_policy import capture_capability
 from interview_preparation import prepare_for_lead
 from build_strategy_with_codex import find_analysis
 from export_dashboard_data import build_dashboard_data
@@ -248,6 +251,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
                 posting_url = lead["source"]["posting_url"]
                 leads_by_url[(source, canonical_job_url(posting_url, source) or posting_url)] = lead["lead_id"]
             for job in jobs:
+                job["capture"] = capture_capability(job["posting_url"])
                 canonical = canonical_job_url(job["posting_url"], job["source"]) or job["posting_url"]
                 linked_lead = leads_by_url.get((job["source"], canonical))
                 if not job.get("lead_id") and linked_lead:
@@ -283,6 +287,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if parts == ["api", "job-alerts", "capture"]:
             self.capture_alert_job()
+            return
+        if len(parts) == 4 and parts[:2] == ["api", "job-alerts"] and parts[3] == "safe-capture":
+            self.safe_capture_alert(parts[2])
             return
         if parts == ["api", "gmail-alerts", "connect"]:
             self.connect_gmail_alerts()
@@ -542,6 +549,27 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             detail = ((exc.stdout or "") + "\n" + (exc.stderr or "")).strip() if isinstance(exc, subprocess.CalledProcessError) else str(exc)
             self.respond(400, {"error": detail[-2000:] or "Captured posting could not be processed."}); return
         self.respond(201, {"status": "captured", "raw_path": str(path.relative_to(ROOT)), "pipeline": pipeline.stdout.strip()})
+
+    def safe_capture_alert(self, job_id: str) -> None:
+        try:
+            job = self.alert_store.get(job_id)
+            posting = enrich_alert_posting(
+                job,
+                ROOT / "strategy/job_sources.json",
+                ROOT / "data/raw-job-postings",
+                datetime.now(timezone.utc).isoformat(),
+            )
+            pipeline = subprocess.run([sys.executable, "scripts/run_job_discovery.py", "--skip-collection"], cwd=ROOT, check=True, capture_output=True, text=True)
+            subprocess.run([sys.executable, "scripts/export_dashboard_data.py"], cwd=ROOT, check=True, capture_output=True, text=True)
+            lead = next((item for item in load_leads(ROOT / "data/job-leads") if item["source"]["posting_url"] == posting["posting_url"]), None)
+            if not lead:
+                raise ValueError("The safely captured posting could not be linked to its job record.")
+            self.alert_store.mark_captured(job["source"], job["posting_url"], lead["lead_id"])
+        except (CollectionError, KeyError, ValueError, OSError, sqlite3.Error, subprocess.CalledProcessError) as exc:
+            detail = ((exc.stdout or "") + "\n" + (exc.stderr or "")).strip() if isinstance(exc, subprocess.CalledProcessError) else str(exc)
+            self.respond(400, {"error": detail[-2000:] or "Safe capture could not be completed."})
+            return
+        self.respond(201, {"status": "captured", "lead_id": lead["lead_id"], "pipeline": pipeline.stdout.strip()})
 
     def connect_gmail_alerts(self) -> None:
         try:

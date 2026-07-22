@@ -12,6 +12,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import parse_qs, urlencode, unquote, urlparse, urlunparse
 
+from safe_capture_policy import automatic_capture_plan
+
 
 SOURCES = {"linkedin", "indeed", "eluta"}
 GENERIC_TEXT = {"apply", "apply now", "view job", "view jobs", "see job", "see jobs", "learn more", "jobs", "job alert"}
@@ -76,10 +78,17 @@ def parse_alert(source: str, content: str) -> list[dict]:
         parser.anchors = [("Job from alert", match) for match in re.findall(r"https?://[^\s<>\"]+", body)]
     results = []
     for text, link in parser.anchors:
-        url = canonical_job_url(link, source)
+        unwrapped = unwrap_url(link)
+        plan = automatic_capture_plan(unwrapped)
+        url = canonical_job_url(unwrapped, source)
+        result_source = source
+        if not url and plan:
+            parsed = urlparse(unwrapped)
+            url = urlunparse(("https", parsed.netloc.casefold(), parsed.path.rstrip("/"), "", "", ""))
+            result_source = plan["platform"]
         title = " ".join(text.split()).strip(" |–—-")
         if not url or len(title) < 4 or title.casefold() in GENERIC_TEXT: continue
-        results.append({"source": source, "title": title[:300], "posting_url": url})
+        results.append({"source": result_source, "title": title[:300], "posting_url": url})
     unique = {item["posting_url"]: item for item in results}
     return list(unique.values())
 
@@ -115,12 +124,16 @@ class AlertInboxStore:
         with self.connection:
             for job in jobs:
                 job_id = hashlib.sha256(job["posting_url"].encode()).hexdigest()[:20]
-                cursor = self.connection.execute("INSERT OR IGNORE INTO alert_jobs(id,source,title,posting_url,status,received_at) VALUES (?, ?, ?, ?, 'needs_capture', ?)", (job_id, source, job["title"], job["posting_url"], timestamp))
+                cursor = self.connection.execute("INSERT OR IGNORE INTO alert_jobs(id,source,title,posting_url,status,received_at) VALUES (?, ?, ?, ?, 'needs_capture', ?)", (job_id, job["source"], job["title"], job["posting_url"], timestamp))
                 added += cursor.rowcount
         return {"found": len(jobs), "added": added, "duplicates": len(jobs) - added, "jobs": self.list()}
     def list(self) -> list[dict]:
         rows = self.connection.execute("SELECT * FROM alert_jobs ORDER BY received_at DESC").fetchall()
         return [dict(row) for row in rows]
+    def get(self, job_id: str) -> dict:
+        row = self.connection.execute("SELECT * FROM alert_jobs WHERE id=?", (job_id,)).fetchone()
+        if not row: raise KeyError(job_id)
+        return dict(row)
     def mark_captured(self, source: str, posting_url: str, lead_id: str) -> None:
         canonical = canonical_job_url(posting_url, source) or posting_url
         with self.connection:
