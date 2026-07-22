@@ -341,6 +341,7 @@
       "additionalProperties": false
     },
     "manifest_status": {
+      "type": "string",
       "const": "cover_letter_revision"
     }
   },

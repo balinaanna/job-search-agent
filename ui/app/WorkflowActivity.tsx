@@ -1,8 +1,6 @@
-const activeSuffixes = ["_requested", "_running"];
-
 export function workflowIsProcessing(status?: string) {
   if (!status) return false;
-  return activeSuffixes.some(suffix => status.endsWith(suffix)) || status === "submission_in_progress";
+  return status.endsWith("_running") || status === "submission_in_progress";
 }
 
 export function workflowActivityLabel(status?: string) {

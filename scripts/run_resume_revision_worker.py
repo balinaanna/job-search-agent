@@ -12,6 +12,18 @@ from workflow_store import WorkflowStore
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def diagnostic_error(exc: subprocess.CalledProcessError | Exception) -> str:
+    if isinstance(exc, subprocess.CalledProcessError) and exc.stderr:
+        stderr = exc.stderr.strip()
+        # The Python traceback repeats the entire prompt inside CalledProcessError,
+        # obscuring the actual Codex diagnostic that appears immediately before it.
+        stderr = stderr.split("Traceback (most recent call last):", 1)[0].strip()
+        if len(stderr) > 8000:
+            return stderr[-8000:]
+        return stderr
+    return str(exc)
+
+
 def revision_notes(store: WorkflowStore, run_id: str) -> str:
     for event in reversed(store.events(run_id)):
         if event["to_status"] == "resume_revision_requested":
@@ -44,10 +56,9 @@ def main() -> int:
         )
         return 0
     except (subprocess.CalledProcessError, IndexError) as exc:
-        stderr = exc.stderr.strip() if isinstance(exc, subprocess.CalledProcessError) and exc.stderr else ""
         store.transition(
             run_id, "resume_revision_failed", "resume_revision_worker",
-            error=stderr[-4000:] if stderr else str(exc),
+            error=diagnostic_error(exc),
         )
         return 1
 

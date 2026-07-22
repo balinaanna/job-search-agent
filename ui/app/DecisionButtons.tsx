@@ -454,7 +454,7 @@ function ResumeRevisionAction({ leadId, initialStatus, onStatus }: { leadId: str
       const next = await response.json();
       setRun(next);
       if (next.status === "resume_revision_completed") { setMessage("Revision completed and validated."); onStatus(next.status); }
-      if (next.status === "resume_revision_failed") setMessage(next.error || "Resume revision needs attention.");
+      if (next.status === "resume_revision_failed") setMessage("Resume revision could not be completed. You can retry without losing the reviewed version.");
     }, 1200);
     return () => window.clearInterval(timer);
   }, [working, run, onStatus]);

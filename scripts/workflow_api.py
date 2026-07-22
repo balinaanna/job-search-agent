@@ -1112,6 +1112,12 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         except ValueError as exc:
             self.respond(409, {"error": str(exc)})
             return
+        if action == "request_revision":
+            subprocess.Popen(
+                [sys.executable, str(ROOT / "scripts/run_resume_revision_worker.py"), run["id"]],
+                cwd=ROOT, start_new_session=True,
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
         self.respond(200, run)
 
     def request_resume_revision(self, lead_id: str) -> None:
@@ -1297,6 +1303,11 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             run["id"], status, "user",
             details={"explicit_user_approval": action == "approve", "notes": notes.strip()},
         )
+        if action == "request_revision":
+            subprocess.Popen(
+                [sys.executable, str(ROOT / "scripts/run_cover_letter_revision_worker.py"), run["id"]], cwd=ROOT,
+                start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
         self.respond(200, run)
 
     def request_cover_letter_revision(self, lead_id: str) -> None:

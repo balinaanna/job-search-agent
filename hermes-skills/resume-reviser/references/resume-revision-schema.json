@@ -226,6 +226,7 @@
       "additionalProperties": false
     },
     "manifest_status": {
+      "type": "string",
       "const": "drafting"
     }
   },
