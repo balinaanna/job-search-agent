@@ -5,9 +5,9 @@ import { AnalyzeButton } from "./AnalyzeButton";
 import { JobWorkflowPanel } from "./JobWorkflowPanel";
 
 type BaseJob = { id:string; company:string; role:string; location:string|null; postingUrl:string; postedDate?:string|null; firstSeenAt?:string|null; discoveryScore:number|null; workflowStatus?:string; workflowUpdatedAt?:string|null; profileVersion?:string; analysisProfileVersion?:string|null; profileStale?:boolean };
-type AnalyzedJob = BaseJob & { fitScore:number; recommendation:string; risk:string; nextAction:string };
+type AnalyzedJob = BaseJob & { fitScore:number; recommendation:string; reasons:string[]; risk:string; nextAction:string };
 type AlertJob = { id:string; source:string; title:string; posting_url:string; status:string; received_at:string; lead_id?:string|null };
-type JobRow = BaseJob & { stage:"analyzed"|"awaiting"|"capture"; fitScore?:number; recommendation?:string; risk?:string; source:string; leadId?:string|null };
+type JobRow = BaseJob & { stage:"analyzed"|"awaiting"|"capture"; fitScore?:number; recommendation?:string; reasons?:string[]; risk?:string; nextAction?:string; source:string; leadId?:string|null };
 
 const recommendationLabel:Record<string,string> = { strong_apply:"Strong match", apply:"Apply", selective_apply:"Stretch", do_not_apply:"Pass" };
 const sourceLabel:Record<string,string> = { linkedin:"LinkedIn", indeed:"Indeed", eluta:"Eluta", greenhouse:"Greenhouse" };
