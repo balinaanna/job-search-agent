@@ -18,7 +18,11 @@ from safe_capture_policy import capture_capability
 
 SOURCES = {"linkedin", "indeed", "eluta"}
 GENERIC_TEXT = {"apply", "apply now", "view job", "view jobs", "see job", "see jobs", "learn more", "jobs", "job alert"}
-LOCATION_TERMS = ("remote", "canada", "british columbia", " bc", "vancouver", "richmond", "burnaby", "surrey", "toronto", "ontario", "calgary", "alberta")
+LOCATION_TERMS = ("british columbia", "ontario", "alberta", "vancouver", "richmond", "burnaby", "surrey", "toronto", "calgary")
+COMPANY_NOISE = {
+    "easily apply", "just posted", "new jobs match your preferences.",
+    "responsive employer", "promoted", "actively hiring",
+}
 
 
 class AnchorParser(HTMLParser):
@@ -76,8 +80,20 @@ def alert_lines(body: str) -> list[str]:
 
 
 def location_like(value: str) -> bool:
-    normalized = f" {value.casefold()}"
-    return any(term in normalized for term in LOCATION_TERMS)
+    normalized = " ".join(value.casefold().split()).strip(" .")
+    if len(value) > 160 or "http" in normalized: return False
+    if "remote" in normalized or normalized == "canada" or normalized.endswith(", canada"): return True
+    if re.search(r"(?:^|,|\s)\b(?:bc|on|ab)\b(?:\s|,|$)", normalized): return True
+    return any(normalized == term or normalized.startswith(f"{term},") or normalized.endswith(f", {term}") for term in LOCATION_TERMS)
+
+
+def company_like(value: str) -> bool:
+    normalized = " ".join(value.casefold().split()).strip(" .")
+    if not normalized or len(value) > 120 or normalized in COMPANY_NOISE or location_like(value): return False
+    if "http://" in normalized or "https://" in normalized: return False
+    if re.search(r"[$€£]\s*\d|\b\d+(?:\.\d+)?\s*(?:an?\s+)?(?:hour|year|month|week)\b", normalized): return False
+    if re.fullmatch(r"\d+\s+(?:connections?|applicants?|days?|hours?|minutes?)", normalized): return False
+    return not normalized.startswith(("see all jobs", "view ", "apply ", "posted ", "new jobs match"))
 
 
 def anchor_metadata(anchor_text: str, lines: list[str]) -> dict[str, str | None]:
@@ -95,10 +111,15 @@ def anchor_metadata(anchor_text: str, lines: list[str]) -> dict[str, str | None]
             if len(cleaned) < 2 or lowered in GENERIC_TEXT or lowered == title.casefold() or lowered.startswith(("view ", "apply ", "posted ")):
                 continue
             candidates.append(cleaned)
+    for candidate in candidates:
+        combined = re.match(r"^(.+?)\s+-\s+(.+)$", candidate)
+        if combined and location_like(combined.group(2)):
+            if not company and company_like(combined.group(1)): company = combined.group(1).strip()
+            if not location: location = combined.group(2).strip()
     if not location:
         location = next((item for item in candidates if location_like(item)), None)
     if not company:
-        company = next((item for item in candidates if item != location and not location_like(item) and len(item) <= 120), None)
+        company = next((item for item in candidates if item != location and company_like(item)), None)
     excerpt_parts = [item for item in candidates if item not in {company, location}][:3]
     excerpt = " · ".join(excerpt_parts)[:500] or None
     return {"title": title or anchor_text, "company": company, "location": location, "email_excerpt": excerpt}
@@ -174,7 +195,14 @@ class AlertInboxStore:
         if "email_excerpt" not in columns: self.connection.execute("ALTER TABLE alert_jobs ADD COLUMN email_excerpt TEXT")
         self.connection.execute("""CREATE TABLE IF NOT EXISTS gmail_alert_messages (uid TEXT PRIMARY KEY, processed_at TEXT NOT NULL)""")
         self._consolidate_url_aliases()
+        self._discard_invalid_metadata()
         self.connection.commit()
+    def _discard_invalid_metadata(self) -> None:
+        rows = self.connection.execute("SELECT id, company, location FROM alert_jobs").fetchall()
+        for row in rows:
+            company = row["company"] if row["company"] and company_like(row["company"]) else None
+            location = row["location"] if row["location"] and location_like(row["location"]) else None
+            self.connection.execute("UPDATE alert_jobs SET company=?, location=? WHERE id=?", (company, location, row["id"]))
     def _consolidate_url_aliases(self) -> int:
         """Merge legacy URL variants that identify the same board posting."""
         rows = self.connection.execute("SELECT * FROM alert_jobs ORDER BY received_at").fetchall()
@@ -207,10 +235,13 @@ class AlertInboxStore:
                 cursor = self.connection.execute("INSERT OR IGNORE INTO alert_jobs(id,source,title,posting_url,status,received_at,company,location,email_excerpt) VALUES (?, ?, ?, ?, 'needs_capture', ?, ?, ?, ?)", (job_id, job["source"], job["title"], job["posting_url"], timestamp, job.get("company"), job.get("location"), job.get("email_excerpt")))
                 added += cursor.rowcount
                 if cursor.rowcount == 0:
+                    existing = self.connection.execute("SELECT company, location FROM alert_jobs WHERE posting_url=?", (job["posting_url"],)).fetchone()
+                    company = existing["company"] if existing["company"] and company_like(existing["company"]) else job.get("company")
+                    location = existing["location"] if existing["location"] and location_like(existing["location"]) else job.get("location")
                     self.connection.execute("""UPDATE alert_jobs SET
-                      company=COALESCE(company, ?), location=COALESCE(location, ?),
+                      company=?, location=?,
                       email_excerpt=COALESCE(email_excerpt, ?)
-                      WHERE posting_url=?""", (job.get("company"), job.get("location"), job.get("email_excerpt"), job["posting_url"]))
+                      WHERE posting_url=?""", (company, location, job.get("email_excerpt"), job["posting_url"]))
         return {"found": len(jobs), "added": added, "duplicates": len(jobs) - added, "jobs": self.list()}
     def list(self) -> list[dict]:
         rows = self.connection.execute("SELECT * FROM alert_jobs ORDER BY received_at DESC").fetchall()

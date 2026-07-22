@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from job_alert_inbox import AlertInboxStore, anchor_metadata, parse_alert, save_captured_posting
+from job_alert_inbox import AlertInboxStore, anchor_metadata, company_like, parse_alert, save_captured_posting
 
 
 class JobAlertInboxTests(unittest.TestCase):
@@ -36,6 +36,17 @@ class JobAlertInboxTests(unittest.TestCase):
         value = anchor_metadata("Backend Engineer at Acme", [])
         self.assertEqual(value["title"], "Backend Engineer")
         self.assertEqual(value["company"], "Acme")
+
+    def test_rejects_salary_and_interface_labels_as_companies(self):
+        self.assertFalse(company_like("$85,000–$95,000 a year"))
+        self.assertFalse(company_like("Easily apply"))
+        self.assertFalse(company_like("3 connections"))
+        self.assertTrue(company_like("Example AI Inc."))
+
+    def test_splits_combined_company_and_location_line(self):
+        value = anchor_metadata("AI Engineer", ["AI Engineer", "Example AI Inc. - Vancouver, BC"])
+        self.assertEqual(value["company"], "Example AI Inc.")
+        self.assertEqual(value["location"], "Vancouver, BC")
 
     def test_deduplicates_imported_jobs(self):
         with tempfile.TemporaryDirectory() as directory:
