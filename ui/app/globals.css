@@ -235,6 +235,7 @@ h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .jobs-toolbar input,.jobs-toolbar select { min-width:0; padding:9px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink); font-size:12px; }
 .jobs-list { display:grid; gap:10px; }
 .job-result { padding:16px; border:1px solid var(--line); border-radius:11px; background:#fff; position:relative; }
+.job-result.is-processing,.applications-list article.is-processing{border-color:#8bb9a0;box-shadow:0 0 0 2px rgba(78,142,108,.11)}.workflow-activity{display:inline-flex!important;align-items:center;gap:6px;width:max-content;margin-top:7px;padding:4px 8px;border-radius:999px;background:#e7f2ec;color:#1f6b4e!important;font-size:12px!important;font-weight:800!important;letter-spacing:0!important;text-transform:none!important}.workflow-activity i{width:7px;height:7px;border:2px solid #78ad92;border-top-color:#1f6b4e;border-radius:50%;animation:workflow-spin .8s linear infinite}@keyframes workflow-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.workflow-activity i{animation:none;background:#1f6b4e;border:0}}
 .job-result>header { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:11px; }
 .job-result h3 { margin:0 0 4px; font-size:14px; }
 .job-result header p { margin:0; color:var(--muted); font-size:12px; }
