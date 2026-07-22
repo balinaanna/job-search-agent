@@ -23,7 +23,7 @@ export default function Home() {
           <a className="nav-item active" href="#overview"><span>⌂</span> Overview</a>
           <a className="nav-item" href="#jobs"><span>◎</span> Jobs <b>{data.summary.awaitingAnalysis + data.analyzedJobs.length}</b></a>
           <a className="nav-item" href="/add-jobs"><span>＋</span> Add jobs</a>
-          <a className="nav-item" href="#applications"><span>▤</span> Applications</a>
+          <a className="nav-item" href="/applications"><span>▤</span> Applications</a>
           <a className="nav-item" href="/profile"><span>◇</span> Career profile</a>
         </nav>
         <div className="sidebar-note">
@@ -57,19 +57,8 @@ export default function Home() {
           <article><span>In progress</span><strong>{data.summary.applicationsInProgress}</strong><small>application packages</small></article>
         </section>
 
-        <section className="content-grid" id="jobs">
+        <section className="jobs-full-width" id="jobs">
           <JobsView analyzedJobs={data.analyzedJobs} awaitingAnalysis={data.awaitingAnalysis} />
-
-          <aside className="pipeline" id="applications">
-            <div className="section-heading"><div><p className="eyebrow">YOUR PIPELINE</p><h2>Application progress</h2></div></div>
-            <ol>
-              <li className="current"><span>1</span><div><strong>Discover & analyze</strong><small>{data.summary.awaitingAnalysis} waiting · {data.analyzedJobs.length} complete</small></div></li>
-              <li><span>2</span><div><strong>Choose jobs</strong><small>{data.summary.readyToPursue} ready for your decision</small></div></li>
-              <li><span>3</span><div><strong>Build application</strong><small>Strategy, resume and letter</small></div></li>
-              <li><span>4</span><div><strong>Review & approve</strong><small>Nothing submits without you</small></div></li>
-              <li><span>5</span><div><strong>Apply & track</strong><small>Final submission and follow-up</small></div></li>
-            </ol>
-          </aside>
         </section>
 
         <footer>Live local job data · Updated {updatedLabel(data.generatedAt)} · No application can be submitted without explicit approval.</footer>
