@@ -89,6 +89,19 @@ class JobAlertInboxTests(unittest.TestCase):
             self.assertEqual(jobs[0]["location"], "Vancouver, BC")
             reopened.close()
 
+    def test_store_splits_legacy_company_location_metadata(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "jobs.db"
+            store = AlertInboxStore(path)
+            store.connection.execute("INSERT INTO alert_jobs(id,source,title,posting_url,status,received_at,location) VALUES ('job','linkedin','AI Engineer','https://www.linkedin.com/jobs/view/12345','needs_capture','2026-07-21T00:00:00Z','Royal Bank of Canada - Vancouver, BC')")
+            store.connection.commit(); store.close()
+
+            reopened = AlertInboxStore(path)
+            job = reopened.get("job")
+            self.assertEqual(job["company"], "Royal Bank of Canada")
+            self.assertEqual(job["location"], "Vancouver, BC")
+            reopened.close()
+
     def test_links_captured_alert_to_generated_lead(self):
         with tempfile.TemporaryDirectory() as directory:
             store = AlertInboxStore(Path(directory) / "jobs.db")

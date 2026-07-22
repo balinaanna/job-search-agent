@@ -21,7 +21,7 @@ GENERIC_TEXT = {"apply", "apply now", "view job", "view jobs", "see job", "see j
 LOCATION_TERMS = ("british columbia", "ontario", "alberta", "vancouver", "richmond", "burnaby", "surrey", "toronto", "calgary")
 COMPANY_NOISE = {
     "easily apply", "just posted", "new jobs match your preferences.",
-    "responsive employer", "promoted", "actively hiring",
+    "responsive employer", "promoted", "actively hiring", "do not share this email",
 }
 
 
@@ -201,7 +201,12 @@ class AlertInboxStore:
         rows = self.connection.execute("SELECT id, company, location FROM alert_jobs").fetchall()
         for row in rows:
             company = row["company"] if row["company"] and company_like(row["company"]) else None
-            location = row["location"] if row["location"] and location_like(row["location"]) else None
+            location = row["location"]
+            combined = re.match(r"^(.+?)\s+-\s+(.+)$", location or "")
+            if combined and location_like(combined.group(2)):
+                if not company and company_like(combined.group(1)): company = combined.group(1).strip()
+                location = combined.group(2).strip()
+            if not location or not location_like(location): location = None
             self.connection.execute("UPDATE alert_jobs SET company=?, location=? WHERE id=?", (company, location, row["id"]))
     def _consolidate_url_aliases(self) -> int:
         """Merge legacy URL variants that identify the same board posting."""
