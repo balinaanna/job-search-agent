@@ -28,7 +28,7 @@ def score_alert_metadata(job: dict[str, Any], criteria: dict[str, Any]) -> dict[
     elif location and any(value in location for value in ("united states", " usa", "new york", "california", "europe", "uk only")):
         score -= 15
     score = max(0, min(100, score))
-    label = "Promising title" if score >= 75 else "Possible title match" if score >= 55 else "Weak title match"
+    label = "Promising alert match" if score >= 75 else "Possible alert match" if score >= 55 else "Weak alert match"
     return {
         "score": score,
         "label": label,
