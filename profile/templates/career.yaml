@@ -1,0 +1,24 @@
+schema_version: "2.0"
+last_reviewed: null
+source_reconciliation_rules: []
+candidate:
+  name: "Your Name"
+  preferred_name: ""
+  location:
+    city: ""
+    province: ""
+    country: ""
+  work_authorization: {}
+  languages: []
+contact:
+  phone: ""
+  email: ""
+  location: ""
+  linkedin: ""
+career_summary:
+  positioning: "Add a verified professional summary."
+  current_direction: "Add the roles you are targeting."
+employment: []
+education: []
+training_and_certifications: []
+projects: []

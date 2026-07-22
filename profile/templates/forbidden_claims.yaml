@@ -1,0 +1,6 @@
+schema_version: "2.0"
+last_reviewed: null
+global_rule: "Never state or imply an unsupported fact."
+never_claim: {}
+conditional_claims: []
+safe_reframing_rules: []

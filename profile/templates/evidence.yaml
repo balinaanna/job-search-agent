@@ -1,0 +1,5 @@
+schema_version: "2.0"
+last_reviewed: null
+rules:
+  - "Include only facts the user can truthfully defend in an interview."
+evidence: []

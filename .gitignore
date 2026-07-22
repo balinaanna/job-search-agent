@@ -15,6 +15,9 @@ jobs/inbox/
 profile/history/
 output/pdf/
 
+# Live career data is private. Commit only sanitized templates in profile/templates/.
+profile/*.yaml
+
 # Runtime job discovery data
 data/jobs.db
 data/gmail-alerts.json

@@ -13,6 +13,17 @@ The Python workflow lives in `scripts/` and the product interface lives in
 `ui/`. Generated job, analysis, and application records remain separate from
 the immutable career evidence library in `profile/`.
 
+## Initialize a private profile
+
+Live career-profile YAML files are intentionally excluded from Git. After a
+fresh clone, create private working copies from the sanitized templates:
+
+```bash
+python3 scripts/initialize_profile.py
+```
+
+This creates only missing files and never overwrites existing profile data.
+
 ## Current interface
 
 Refresh its data from the repository root:
