@@ -33,6 +33,12 @@ Greenhouse and Lever APIs. Unknown or blocked sources stay in the manual capture
 queue. Redirects must remain on the approved allowlist, and access controls or
 rate limits are never bypassed.
 
+When an imported alert contains a direct link for a configured Greenhouse or
+Lever account, the posting enters a locked background safe-capture queue. One
+worker processes eligible postings sequentially, archives only complete job
+descriptions, and leaves failures visible for review or retry. Job-board links
+never enter this worker.
+
 ## Current interface
 
 Refresh its data from the repository root:

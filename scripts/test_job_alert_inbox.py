@@ -44,7 +44,7 @@ class JobAlertInboxTests(unittest.TestCase):
     def test_links_legacy_linkedin_comm_alert_to_browser_capture(self):
         with tempfile.TemporaryDirectory() as directory:
             store = AlertInboxStore(Path(directory) / "jobs.db")
-            store.connection.execute("INSERT INTO alert_jobs VALUES (?, ?, ?, ?, ?, ?, ?)", ("legacy", "linkedin", "AI Engineer", "https://www.linkedin.com/comm/jobs/view/12345", "needs_capture", "2026-07-21T00:00:00+00:00", None))
+            store.connection.execute("INSERT INTO alert_jobs(id,source,title,posting_url,status,received_at,lead_id) VALUES (?, ?, ?, ?, ?, ?, ?)", ("legacy", "linkedin", "AI Engineer", "https://www.linkedin.com/comm/jobs/view/12345", "needs_capture", "2026-07-21T00:00:00+00:00", None))
             store.connection.commit()
             store.mark_captured("linkedin", "https://www.linkedin.com/jobs/view/12345", "lead-123")
             job = store.list()[0]; self.assertEqual(job["status"], "captured"); self.assertEqual(job["lead_id"], "lead-123"); store.close()
@@ -65,6 +65,18 @@ class JobAlertInboxTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(ValueError, "complete job description"):
                 save_captured_posting({"source": "eluta", "company": "Example", "role": "Engineer", "posting_url": "https://www.eluta.ca/spl/job-123", "description_text": "Too short"}, Path(directory))
+
+    def test_only_safe_ats_links_enter_background_capture_queue(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = AlertInboxStore(Path(directory) / "jobs.db")
+            store.connection.execute("INSERT INTO alert_jobs(id,source,title,posting_url,status,received_at) VALUES ('safe','greenhouse','Engineer','https://job-boards.greenhouse.io/acme/jobs/12345','needs_capture','2026-07-21T00:00:00Z')")
+            store.connection.execute("INSERT INTO alert_jobs(id,source,title,posting_url,status,received_at) VALUES ('blocked','linkedin','Engineer','https://www.linkedin.com/jobs/view/1','needs_capture','2026-07-21T00:00:00Z')")
+            store.connection.commit()
+            self.assertEqual(store.queue_safe_captures(), ["safe"])
+            self.assertEqual(store.claim_safe_capture()["id"], "safe")
+            self.assertIsNone(store.claim_safe_capture())
+            self.assertEqual(store.get("blocked")["status"], "needs_capture")
+            store.close()
 
 
 if __name__ == "__main__": unittest.main()

@@ -33,9 +33,7 @@ from workflow_store import WorkflowStore
 from application_tracker import initial_tracker, update_tracker
 from discovery_store import DiscoveryStore
 from search_settings import load_search_settings, save_search_settings
-from collect_job_postings import CollectionError
 from job_alert_inbox import AlertInboxStore, canonical_job_url, save_captured_posting
-from safe_capture_enrichment import enrich_alert_posting
 from safe_capture_policy import capture_capability
 from interview_preparation import prepare_for_lead
 from build_strategy_with_codex import find_analysis
@@ -46,6 +44,13 @@ from profile_version import profile_version, analysis_profile_version
 
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def start_safe_capture_workers(store: AlertInboxStore) -> int:
+    queued = store.queue_safe_captures()
+    if queued:
+        subprocess.Popen([sys.executable, str(ROOT / "scripts/run_safe_capture_worker.py")], cwd=ROOT, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return len(queued)
 
 
 def master_profile_data() -> dict:
@@ -115,7 +120,9 @@ def gmail_alert_loop(database: Path) -> None:
         wait_seconds = 600
         try:
             config = load_gmail_config(config_path); wait_seconds = int(config.get("poll_minutes", 10)) * 60
-            if config.get("connected"): poll_gmail(config, store)
+            if config.get("connected"):
+                poll_gmail(config, store)
+                start_safe_capture_workers(store)
         except (OSError, ValueError, imaplib.IMAP4.error, json.JSONDecodeError):
             pass
         time.sleep(wait_seconds)
@@ -251,7 +258,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
                 posting_url = lead["source"]["posting_url"]
                 leads_by_url[(source, canonical_job_url(posting_url, source) or posting_url)] = lead["lead_id"]
             for job in jobs:
-                job["capture"] = capture_capability(job["posting_url"])
+                job["capture"] = {**capture_capability(job["posting_url"]), "status": job["status"], "error": job.get("capture_error")}
                 canonical = canonical_job_url(job["posting_url"], job["source"]) or job["posting_url"]
                 linked_lead = leads_by_url.get((job["source"], canonical))
                 if not job.get("lead_id") and linked_lead:
@@ -530,6 +537,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             length = int(self.headers.get("Content-Length", "0"))
             payload = json.loads(self.rfile.read(length) or b"{}")
             result = self.alert_store.import_alert(payload.get("source", ""), payload.get("content", ""))
+            result["safe_captures_queued"] = start_safe_capture_workers(self.alert_store)
         except (ValueError, json.JSONDecodeError, sqlite3.Error) as exc:
             self.respond(400, {"error": str(exc)})
             return
@@ -553,23 +561,14 @@ class WorkflowHandler(BaseHTTPRequestHandler):
     def safe_capture_alert(self, job_id: str) -> None:
         try:
             job = self.alert_store.get(job_id)
-            posting = enrich_alert_posting(
-                job,
-                ROOT / "strategy/job_sources.json",
-                ROOT / "data/raw-job-postings",
-                datetime.now(timezone.utc).isoformat(),
-            )
-            pipeline = subprocess.run([sys.executable, "scripts/run_job_discovery.py", "--skip-collection"], cwd=ROOT, check=True, capture_output=True, text=True)
-            subprocess.run([sys.executable, "scripts/export_dashboard_data.py"], cwd=ROOT, check=True, capture_output=True, text=True)
-            lead = next((item for item in load_leads(ROOT / "data/job-leads") if item["source"]["posting_url"] == posting["posting_url"]), None)
-            if not lead:
-                raise ValueError("The safely captured posting could not be linked to its job record.")
-            self.alert_store.mark_captured(job["source"], job["posting_url"], lead["lead_id"])
-        except (CollectionError, KeyError, ValueError, OSError, sqlite3.Error, subprocess.CalledProcessError) as exc:
-            detail = ((exc.stdout or "") + "\n" + (exc.stderr or "")).strip() if isinstance(exc, subprocess.CalledProcessError) else str(exc)
-            self.respond(400, {"error": detail[-2000:] or "Safe capture could not be completed."})
+            if capture_capability(job["posting_url"])["mode"] != "automatic_available":
+                self.respond(409, {"error": "This posting requires manual capture under safe capture mode."})
+                return
+            queued = start_safe_capture_workers(self.alert_store)
+        except (KeyError, ValueError, OSError, sqlite3.Error) as exc:
+            self.respond(400, {"error": str(exc)[-2000:] or "Safe capture could not be queued."})
             return
-        self.respond(201, {"status": "captured", "lead_id": lead["lead_id"], "pipeline": pipeline.stdout.strip()})
+        self.respond(202, {"status": "safe_capture_queued", "queued": queued})
 
     def connect_gmail_alerts(self) -> None:
         try:
@@ -577,7 +576,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             email = payload.get("email", ""); password = payload.get("app_password", ""); interval = int(payload.get("poll_minutes", 10))
             if len(password.replace(" ", "")) != 16: raise ValueError("Enter the 16-character Gmail app password, not your Google password.")
             normalized_email = email.strip().casefold(); keyring_set(normalized_email, password)
-            candidate = {"connected": True, "email": normalized_email, "poll_minutes": interval}; result = poll_gmail(candidate, self.alert_store)
+            candidate = {"connected": True, "email": normalized_email, "poll_minutes": interval}; result = poll_gmail(candidate, self.alert_store); result["safe_captures_queued"] = start_safe_capture_workers(self.alert_store)
             config = save_gmail_config(ROOT / "data/gmail-alerts.json", email, interval)
         except (OSError, ValueError, TypeError, json.JSONDecodeError, imaplib.IMAP4.error) as exc:
             self.respond(400, {"error": str(exc)}); return
@@ -587,7 +586,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         try:
             config = load_gmail_config(ROOT / "data/gmail-alerts.json")
             if not config["connected"]: raise ValueError("Connect Gmail first.")
-            result = poll_gmail(config, self.alert_store)
+            result = poll_gmail(config, self.alert_store); result["safe_captures_queued"] = start_safe_capture_workers(self.alert_store)
         except (OSError, ValueError, json.JSONDecodeError, imaplib.IMAP4.error) as exc:
             self.respond(400, {"error": str(exc)}); return
         self.respond(200, result)
@@ -1432,6 +1431,7 @@ def main() -> int:
     WorkflowHandler.alert_store = AlertInboxStore(args.database)
     WorkflowHandler.profile_store = ProfileRebuildStore(args.database)
     WorkflowHandler.leads_directory = args.leads
+    start_safe_capture_workers(WorkflowHandler.alert_store)
     threading.Thread(target=scheduled_discovery_loop, args=(args.database,), daemon=True).start()
     threading.Thread(target=gmail_alert_loop, args=(args.database,), daemon=True).start()
     server = HTTPServer((args.host, args.port), WorkflowHandler)
