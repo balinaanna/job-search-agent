@@ -45,6 +45,10 @@ def nested_ids(groups: Any) -> set[str]:
     return result
 
 
+def career_ids(career: dict[str, Any]) -> set[str]:
+    return ids(career.get("employment")) | ids(career.get("projects")) | ids(career.get("training_and_certifications"))
+
+
 def check_many(errors, values, valid, location):
     if not isinstance(values, list):
         return
@@ -89,7 +93,7 @@ def main() -> int:
     tech_ids = nested_ids(tech.get("technologies"))
     evidence_ids = ids(evidence.get("evidence"))
     story_ids = ids(stories.get("stories"))
-    all_ids = role_ids | project_ids | skill_ids | tech_ids | evidence_ids | story_ids
+    all_ids = career_ids(career) | skill_ids | tech_ids | evidence_ids | story_ids
 
     resume = strategy.get("resume_strategy", {})
     if isinstance(resume, dict):

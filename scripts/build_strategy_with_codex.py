@@ -69,19 +69,24 @@ to {analysis_path.relative_to(ROOT)}.
         strict_schema.write_text(
             json.dumps(strict_output_schema(load_json(SCHEMA_PATH))), encoding="utf-8"
         )
-        subprocess.run(
+        generated = subprocess.run(
             [codex, "exec", "--ephemeral", "--sandbox", "read-only", "--model", model,
              "--cd", str(ROOT), "--output-schema", str(strict_schema),
              "--output-last-message", str(result), prompt],
-            cwd=ROOT, check=True,
+            cwd=ROOT, capture_output=True, text=True,
         )
+        if generated.returncode:
+            raise ValueError("Strategy generation failed. Retry the strategy step.")
         strategy = json.loads(result.read_text(encoding="utf-8"))
     output = analysis_path.parent / "candidate_strategy.json"
     output.write_text(json.dumps(strategy, indent=2) + "\n", encoding="utf-8")
-    subprocess.run(
+    validation = subprocess.run(
         [os.sys.executable, "scripts/validate_candidate_strategy.py", str(output),
-         "--schema", str(SCHEMA_PATH)], cwd=ROOT, check=True,
+         "--schema", str(SCHEMA_PATH)], cwd=ROOT, capture_output=True, text=True,
     )
+    if validation.returncode:
+        details = (validation.stdout or validation.stderr).strip()
+        raise ValueError(details or "Generated strategy did not pass validation.")
     (analysis_path.parent / "candidate_strategy.md").write_text(
         render_markdown(strategy), encoding="utf-8"
     )
@@ -94,8 +99,12 @@ def main() -> int:
     parser.add_argument("--codex", default=os.environ.get("CODEX_EXECUTABLE", "/Applications/ChatGPT.app/Contents/Resources/codex"))
     parser.add_argument("--model", default=os.environ.get("JOB_STRATEGY_MODEL", "gpt-5.6-sol"))
     args = parser.parse_args()
-    print(build_strategy(args.lead_id, args.codex, args.model))
-    return 0
+    try:
+        print(build_strategy(args.lead_id, args.codex, args.model))
+        return 0
+    except (ValueError, OSError, json.JSONDecodeError) as exc:
+        print(f"Strategy could not be prepared: {exc}", file=os.sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

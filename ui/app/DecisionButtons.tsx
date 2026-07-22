@@ -29,10 +29,13 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`)
+    const load = () => fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`)
       .then((response) => response.ok ? response.json() : null)
       .then((run) => run?.status && setStatus(run.status))
       .catch(() => undefined);
+    void load();
+    const timer = window.setInterval(load, 2000);
+    return () => window.clearInterval(timer);
   }, [leadId]);
 
   async function decide(decision: "pursue" | "pass" | "decide_later") {
