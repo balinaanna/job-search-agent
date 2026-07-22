@@ -239,6 +239,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "application-context":
             self.get_application_context(parts[2])
             return
+        if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "strategy":
+            self.get_candidate_strategy(parts[2])
+            return
         if len(parts) == 4 and parts[:2] == ["api", "jobs"] and parts[3] == "job-posting":
             self.get_archived_posting(parts[2])
             return
@@ -896,6 +899,13 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
             self.respond(404, {"error": str(exc)}); return
         self.respond(200, {"mode": plan.get("application", {}).get("mode", "active_application"), "fit": manifest.get("fit", {})})
+
+    def get_candidate_strategy(self, lead_id: str) -> None:
+        try:
+            strategy = load_json(find_analysis(lead_id).parent / "candidate_strategy.json")
+        except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+            self.respond(404, {"error": f"Validated application strategy was not found: {exc}"}); return
+        self.respond(200, strategy)
 
     def get_archived_posting(self, lead_id: str) -> None:
         lead_path = self.leads_directory / f"{lead_id}.json"

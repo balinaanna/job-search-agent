@@ -16,6 +16,7 @@ type PackageData = { package: { company: string; role: string; package_version: 
 type AnswerPlan = { source_url?: string | null; answers: Array<{ question_id: string; question: string; category: string; status: string; proposed_answer: string | null; evidence_ids: string[]; reason: string }>; answers_approved?: boolean; submission_authorized: boolean };
 type BrowserFillReport = { filled: Array<{ question_id: string; label: string }>; uploaded?: Array<{ kind: string; filename: string; sha256: string }>; unmatched: Array<{ question_id: string; question: string }>; blockers: string[]; submit_clicked: boolean };
 type ApplicationTrackerData = { company: string; role: string; submitted_at_utc: string; confirmation_evidence: string; confirmation_reference: string; application_status: string; follow_up_date: string | null; expected_response_date: string | null; interview_stage: string | null; next_action: string; notes: string; history: Array<{ at_utc: string; status: string; note: string }> };
+type CandidateStrategy = { strategy_headline:string; source_analysis:{recommendation:string;total_score:number}; positioning:{positioning_statement:string;pillars:string[];differentiator:string}; hiring_manager_mindset:string[]; risks:{screening:Array<{risk:string;severity:string;mitigation:string}>}; resume_strategy:{target_identity:string;summary_focus:string[]}; interview_strategy?:{response_strategy?:string} };
 
 const labels: Record<string, string> = {
   pursue: "Pursue",
@@ -53,6 +54,7 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
   const [status, setStatus] = useState("analysis_completed");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [strategy, setStrategy] = useState<CandidateStrategy | null>(null);
 
   useEffect(() => {
     const load = () => fetch(`http://localhost:8787/api/jobs/${leadId}/workflow`)
@@ -63,6 +65,11 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
     const timer = window.setInterval(load, 2000);
     return () => window.clearInterval(timer);
   }, [leadId]);
+
+  useEffect(() => {
+    if (workflowStage(status) < 1 || ["pursue", "strategy_requested", "strategy_running", "strategy_failed"].includes(status)) return;
+    fetch(`http://localhost:8787/api/jobs/${leadId}/strategy`).then((response) => response.ok ? response.json() : null).then(setStrategy).catch(() => undefined);
+  }, [leadId, status]);
 
   async function decide(decision: "pursue" | "pass" | "decide_later") {
     setBusy(true);
@@ -84,7 +91,7 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
     }
   }
 
-  const inWorkspace = (action: ReactNode) => <ApplicationWorkspace status={status}>{action}</ApplicationWorkspace>;
+  const inWorkspace = (action: ReactNode) => <ApplicationWorkspace status={status}>{strategy&&<CandidateStrategyReview strategy={strategy} expanded={status==="strategy_completed"}/>} {action}</ApplicationWorkspace>;
 
   if (["pursue", "strategy_requested", "strategy_running", "strategy_failed", "strategy_completed", "resume_plan_requested", "resume_plan_running", "resume_plan_failed", "resume_plan_completed", "resume_draft_requested", "resume_draft_running", "resume_draft_failed", "resume_draft_completed", "resume_review_requested", "resume_review_running", "resume_review_failed"].includes(status)) return inWorkspace(<PrepareResumeForReview leadId={leadId} initialStatus={status} onStatus={setStatus} />);
   if (["resume_revision_completed", "resume_review_completed"].includes(status)) return inWorkspace(<ResumeReviewAction leadId={leadId} initialStatus={status} onStatus={setStatus} />);
@@ -116,6 +123,10 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
 }
 
 const workspaceStages = ["Analysis", "Strategy", "Resume", "Cover letter", "Package", "Apply"];
+function CandidateStrategyReview({ strategy, expanded }: { strategy:CandidateStrategy; expanded:boolean }) {
+  const recommendation = strategy.source_analysis.recommendation === "do_not_apply" ? "Do not apply" : strategy.source_analysis.recommendation.replaceAll("_", " ");
+  return <details className="candidate-strategy-review" open={expanded}><summary><div><span>APPLICATION STRATEGY</span><strong>{strategy.positioning.positioning_statement}</strong></div><b>{strategy.source_analysis.total_score}% verified fit · {recommendation}</b></summary><div className="candidate-strategy-body"><p className="strategy-headline">{strategy.strategy_headline}</p><section><h4>How to position your experience</h4><p>{strategy.positioning.differentiator}</p><ul>{strategy.positioning.pillars.map(item=><li key={item}>{item}</li>)}</ul></section><section><h4>What the hiring manager likely needs</h4><ul>{strategy.hiring_manager_mindset.slice(0,5).map(item=><li key={item}>{item}</li>)}</ul></section><section><h4>Main risks and honest response</h4><div className="strategy-risk-list">{strategy.risks.screening.slice(0,5).map(item=><article key={item.risk}><span>{item.severity}</span><div><strong>{item.risk}</strong><p>{item.mitigation}</p></div></article>)}</div></section><section><h4>Resume direction</h4><p>{strategy.resume_strategy.target_identity}</p><ul>{strategy.resume_strategy.summary_focus.map(item=><li key={item}>{item}</li>)}</ul></section>{strategy.interview_strategy?.response_strategy&&<section><h4>Interview direction</h4><p>{strategy.interview_strategy.response_strategy}</p></section>}</div></details>;
+}
 function workflowStage(status: string) {
   if (status === "application_submitted") return 6;
   if (status.startsWith("submission_") || status.startsWith("form_") || status.startsWith("application_answers")) return 5;
