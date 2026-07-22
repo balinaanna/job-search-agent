@@ -94,17 +94,25 @@ def join_results(
     }
     by_identity = {lead_identity(lead): lead for lead in leads}
     matched_ids: set[str] = set()
-    results: list[FitResult] = []
+    latest_by_lead: dict[str, tuple[tuple[int, int, int], FitResult]] = {}
 
-    for path, analysis in analyses:
+    for index, (path, analysis) in enumerate(analyses):
         source = analysis["job"].get("source")
         lead = by_source.get(source) if source else None
         if lead is None:
             lead = by_identity.get(analysis_identity(analysis))
         if lead is None:
             continue
-        matched_ids.add(lead["lead_id"])
-        results.append(FitResult(lead, analysis, path))
+        lead_id = lead["lead_id"]
+        matched_ids.add(lead_id)
+        canonical = int(path.parent.name == lead_id)
+        modified = path.stat().st_mtime_ns if path.exists() else 0
+        rank = (canonical, modified, index)
+        candidate = FitResult(lead, analysis, path)
+        if lead_id not in latest_by_lead or rank > latest_by_lead[lead_id][0]:
+            latest_by_lead[lead_id] = (rank, candidate)
+
+    results = [value[1] for value in latest_by_lead.values()]
 
     awaiting = [
         lead

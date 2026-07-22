@@ -87,6 +87,21 @@ class FitQueueTests(unittest.TestCase):
 
         self.assertEqual(results[0].lead["lead_id"], "second")
 
+    def test_reanalysis_replaces_legacy_analysis_for_same_job(self) -> None:
+        old = analysis_for(self.lead, 60, "selective_apply")
+        current = copy.deepcopy(old)
+        current["score"]["responsibilities_match"] = 23
+        current["score"]["total_score"] = 63
+        results, awaiting = join_results([
+            self.lead
+        ], [
+            (Path("legacy-job/analysis.json"), old),
+            (Path(self.lead["lead_id"]) / "analysis.json", current),
+        ])
+        self.assertEqual(1, len(results))
+        self.assertEqual(63, results[0].analysis["score"]["total_score"])
+        self.assertEqual([], awaiting)
+
 
 if __name__ == "__main__":
     unittest.main()
