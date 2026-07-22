@@ -164,6 +164,17 @@ def parse_alert(source: str, content: str) -> list[dict]:
     return list(unique.values())
 
 
+def normalize_posted_date(value: object) -> str | None:
+    if not isinstance(value, str) or not value.strip(): return None
+    supplied = value.strip()
+    try:
+        if "T" in supplied:
+            return datetime.fromisoformat(supplied.replace("Z", "+00:00")).date().isoformat()
+        return datetime.fromisoformat(supplied).date().isoformat()
+    except ValueError:
+        return None
+
+
 def save_captured_posting(payload: dict, output_directory: Path) -> Path:
     source = payload.get("source")
     if source not in SOURCES: raise ValueError("Capture source must be LinkedIn, Indeed, or Eluta.")
@@ -175,7 +186,7 @@ def save_captured_posting(payload: dict, output_directory: Path) -> Path:
     if len(required["description_text"]) < 200: raise ValueError("Capture the complete job description before importing.")
     if sourceFor := canonical_job_url(required["posting_url"], source): required["posting_url"] = sourceFor
     else: raise ValueError("The captured URL does not match its job source.")
-    posting = {**required, "application_url": payload.get("application_url") or required["posting_url"], "external_job_id": None, "platform": source, "location_raw": payload.get("location_raw"), "workplace_type_raw": payload.get("workplace_type_raw"), "employment_type_raw": payload.get("employment_type_raw"), "department": None, "salary": {"minimum": None, "maximum": None, "currency": None, "period": None, "source": None}, "posted_date": payload.get("posted_date"), "deadline": None, "collected_at": datetime.now(timezone.utc).isoformat(), "search_query": f"{source} job alert"}
+    posting = {**required, "application_url": payload.get("application_url") or required["posting_url"], "external_job_id": None, "platform": source, "location_raw": payload.get("location_raw"), "workplace_type_raw": payload.get("workplace_type_raw"), "employment_type_raw": payload.get("employment_type_raw"), "department": None, "salary": {"minimum": None, "maximum": None, "currency": None, "period": None, "source": None}, "posted_date": normalize_posted_date(payload.get("posted_date")), "deadline": None, "collected_at": datetime.now(timezone.utc).isoformat(), "search_query": f"{source} job alert"}
     output_directory.mkdir(parents=True, exist_ok=True)
     name = f"captured-{source}-{hashlib.sha256(required['posting_url'].encode()).hexdigest()[:20]}.json"
     path = output_directory / name; path.write_text(json.dumps(posting, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

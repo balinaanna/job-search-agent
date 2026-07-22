@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from job_alert_inbox import AlertInboxStore, anchor_metadata, company_like, parse_alert, save_captured_posting
+from job_alert_inbox import AlertInboxStore, anchor_metadata, company_like, normalize_posted_date, parse_alert, save_captured_posting
 
 
 class JobAlertInboxTests(unittest.TestCase):
@@ -128,6 +128,12 @@ class JobAlertInboxTests(unittest.TestCase):
             path = save_captured_posting({"source": "linkedin", "company": "Example AI", "role": "AI Engineer", "posting_url": "https://www.linkedin.com/jobs/view/12345?tracking=x", "description_text": "Build trustworthy AI products. " * 20, "location_raw": "Canada (Remote)"}, Path(directory))
             self.assertTrue(path.exists())
             self.assertIn('"platform": "linkedin"', path.read_text())
+
+    def test_normalizes_schema_org_posted_timestamp_to_date(self):
+        self.assertEqual(normalize_posted_date("2026-07-14T01:29:13.931Z"), "2026-07-14")
+        self.assertEqual(normalize_posted_date("2026-07-14T18:30:00-07:00"), "2026-07-14")
+        self.assertEqual(normalize_posted_date("2026-07-14"), "2026-07-14")
+        self.assertIsNone(normalize_posted_date("posted recently"))
 
     def test_rejects_incomplete_capture(self):
         with tempfile.TemporaryDirectory() as directory:

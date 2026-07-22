@@ -179,7 +179,13 @@ def run_pipeline(
         render_shortlist([lead for _, lead in leads]),
         encoding="utf-8",
     )
-    analyses = load_valid_analyses(analyses_directory, evidence_path)
+    # Profile rebuilds can make older analyses stale. They remain useful for
+    # display and re-analysis prompts, and must not block unrelated job intake.
+    analyses = load_valid_analyses(
+        analyses_directory,
+        evidence_path,
+        allow_stale_evidence=True,
+    )
     fit_results, awaiting = join_results(
         [lead for _, lead in leads], analyses
     )
