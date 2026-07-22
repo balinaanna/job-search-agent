@@ -94,6 +94,7 @@ h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .resume-review>header span { color:var(--green); font-size:12px; letter-spacing:.11em; font-weight:800; }
 .resume-review>header strong { font:600 22px Georgia,serif; }
 .resume-review>header b { padding:5px 8px; border-radius:12px; background:var(--mint); color:var(--green); font-size:12px; text-transform:capitalize; }
+.resume-review>.review-score-context { margin-top:-5px; color:#6b7872; font-size:12px; line-height:1.45; }
 .resume-review>p { margin:0; color:#4f5d57; font-size:13px; line-height:1.55; }
 .resume-review details { border-top:1px solid var(--line); padding-top:11px; }
 .resume-review summary { cursor:pointer; color:#34443d; font-size:13px; font-weight:750; }

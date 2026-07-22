@@ -413,7 +413,8 @@ function ResumeReviewAction({ leadId, initialStatus, onStatus }: { leadId: strin
   if (!review) return <div className="strategy-action"><div><strong>Resume draft ready</strong><span>{message}</span></div><button disabled={Boolean(working)} onClick={startReview}>{working ? "Reviewing resume…" : "Review resume"}</button></div>;
 
   return <section className="resume-review">
-    <header><div><span>RECRUITER-STYLE REVIEW</span><strong>{review.review.review_score.total}/100</strong></div><b>{review.review.verdict.replaceAll("_", " ")}</b></header>
+    <header><div><span>TAILORED RESUME QUALITY</span><strong>{review.review.review_score.total}/100</strong></div><b>{review.review.verdict.replaceAll("_", " ")}</b></header>
+    <small className="review-score-context">Recruiter-style assessment of this resume draft. This score measures document quality, not your fit for the job.</small>
     <p>{review.review.first_impression}</p>
     <details><summary>Read tailored resume</summary><TailoredResumePreview markdown={review.resume}/></details>
     <details open={review.review.findings.some((item) => ["critical", "high"].includes(item.severity))}><summary>Review findings ({review.review.findings.length})</summary>
