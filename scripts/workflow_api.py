@@ -281,6 +281,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
                         "posted_date": linked_lead["application"].get("posted_date"),
                         "first_seen_at": linked_lead["source"].get("first_seen_at") or linked_lead["source"].get("collected_at"),
                         "discovery_score": linked_lead["discovery"].get("preliminary_score"),
+                        "screening_result": linked_lead["discovery"].get("hard_filter_result"),
+                        "screening_reasons": linked_lead["discovery"].get("hard_filter_reasons", []),
+                        "analysis_prioritized": linked_lead["discovery"].get("full_analysis_recommended") is True,
                     }
                 run = self.store.latest_for_lead(job["lead_id"]) if job.get("lead_id") else None
                 job["workflow_status"] = run["status"] if run else "not_started"
