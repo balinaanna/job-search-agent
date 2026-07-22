@@ -109,6 +109,7 @@ h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .review-findings p.finding-impact { margin-top:5px; padding:6px 8px; border-radius:5px; background:#f5f7f6; color:#58665f; }
 .review-findings small,.evidence-trace small { color:var(--muted); font-size:12px; line-height:1.4; }
 .resume-review>label { display:grid; gap:6px; color:#34443d; font-size:12px; font-weight:700; }
+.resume-review>label span small { margin-left:4px; color:var(--muted); font-weight:500; }
 .resume-review textarea { min-height:72px; resize:vertical; padding:10px; border:1px solid var(--line); border-radius:7px; background:#fff; color:var(--ink); font:13px/1.45 Arial,sans-serif; }
 .review-actions { display:flex; justify-content:flex-end; gap:8px; }
 .review-actions button { padding:9px 12px; border:1px solid var(--line); border-radius:7px; background:#fff; color:#4e5c56; font-size:12px; font-weight:750; }

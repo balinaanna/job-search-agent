@@ -91,6 +91,20 @@ def can_request_analysis(lead_status: str) -> bool:
     return lead_status not in {"archived", "closed", "applied", "pass"}
 
 
+def revision_instructions(review: dict, user_notes: str, document_name: str) -> str:
+    instructions = []
+    for finding in review.get("findings", []):
+        instruction = str(finding.get("revision_instruction", "")).strip()
+        if instruction:
+            location = finding.get("location") or finding.get("paragraph_id") or finding.get("finding_id") or "review finding"
+            instructions.append(f"- {location}: {instruction}")
+    if user_notes.strip():
+        instructions.append(f"- Additional user direction: {user_notes.strip()}")
+    if not instructions:
+        return ""
+    return f"Revise the {document_name} using the authorized review findings:\n" + "\n".join(instructions)
+
+
 def archived_posting(lead: dict) -> dict:
     return {
         "lead_id": lead["lead_id"], "company": lead["identity"]["company"], "title": lead["position"]["title"],
@@ -1070,15 +1084,17 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if action not in {"approve", "request_revision"} or not isinstance(notes, str):
             self.respond(400, {"error": "Choose approve or request_revision and provide text notes."})
             return
-        if action == "request_revision" and not notes.strip():
-            self.respond(400, {"error": "Tell the agent what you want changed."})
+        try:
+            review = load_json(find_workspace(lead_id) / "resume_review.json")
+        except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+            self.respond(409, {"error": str(exc)})
             return
-        if action == "approve":
-            try:
-                review = load_json(find_workspace(lead_id) / "resume_review.json")
-            except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
-                self.respond(409, {"error": str(exc)})
+        if action == "request_revision":
+            notes = revision_instructions(review, notes, "resume")
+            if not notes:
+                self.respond(400, {"error": "Add a note because this review has no revision findings."})
                 return
+        if action == "approve":
             summary = review.get("validation_summary", {})
             if review.get("verdict") != "ready" or review.get("review_score", {}).get("total", 0) < 90 or summary.get("critical_count") or summary.get("high_count"):
                 self.respond(409, {"error": "Resolve the review findings and reach a Ready verdict before approval."})
@@ -1259,14 +1275,16 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if action not in {"approve", "request_revision"} or not isinstance(notes, str):
             self.respond(400, {"error": "Choose approve or request_revision."})
             return
-        if action == "request_revision" and not notes.strip():
-            self.respond(400, {"error": "Tell the agent what you want changed."})
-            return
         run = self.store.latest_for_lead(lead_id)
         if run is None or run["status"] != "cover_letter_review_completed":
             self.respond(409, {"error": "Complete the cover letter review before making this decision."})
             return
         review = load_json(find_workspace(lead_id) / "cover_letter_review.json")
+        if action == "request_revision":
+            notes = revision_instructions(review, notes, "cover letter")
+            if not notes:
+                self.respond(400, {"error": "Add a note because this review has no revision findings."})
+                return
         blocking = any(item.get("severity") in {"critical", "high"} for item in review.get("findings", []))
         if action == "request_revision" and review.get("verdict") == "ready":
             self.respond(409, {"error": "This review is Ready and does not authorize a revision. Approve the letter instead."})

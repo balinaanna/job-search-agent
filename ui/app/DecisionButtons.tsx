@@ -428,8 +428,8 @@ function ResumeReviewAction({ leadId, initialStatus, onStatus }: { leadId: strin
       <div className="review-findings">{review.review.findings.length ? review.review.findings.map((item) => <article key={item.finding_id}><span className={item.severity}>{item.severity}</span><strong>{item.location}</strong><p>{item.problem}</p><small>{item.revision_instruction}</small></article>) : <p>No revision findings.</p>}</div>
     </details>
     <details><summary>Evidence trace ({review.trace.elements.length} resume elements)</summary><div className="evidence-trace">{review.trace.elements.filter((item) => item.evidence_ids.length).map((item) => <article key={item.element_id}><p>{item.final_text}</p><small>Evidence: {item.evidence_ids.join(", ")}</small></article>)}</div></details>
-    <label><span>Revision notes</span><textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Tell the agent what should change before you approve this resume." /></label>
-    <div className="review-actions"><button disabled={busy || !notes.trim()} onClick={() => decide("request_revision")}>Request revision</button><button className="approve" disabled={busy} onClick={() => decide("approve")}>Approve resume</button></div>
+    <label><span>Additional revision notes <small>Optional</small></span><textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Add a specific correction or preference. The review findings will be applied automatically." /></label>
+    <div className="review-actions"><button disabled={busy || (!notes.trim() && review.review.findings.length === 0)} onClick={() => decide("request_revision")}>{review.review.findings.length ? "Revise using findings" : "Request revision"}</button><button className="approve" disabled={busy} onClick={() => decide("approve")}>Approve resume</button></div>
     {message && <small role="status">{message}</small>}
   </section>;
 }
@@ -735,9 +735,9 @@ function CoverLetterReviewAction({ leadId, initialStatus, onStatus }: { leadId: 
     <details><summary>Read cover letter</summary><CoverLetterPreview letter={data.letter}/></details>
     <details open={data.review.findings.some((item) => ["critical", "high"].includes(item.severity))}><summary>Review findings ({data.review.findings.length})</summary><div className="review-findings">{data.review.findings.length ? data.review.findings.map((item) => <article key={item.finding_id}><span className={item.severity}>{item.severity}</span><strong>{item.paragraph_id}</strong><p>{item.issue}</p>{item.impact&&<p className="finding-impact"><b>Impact:</b> {item.impact}</p>}<small>{item.revision_instruction}</small></article>) : <p>No revision findings.</p>}</div></details>
     <details><summary>Evidence trace ({data.trace.paragraphs.length} paragraphs)</summary><div className="evidence-trace">{data.trace.paragraphs.map((item) => <article key={item.paragraph_id}><p>{item.text}</p><small>Evidence: {item.evidence_ids.join(", ")}</small></article>)}</div></details>
-    <label><span>Revision notes</span><textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Tell the agent what should change before approval." /></label>
-    <div className="review-actions"><button disabled={busy || !notes.trim() || data.review.verdict === "ready"} onClick={() => decide("request_revision")}>Request revision</button><button className="approve" disabled={busy || data.review.verdict !== "ready"} onClick={() => decide("approve")}>Approve cover letter</button></div>
-    {data.review.verdict !== "ready" && <small>Resolve the review findings before approval.</small>}{message && <small role="status">{message}</small>}
+    <label><span>Additional revision notes <small>Optional</small></span><textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Add a specific correction or preference. The review findings will be applied automatically." /></label>
+    <div className="review-actions"><button disabled={busy || data.review.verdict === "ready" || (!notes.trim() && data.review.findings.length === 0)} onClick={() => decide("request_revision")}>Revise using findings</button><button className="approve" disabled={busy || data.review.verdict !== "ready"} onClick={() => decide("approve")}>Approve cover letter</button></div>
+    {data.review.verdict !== "ready" && <small>Use “Revise using findings.” The agent will apply the review instructions, then run the quality review again.</small>}{message && <small role="status">{message}</small>}
   </section>;
 }
 
