@@ -60,6 +60,24 @@ class JobAlertInboxTests(unittest.TestCase):
             self.assertEqual(job["location"], "Vancouver, BC")
             store.close()
 
+    def test_store_consolidates_legacy_url_aliases_without_losing_capture(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "jobs.db"
+            store = AlertInboxStore(path)
+            store.connection.execute("INSERT INTO alert_jobs(id,source,title,posting_url,status,received_at,company) VALUES ('legacy','linkedin','AI Engineer','https://www.linkedin.com/comm/jobs/view/ai-engineer-12345?tracking=x','needs_capture','2026-07-20T00:00:00Z','Example AI')")
+            store.connection.execute("INSERT INTO alert_jobs(id,source,title,posting_url,status,received_at,lead_id,location) VALUES ('current','linkedin','AI Engineer','https://www.linkedin.com/jobs/view/12345','captured','2026-07-21T00:00:00Z','lead-123','Vancouver, BC')")
+            store.connection.commit(); store.close()
+
+            reopened = AlertInboxStore(path)
+            jobs = reopened.list()
+            self.assertEqual(len(jobs), 1)
+            self.assertEqual(jobs[0]["posting_url"], "https://www.linkedin.com/jobs/view/12345")
+            self.assertEqual(jobs[0]["status"], "captured")
+            self.assertEqual(jobs[0]["lead_id"], "lead-123")
+            self.assertEqual(jobs[0]["company"], "Example AI")
+            self.assertEqual(jobs[0]["location"], "Vancouver, BC")
+            reopened.close()
+
     def test_links_captured_alert_to_generated_lead(self):
         with tempfile.TemporaryDirectory() as directory:
             store = AlertInboxStore(Path(directory) / "jobs.db")

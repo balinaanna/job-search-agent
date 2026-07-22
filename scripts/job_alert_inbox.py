@@ -173,7 +173,32 @@ class AlertInboxStore:
         if "location" not in columns: self.connection.execute("ALTER TABLE alert_jobs ADD COLUMN location TEXT")
         if "email_excerpt" not in columns: self.connection.execute("ALTER TABLE alert_jobs ADD COLUMN email_excerpt TEXT")
         self.connection.execute("""CREATE TABLE IF NOT EXISTS gmail_alert_messages (uid TEXT PRIMARY KEY, processed_at TEXT NOT NULL)""")
+        self._consolidate_url_aliases()
         self.connection.commit()
+    def _consolidate_url_aliases(self) -> int:
+        """Merge legacy URL variants that identify the same board posting."""
+        rows = self.connection.execute("SELECT * FROM alert_jobs ORDER BY received_at").fetchall()
+        groups: dict[tuple[str, str], list[sqlite3.Row]] = {}
+        for row in rows:
+            canonical = canonical_job_url(row["posting_url"], row["source"]) or row["posting_url"]
+            groups.setdefault((row["source"], canonical), []).append(row)
+        removed = 0
+        for (_, canonical), matches in groups.items():
+            if len(matches) < 2:
+                continue
+            survivor = max(matches, key=lambda row: (row["status"] == "captured", bool(row["lead_id"]), row["received_at"]))
+            others = [row for row in matches if row["id"] != survivor["id"]]
+            def first_value(name: str):
+                return next((row[name] for row in [survivor, *others] if row[name]), None)
+            self.connection.executemany("DELETE FROM alert_jobs WHERE id=?", [(row["id"],) for row in others])
+            self.connection.execute("""UPDATE alert_jobs SET posting_url=?, title=?, company=?, location=?, email_excerpt=?,
+              lead_id=?, capture_error=?, capture_updated_at=? WHERE id=?""", (
+                canonical, first_value("title"), first_value("company"), first_value("location"),
+                first_value("email_excerpt"), first_value("lead_id"), first_value("capture_error"),
+                first_value("capture_updated_at"), survivor["id"],
+            ))
+            removed += len(others)
+        return removed
     def import_alert(self, source: str, content: str) -> dict:
         jobs = parse_alert(source, content); added = 0; timestamp = datetime.now(timezone.utc).isoformat()
         with self.connection:

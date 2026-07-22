@@ -589,7 +589,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         try:
             config = load_gmail_config(ROOT / "data/gmail-alerts.json")
             if not config["connected"]: raise ValueError("Connect Gmail first.")
-            result = poll_gmail(config, self.alert_store, reprocess_processed=True); result["safe_captures_queued"] = start_safe_capture_workers(self.alert_store)
+            result = poll_gmail(config, self.alert_store); result["safe_captures_queued"] = start_safe_capture_workers(self.alert_store)
         except (OSError, ValueError, json.JSONDecodeError, imaplib.IMAP4.error) as exc:
             self.respond(400, {"error": str(exc)}); return
         self.respond(200, result)
