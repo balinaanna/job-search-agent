@@ -579,7 +579,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             email = payload.get("email", ""); password = payload.get("app_password", ""); interval = int(payload.get("poll_minutes", 10))
             if len(password.replace(" ", "")) != 16: raise ValueError("Enter the 16-character Gmail app password, not your Google password.")
             normalized_email = email.strip().casefold(); keyring_set(normalized_email, password)
-            candidate = {"connected": True, "email": normalized_email, "poll_minutes": interval}; result = poll_gmail(candidate, self.alert_store); result["safe_captures_queued"] = start_safe_capture_workers(self.alert_store)
+            candidate = {"connected": True, "email": normalized_email, "poll_minutes": interval}; result = poll_gmail(candidate, self.alert_store, reprocess_processed=True); result["safe_captures_queued"] = start_safe_capture_workers(self.alert_store)
             config = save_gmail_config(ROOT / "data/gmail-alerts.json", email, interval)
         except (OSError, ValueError, TypeError, json.JSONDecodeError, imaplib.IMAP4.error) as exc:
             self.respond(400, {"error": str(exc)}); return
@@ -589,7 +589,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         try:
             config = load_gmail_config(ROOT / "data/gmail-alerts.json")
             if not config["connected"]: raise ValueError("Connect Gmail first.")
-            result = poll_gmail(config, self.alert_store); result["safe_captures_queued"] = start_safe_capture_workers(self.alert_store)
+            result = poll_gmail(config, self.alert_store, reprocess_processed=True); result["safe_captures_queued"] = start_safe_capture_workers(self.alert_store)
         except (OSError, ValueError, json.JSONDecodeError, imaplib.IMAP4.error) as exc:
             self.respond(400, {"error": str(exc)}); return
         self.respond(200, result)

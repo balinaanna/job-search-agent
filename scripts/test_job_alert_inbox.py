@@ -46,6 +46,20 @@ class JobAlertInboxTests(unittest.TestCase):
             self.assertEqual(result["added"], 0); self.assertEqual(result["duplicates"], 1)
             store.close()
 
+    def test_duplicate_import_backfills_missing_email_metadata(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = AlertInboxStore(Path(directory) / "jobs.db")
+            url = "https://www.linkedin.com/jobs/view/12345"
+            store.connection.execute("INSERT INTO alert_jobs(id,source,title,posting_url,status,received_at) VALUES ('old','linkedin','AI Engineer',?,'needs_capture','2026-07-21T00:00:00Z')", (url,))
+            store.connection.commit()
+            content = f'<div><a href="{url}">AI Engineer</a></div><div>Example AI</div><div>Vancouver, BC</div>'
+            result = store.import_alert("linkedin", content)
+            self.assertEqual(result["added"], 0)
+            job = store.get("old")
+            self.assertEqual(job["company"], "Example AI")
+            self.assertEqual(job["location"], "Vancouver, BC")
+            store.close()
+
     def test_links_captured_alert_to_generated_lead(self):
         with tempfile.TemporaryDirectory() as directory:
             store = AlertInboxStore(Path(directory) / "jobs.db")

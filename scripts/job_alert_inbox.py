@@ -181,6 +181,11 @@ class AlertInboxStore:
                 job_id = hashlib.sha256(job["posting_url"].encode()).hexdigest()[:20]
                 cursor = self.connection.execute("INSERT OR IGNORE INTO alert_jobs(id,source,title,posting_url,status,received_at,company,location,email_excerpt) VALUES (?, ?, ?, ?, 'needs_capture', ?, ?, ?, ?)", (job_id, job["source"], job["title"], job["posting_url"], timestamp, job.get("company"), job.get("location"), job.get("email_excerpt")))
                 added += cursor.rowcount
+                if cursor.rowcount == 0:
+                    self.connection.execute("""UPDATE alert_jobs SET
+                      company=COALESCE(company, ?), location=COALESCE(location, ?),
+                      email_excerpt=COALESCE(email_excerpt, ?)
+                      WHERE posting_url=?""", (job.get("company"), job.get("location"), job.get("email_excerpt"), job["posting_url"]))
         return {"found": len(jobs), "added": added, "duplicates": len(jobs) - added, "jobs": self.list()}
     def list(self) -> list[dict]:
         rows = self.connection.execute("SELECT * FROM alert_jobs ORDER BY received_at DESC").fetchall()

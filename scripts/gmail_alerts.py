@@ -47,7 +47,7 @@ def source_from_message(sender: str, subject: str) -> str | None:
     return next((source for source in ("linkedin", "indeed", "eluta") if source in value), None)
 
 
-def poll_gmail(config: dict, store: AlertInboxStore, password_getter: Callable[[str], str | None] = keyring_get) -> dict:
+def poll_gmail(config: dict, store: AlertInboxStore, password_getter: Callable[[str], str | None] = keyring_get, reprocess_processed: bool = False) -> dict:
     password = password_getter(config["email"])
     if not password: raise ValueError("Gmail app password is missing from Keychain.")
     client = imaplib.IMAP4_SSL("imap.gmail.com", 993)
@@ -58,14 +58,15 @@ def poll_gmail(config: dict, store: AlertInboxStore, password_getter: Callable[[
         if status != "OK": raise ValueError("Gmail could not search the inbox.")
         for uid in (data[0] or b"").split()[-100:]:
             uid_text = uid.decode();
-            if store.gmail_processed(uid_text): continue
+            already_processed = store.gmail_processed(uid_text)
+            if already_processed and not reprocess_processed: continue
             status, body = client.uid("fetch", uid, "(BODY.PEEK[])")
             if status != "OK" or not body or not isinstance(body[0], tuple): continue
             raw = body[0][1]; message = BytesParser(policy=policy.default).parsebytes(raw)
             source = source_from_message(str(message.get("From", "")), str(message.get("Subject", "")))
             if not source: continue
             result = store.import_alert(source, raw.decode("utf-8", errors="replace")); imported += result["added"]; messages += 1
-            store.mark_gmail_processed(uid_text)
+            if not already_processed: store.mark_gmail_processed(uid_text)
     finally:
         try: client.logout()
         except imaplib.IMAP4.error: pass
