@@ -258,14 +258,24 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             for lead in load_leads(self.leads_directory):
                 source = lead["source"].get("platform")
                 posting_url = lead["source"]["posting_url"]
-                leads_by_url[(source, canonical_job_url(posting_url, source) or posting_url)] = lead["lead_id"]
+                leads_by_url[(source, canonical_job_url(posting_url, source) or posting_url)] = lead
             for job in jobs:
                 job["capture"] = {**capture_capability(job["posting_url"]), "status": job["status"], "error": job.get("capture_error")}
                 job["preliminary_fit"] = score_alert_metadata(job, criteria)
                 canonical = canonical_job_url(job["posting_url"], job["source"]) or job["posting_url"]
                 linked_lead = leads_by_url.get((job["source"], canonical))
-                if not job.get("lead_id") and linked_lead:
-                    self.alert_store.mark_captured(job["source"], job["posting_url"], linked_lead); job["status"] = "captured"; job["lead_id"] = linked_lead
+                if linked_lead:
+                    lead_id = linked_lead["lead_id"]
+                    if not job.get("lead_id"):
+                        self.alert_store.mark_captured(job["source"], job["posting_url"], lead_id); job["status"] = "captured"; job["lead_id"] = lead_id
+                    job["captured_job"] = {
+                        "company": linked_lead["identity"]["company"],
+                        "role": linked_lead["identity"]["role"],
+                        "location": linked_lead["location"].get("raw"),
+                        "posted_date": linked_lead["application"].get("posted_date"),
+                        "first_seen_at": linked_lead["source"].get("first_seen_at") or linked_lead["source"].get("collected_at"),
+                        "discovery_score": linked_lead["discovery"].get("preliminary_score"),
+                    }
                 run = self.store.latest_for_lead(job["lead_id"]) if job.get("lead_id") else None
                 job["workflow_status"] = run["status"] if run else "not_started"
             self.respond(200, {"jobs": jobs})
