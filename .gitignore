@@ -22,6 +22,7 @@ profile/*.yaml
 data/jobs.db
 data/gmail-alerts.json
 data/discovery-source-report.json
+data/analysis_provider.txt
 data/profile-rebuilds/
 data/job-leads/*
 !data/job-leads/.gitkeep

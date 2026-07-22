@@ -1,31 +1,88 @@
 {
-  "generatedAt": "2026-07-21T21:25:00.688050+00:00",
+  "generatedAt": "2026-07-22T16:34:24.594021+00:00",
   "summary": {
-    "discovered": 243,
-    "awaitingAnalysis": 19,
-    "readyToPursue": 0,
-    "stretch": 1,
+    "discovered": 255,
+    "awaitingAnalysis": 16,
+    "readyToPursue": 4,
+    "stretch": 5,
     "applicationsInProgress": 0
   },
   "analyzedJobs": [
     {
-      "id": "durable-ai-engineer-cbcdae5f57",
-      "company": "Durable",
-      "role": "AI Engineer",
-      "location": "Vancouver",
-      "postingUrl": "https://job-boards.greenhouse.io/durable/jobs/5156304008",
-      "postedDate": "2026-03-17",
-      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
-      "discoveryScore": 96,
-      "fitScore": 60,
-      "recommendation": "selective_apply",
+      "id": "jobgether-software-engineer-frontend-aeac6df26b",
+      "company": "Jobgether",
+      "role": "Software Engineer, Frontend",
+      "location": "Unspecified",
+      "postingUrl": "https://www.linkedin.com/jobs/view/4442006856",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-21T17:38:49.655955+00:00",
+      "discoveryScore": 88,
+      "fitScore": 79,
+      "recommendation": "apply",
       "reasons": [
-        "Anna combines earlier professional full-stack engineering with a current AI-assisted application she can demonstrate.",
-        "Her verified experience spans user-facing interfaces, APIs, backend logic, data, testing, and integrated SaaS systems.",
-        "Richmond-based Canadian work authorization and quarterly Vancouver attendance align well with the stated logistics."
+        "Direct professional React and JavaScript/TypeScript product-development experience.",
+        "Strong design-system experience spanning web, mobile, and Chrome-extension surfaces.",
+        "Verified real-time workflows, frontend debugging, Lighthouse use, testing support, and issue resolution."
       ],
-      "risk": "Durable appears to want a senior engineer with deep current React/Next.js/TypeScript skills and AI patterns already shipped at production scale; the verified evidence does not support those claims.",
-      "nextAction": "Treat this as a selective stretch application. Before preparing materials, Anna should decide whether she is comfortable with the quarterly attendance and a technical screen centered on current React/TypeScript and production AI systems."
+      "risk": "The employer may prefer a currently specialized frontend engineer with demonstrated high-traffic scale and deeper recent automated-testing experience; Anna's strongest directly verified React employment ended in 2021.",
+      "nextAction": "Apply selectively if Anna is comfortable returning to a role centered on daily frontend development. If proceeding later, prioritize Dooly product-engineering evidence and keep claims about scale, testing depth, cross-browser optimization, and recency precise."
+    },
+    {
+      "id": "cohere-software-engineer-agents-automations-5d6d778bb2",
+      "company": "Cohere",
+      "role": "Software Engineer, Agents & Automations",
+      "location": "Unspecified",
+      "postingUrl": "https://www.linkedin.com/jobs/view/4427718705",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-22T06:52:04.707252+00:00",
+      "discoveryScore": 89,
+      "fitScore": 77,
+      "recommendation": "apply",
+      "reasons": [
+        "Direct full-stack production software experience across frontend, backend, APIs, databases, testing, deployment support, and debugging.",
+        "Direct React, TypeScript, and PostgreSQL evidence aligns with most of the stated stack.",
+        "Recent Python AI-assisted application work provides credible experience translating natural-language needs into an automated decision workflow."
+      ],
+      "risk": "Anna lacks verified production-scale agent-platform, execution-engine, evaluation, observability, and Kubernetes experience, and her recent engineering work is smaller in scale than Cohere's enterprise platform context.",
+      "nextAction": "Apply selectively if Anna wants an engineering-centred role. Before tailoring any materials, confirm that returning to daily full-stack development fits her current direction, then seek explicit approval for a separate tailoring workflow."
+    },
+    {
+      "id": "emterra-group-business-analyst-3723007fad",
+      "company": "Emterra Group",
+      "role": "Business Analyst",
+      "location": "Surrey, BC, CA",
+      "postingUrl": "https://ca.indeed.com/viewjob?jk=c546d3b541abde9b",
+      "postedDate": "2026-07-17",
+      "firstSeenAt": "2026-07-22T16:30:07.586397+00:00",
+      "discoveryScore": 59,
+      "fitScore": 76,
+      "recommendation": "apply",
+      "reasons": [
+        "Direct Business Analyst experience in requirements, workflows, specifications, stakeholder discussions, and cross-functional delivery",
+        "Current verified AI workflow and Python application experience",
+        "Strong SQL, systems investigation, reporting, and data-validation evidence"
+      ],
+      "risk": "The job's most visible deliverables include advanced Power BI dashboards and AI chatbots, while Anna has only transferable evidence for those specific platforms and capabilities.",
+      "nextAction": "Apply selectively if the employer accepts adjacent dashboard and AI-application experience. Before investing in the required assessment, confirm that advanced Power BI and production chatbot delivery are not strict screening requirements; do not submit anything without explicit approval."
+    },
+    {
+      "id": "amazon-front-end-engineer-chronicle-analytics-eb95c58058",
+      "company": "Amazon",
+      "role": "Front End Engineer, Chronicle Analytics",
+      "location": "Unspecified",
+      "postingUrl": "https://www.linkedin.com/jobs/view/4443021611",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-22T16:01:49.669073+00:00",
+      "discoveryScore": 47,
+      "fitScore": 73,
+      "recommendation": "apply",
+      "reasons": [
+        "Direct professional React, JavaScript/TypeScript, HTML, and CSS experience satisfies the core technical screen.",
+        "Verified full-stack work covers frontend, backend, APIs, data, testing, debugging, and real-time product workflows.",
+        "Strong experience translating requirements and collaborating with Product, UX, customers, and engineering teams."
+      ],
+      "risk": "The posting expects architecture-level ownership and engineering mentorship that Anna cannot claim, while the role's coding-heavy focus is not her preferred career direction.",
+      "nextAction": "Apply if Anna is genuinely open to a predominantly hands-on frontend engineering role, positioning the application around React product delivery, design systems, cross-layer troubleshooting, and requirements translation while leaving architecture ownership and mentoring unclaimed."
     },
     {
       "id": "zipline-intermediate-front-end-software-engineer-986cdcb24c",
@@ -36,15 +93,186 @@
       "postedDate": null,
       "firstSeenAt": "2026-07-21T17:39:39.454019+00:00",
       "discoveryScore": 72,
-      "fitScore": 56,
+      "fitScore": 70,
       "recommendation": "do_not_apply",
       "reasons": [
-        "Professional software-engineering experience includes frontend implementation, troubleshooting, testing, and cross-functional SaaS delivery.",
-        "Experienced use of JavaScript, HTML, and CSS is verified across professional and current project contexts.",
-        "UX experience provides strong evidence of interface judgment, prototyping, usability work, and balancing design constraints."
+        "Direct professional experience with Ruby on Rails, JavaScript/TypeScript, HTML, CSS, React, and SaaS product engineering.",
+        "Strong design-system evidence using Figma, React, Tailwind CSS, Storybook, and Zeroheight.",
+        "Verified UX judgment, prototyping, accessibility, Lighthouse-based improvement, and cross-functional collaboration."
       ],
-      "risk": "The core screening stack—Ruby on Rails, Hotwire/Turbo/Stimulus, View Components, and Lookbook—is unsupported by the verified evidence, so a truthful application would not meet several explicit must-haves.",
-      "nextAction": "Do not apply. Prioritize remote roles that use Anna's technical and UX background in systems analysis, implementation, application support, product operations, or other people-facing work without mandatory Rails and Hotwire expertise."
+      "risk": "The role explicitly requires hands-on Hotwire plus View Components and Lookbook, none of which is supported by verified evidence; these are central rather than peripheral tool gaps.",
+      "nextAction": "Do not prioritize this application. Focus on roles aligned with Anna's target direction, or reconsider only if she deliberately wants a front-end engineering role and can add verified professional Hotwire evidence without exaggeration."
+    },
+    {
+      "id": "ba-blacktop-ai-support-assistant-988f49486b",
+      "company": "BA Blacktop",
+      "role": "AI Support Assistant",
+      "location": "Vancouver, BC, CA",
+      "postingUrl": "https://ca.indeed.com/viewjob?jk=187f781b1cb95c8b",
+      "postedDate": "2026-07-20",
+      "firstSeenAt": "2026-07-22T06:13:24.841612+00:00",
+      "discoveryScore": 50,
+      "fitScore": 65,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Strong direct evidence in workflow analysis, process simplification, requirements, and cross-functional problem solving.",
+        "Verified SQL, API, data-quality investigation, and data-analysis experience.",
+        "Strong alignment with employee training, technical explanation, and adoption support."
+      ],
+      "risk": "The employer explicitly screens for three years of machine learning and analytics experience and expects hands-on Microsoft Power Automate and Copilot capability, none of which is fully supported by the verified evidence.",
+      "nextAction": "Do not apply to this posting. Prioritize similar AI workflow, process-improvement, implementation, or adoption roles where Power Automate, Copilot, and multi-year machine-learning experience are preferred or trainable rather than mandatory."
+    },
+    {
+      "id": "d-wave-quantum-inc-market-research-and-competitive-intelligence-analyst-ii-d976cb0010",
+      "company": "D-Wave Quantum Inc.",
+      "role": "Market Research and Competitive Intelligence Analyst II",
+      "location": "Burnaby, BC, CA",
+      "postingUrl": "https://ca.indeed.com/viewjob?jk=0ecca95316be52f6",
+      "postedDate": "2026-07-21",
+      "firstSeenAt": "2026-07-22T16:06:17.390107+00:00",
+      "discoveryScore": 51,
+      "fitScore": 64,
+      "recommendation": "selective_apply",
+      "reasons": [
+        "Direct evidence of Python-based data analysis, visualization, and pattern identification.",
+        "Applied experience using AI-assisted workflows and organizing external data into structured outputs.",
+        "Strong technical investigation and problem-solving across data, APIs, logs, reporting, and integrated systems."
+      ],
+      "risk": "The role's core specialization is competitive intelligence, but Anna has no verified direct competitor research, financial-filings analysis, patent monitoring, or quantum-computing experience.",
+      "nextAction": "Treat this as a selective stretch application. Apply only if the role remains appealing after accepting the competitive-intelligence and financial-analysis ramp-up; any later resume tailoring should lead with analytical investigation, AI tools, Python visualization, product collaboration, and clear communication while stating the specialization gaps honestly."
+    },
+    {
+      "id": "d3-security-management-systems-inc-agentic-ai-engineer-cf271c3b11",
+      "company": "D3 Security Management Systems Inc.",
+      "role": "Agentic AI Engineer",
+      "location": "Vancouver BC",
+      "postingUrl": "https://www.eluta.ca/spl/agentic-ai-engineer-160549d5e218b74c22bd769e73944fef",
+      "postedDate": "2026-07-21",
+      "firstSeenAt": "2026-07-21T19:14:25.505605+00:00",
+      "discoveryScore": 91,
+      "fitScore": 63,
+      "recommendation": "selective_apply",
+      "reasons": [
+        "Multiple years of verified full-stack software engineering and production application delivery.",
+        "Direct experience with JavaScript/TypeScript, React, APIs, databases, testing, deployment support, and cross-layer debugging.",
+        "Recent Python Flask application work involving AI-assisted workflows, structured outputs, external data APIs, and iterative validation."
+      ],
+      "risk": "The role's core requirement is hands-on production agentic engineering, while Anna's verified evidence does not establish agent orchestration, function calling, RAG, multi-step planning, memory, recovery, or enterprise LLM evaluation.",
+      "nextAction": "Apply selectively only if Anna can truthfully discuss additional hands-on agentic patterns not yet captured in the verified evidence library. Otherwise prioritize roles where AI workflow development, API integration, technical analysis, and cross-functional implementation matter more than established production-agent expertise."
+    },
+    {
+      "id": "durable-ai-engineer-cbcdae5f57",
+      "company": "Durable",
+      "role": "AI Engineer",
+      "location": "Vancouver",
+      "postingUrl": "https://job-boards.greenhouse.io/durable/jobs/5156304008",
+      "postedDate": "2026-03-17",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 96,
+      "fitScore": 63,
+      "recommendation": "selective_apply",
+      "reasons": [
+        "Verified React and TypeScript product-development experience, including shared customer-facing components.",
+        "Direct experience building a cross-platform design system with React, Tailwind CSS, Storybook, Figma, and Zeroheight.",
+        "Full-stack history spanning frontend, backend, APIs, databases, real-time systems, testing, deployment, and production troubleshooting."
+      ],
+      "risk": "Durable appears to prioritize engineers who have already shipped sophisticated applied-AI patterns and formal evals under production conditions; Anna's verified evidence supports smaller-scale AI application work but not RAG, tool calling, memory, multi-agent systems, formal evals, or production-scale AI operations.",
+      "nextAction": "Apply only as a selective stretch opportunity if Anna wants a development-heavy role. Before proceeding, review whether the existing AI application can honestly demonstrate the requested thinking and confirm willingness to discuss the production-AI gaps directly. Stop for explicit approval before answering salary expectations or submitting the application."
+    },
+    {
+      "id": "convyta-partners-lp-data-analyst-806ce2470e",
+      "company": "Convyta Partners LP",
+      "role": "Data Analyst",
+      "location": "Burnaby, BC, CA",
+      "postingUrl": "https://ca.indeed.com/viewjob?jk=af17a96c6419ca16",
+      "postedDate": "2026-07-14",
+      "firstSeenAt": "2026-07-22T16:30:32.942070+00:00",
+      "discoveryScore": 52,
+      "fitScore": 62,
+      "recommendation": "selective_apply",
+      "reasons": [
+        "Direct evidence of advanced Excel and structured data analysis.",
+        "Strong discrepancy investigation, data validation, and root-cause analysis across integrated systems.",
+        "Verified experience documenting requirements and workflows, testing changes, and supporting implementations."
+      ],
+      "risk": "The job's core pension-administration work requires financial reconciliation, benefit calculations, regulated reporting, and five or more years of related analyst and administration experience, none of which is directly established by the verified profile.",
+      "nextAction": "Apply only selectively if Anna accepts the four-day Burnaby commute and is comfortable presenting this as a domain transition. Before investing in an application, confirm that Convyta will consider strong transferable systems and data experience without direct pension administration experience."
+    },
+    {
+      "id": "visualping-software-developer-and-ai-engineer-93aadbc9aa",
+      "company": "Visualping",
+      "role": "Software Developer and AI engineer",
+      "location": "Unspecified",
+      "postingUrl": "https://www.linkedin.com/jobs/view/4440647414",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-22T16:18:26.565442+00:00",
+      "discoveryScore": 95,
+      "fitScore": 62,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Direct professional React and TypeScript experience in a B2B SaaS product.",
+        "Broad verified full-stack experience across frontend, backend, APIs, databases, real-time systems, testing, and deployment.",
+        "Recent hands-on development of an AI-assisted Python Flask application using structured AI outputs and external data APIs."
+      ],
+      "risk": "The explicit requirement for at least two years of AWS work experience is unsupported and likely screening-critical; the profile also lacks the requested depth in agentic browser workflows and production AI pipelines.",
+      "nextAction": "Do not prioritize an application. Apply only if Visualping confirms that the AWS requirement is flexible; otherwise focus on AI workflow or full-stack roles that do not require unsupported cloud-platform tenure."
+    },
+    {
+      "id": "quadreal-property-group-data-analyst-portfolio-reporting-real-estate-debt-677851d774",
+      "company": "QuadReal Property Group",
+      "role": "Data Analyst - Portfolio Reporting, Real Estate Debt",
+      "location": "Vancouver, BC, CA",
+      "postingUrl": "https://ca.indeed.com/viewjob?jk=0a309ead3d0f6fe6",
+      "postedDate": "2026-07-21",
+      "firstSeenAt": "2026-07-22T16:07:20.890633+00:00",
+      "discoveryScore": 60,
+      "fitScore": 61,
+      "recommendation": "selective_apply",
+      "reasons": [
+        "Direct SQL-based reporting investigation and cross-system data validation experience",
+        "Strong requirements translation and business-to-technical liaison capability",
+        "Verified Excel and Python analysis of a substantial dataset"
+      ],
+      "risk": "The role's core real estate debt and financial-analysis responsibilities are unsupported, while advanced Power BI and Power Query are explicit requirements and the profile does not establish two to three years in a dedicated data analyst role.",
+      "nextAction": "Apply selectively only if the employer appears open to a technically strong, transferable candidate. Before investing in an application, confirm whether direct real estate debt experience and advanced Power BI and Power Query are screening requirements."
+    },
+    {
+      "id": "teck-ai-solutions-analyst-632dd10475",
+      "company": "Teck",
+      "role": "AI Solutions Analyst",
+      "location": "Trail, BC, CA",
+      "postingUrl": "https://ca.indeed.com/viewjob?jk=501d3e2e93182375",
+      "postedDate": "2026-07-14",
+      "firstSeenAt": "2026-07-22T06:08:20.153774+00:00",
+      "discoveryScore": 62,
+      "fitScore": 61,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Anna has direct evidence of building a Python-based, AI-assisted decision workflow that integrates external data and converts business knowledge into practical outputs.",
+        "Her strong SQL, systems investigation, requirements, and cross-functional delivery evidence aligns well with the solutions-analysis aspects of the role.",
+        "She has verified experience explaining technical functionality and connecting it to user workflows and business impact."
+      ],
+      "risk": "The role combines an incompatible on-site Trail requirement with core expectations for ML model development and production AI lifecycle ownership that are not supported by the verified profile.",
+      "nextAction": "Do not apply unless Anna first confirms willingness to relocate to Trail and determines that Teck would consider strong AI-workflow and solutions-analysis experience without direct ML model-development depth."
+    },
+    {
+      "id": "specsavers-data-analyst-fccab6a6e9",
+      "company": "Specsavers",
+      "role": "Data Analyst",
+      "location": "Burnaby, BC, CA",
+      "postingUrl": "https://ca.indeed.com/viewjob?jk=83a8675af4913536",
+      "postedDate": "2026-07-21",
+      "firstSeenAt": "2026-07-22T16:05:06.406967+00:00",
+      "discoveryScore": 63,
+      "fitScore": 59,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Strong verified SQL, reporting investigation, and data-quality experience.",
+        "Strong stakeholder discovery, requirements clarification, and cross-functional collaboration.",
+        "Direct experience explaining technical concepts through demonstrations and user-focused outputs."
+      ],
+      "risk": "The job is fundamentally a Power BI specialist role, while Anna has no verified Power BI, DAX, Power Query, or Databricks experience and lacks the requested 3–5 years as a Data Analyst.",
+      "nextAction": "Do not prioritize an application. Focus on Data Analyst or Reporting Analyst roles that accept SQL, Excel, Python, stakeholder analysis, and transferable systems experience without requiring established Power BI subject-matter expertise."
     },
     {
       "id": "grafana-labs-staff-ai-engineer-canada-remote-29e9f95e05",
@@ -66,6 +294,25 @@
       "nextAction": "Do not apply. Prioritize AI workflow, technical business analysis, systems analysis, implementation, or solutions roles that value Anna's AI-assisted application work and software foundation without requiring production multi-agent platform ownership."
     },
     {
+      "id": "novoed-sr-ai-engineer-27b0ec4bd3",
+      "company": "NovoEd",
+      "role": "Sr. AI Engineer",
+      "location": "Remote - Canada",
+      "postingUrl": "https://job-boards.greenhouse.io/novoed/jobs/8055650",
+      "postedDate": "2026-07-10",
+      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 88,
+      "fitScore": 44,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Anna has substantial verified full-stack engineering experience across backend, APIs, databases, testing, deployment support, and integrated-system debugging.",
+        "She has recent hands-on Python and Flask experience building an AI-assisted application with APIs, Hermes, and Ollama.",
+        "Her cross-functional collaboration and system-level troubleshooting align with the role's connected backend, AI, and UI mindset."
+      ],
+      "risk": "The position requires senior production Python and applied ML depth that the verified profile does not support, especially model training, background processing, AI performance tuning, RAG, and vector databases.",
+      "nextAction": "Do not apply. Prioritize AI workflow, solutions, implementation, systems, or technical analyst roles where Anna's AI application work and engineering foundation are strengths without requiring unsupported production ML specialization."
+    },
+    {
       "id": "grafana-labs-staff-ai-engineer-grafana-ai-ml-canada-remote-8d8aaad1e4",
       "company": "Grafana Labs",
       "role": "Staff AI Engineer - Grafana AI/ML | Canada | Remote",
@@ -83,6 +330,44 @@
       ],
       "risk": "The role's core bar is staff-level production AI and observability engineering, while the verified profile shows a smaller AI application, general full-stack experience, and transferable troubleshooting without the required scale, cloud-native depth, or observability specialization.",
       "nextAction": "Do not apply. Prioritize AI workflow, technical business analysis, systems analysis, implementation, or application-consulting roles where the verified AI application and software background are strong differentiators without requiring staff-level production AI ownership."
+    },
+    {
+      "id": "growfund-ai-ai-specialist-77d538d1ff",
+      "company": "GrowFund AI",
+      "role": "AI Specialist",
+      "location": "Vancouver, BC, CA",
+      "postingUrl": "https://ca.indeed.com/viewjob?jk=f38cfe57657746e9",
+      "postedDate": "2026-07-20",
+      "firstSeenAt": "2026-07-22T16:22:16.510385+00:00",
+      "discoveryScore": 48,
+      "fitScore": 40,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Working Python experience across a Flask application and Pandas data analysis",
+        "Approximately ten years of broader software and integrated-system experience",
+        "Strong analytical investigation, testing, documentation, and technical communication evidence"
+      ],
+      "risk": "The job's core work is machine-learning and recommendation-model development, which is unsupported by the verified evidence and explicitly cannot be claimed.",
+      "nextAction": "Do not apply. Prioritize AI workflow, data analyst, systems analyst, implementation, or application roles where Anna's Python, data, software, and stakeholder experience meets the core responsibilities without implying ML model-development expertise."
+    },
+    {
+      "id": "future-electronics-edge-ai-field-applications-engineer-b1f0388a61",
+      "company": "Future Electronics",
+      "role": "Edge AI Field Applications Engineer",
+      "location": "Unspecified",
+      "postingUrl": "https://www.linkedin.com/jobs/view/4442785215",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-22T16:07:57.951010+00:00",
+      "discoveryScore": 51,
+      "fitScore": 37,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Anna has verified experience explaining technical functionality and presenting to cross-functional teams.",
+        "Her software background supports transferable debugging, API, integration, and proof-of-concept skills.",
+        "She has an engineering degree and approximately ten years of broader technology experience."
+      ],
+      "risk": "The job's core screening criteria require senior, hands-on Edge AI and embedded-electronics expertise that the verified profile does not support and cannot be truthfully reframed from general software or AI-assisted application work.",
+      "nextAction": "Do not apply. Prioritize implementation, solutions analysis, application support, technical business analysis, or AI workflow roles where Anna's software foundation and customer-facing strengths are central and defensible."
     },
     {
       "id": "grafana-labs-staff-software-engineer-adaptive-telemetry-databases-ca-9e973f86e0",
@@ -144,16 +429,6 @@
   ],
   "awaitingAnalysis": [
     {
-      "id": "d3-security-management-systems-inc-agentic-ai-engineer-cf271c3b11",
-      "company": "D3 Security Management Systems Inc.",
-      "role": "Agentic AI Engineer",
-      "location": "Vancouver BC",
-      "postingUrl": "https://www.eluta.ca/spl/agentic-ai-engineer-160549d5e218b74c22bd769e73944fef",
-      "postedDate": "2026-07-21",
-      "firstSeenAt": "2026-07-21T19:14:25.505605+00:00",
-      "discoveryScore": 91
-    },
-    {
       "id": "grafana-labs-staff-ai-engineer-canada-remote-fe491b18cf",
       "company": "Grafana Labs",
       "role": "Staff AI Engineer | Canada | Remote",
@@ -164,16 +439,6 @@
       "discoveryScore": 89
     },
     {
-      "id": "jobgether-software-engineer-frontend-aeac6df26b",
-      "company": "Jobgether",
-      "role": "Software Engineer, Frontend",
-      "location": "Unspecified",
-      "postingUrl": "https://www.linkedin.com/jobs/view/4442006856",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-21T17:38:49.655955+00:00",
-      "discoveryScore": 88
-    },
-    {
       "id": "later-media-inc-ai-automation-engineer-co-op-7c7eafe8c9",
       "company": "Later Media Inc.",
       "role": "AI Automation Engineer Co-op",
@@ -181,16 +446,6 @@
       "postingUrl": "https://www.eluta.ca/spl/ai-automation-engineer-co-op-2cb6f175a0c33ba927b06c09619027a5",
       "postedDate": null,
       "firstSeenAt": "2026-07-21T19:14:25.505605+00:00",
-      "discoveryScore": 88
-    },
-    {
-      "id": "novoed-sr-ai-engineer-27b0ec4bd3",
-      "company": "NovoEd",
-      "role": "Sr. AI Engineer",
-      "location": "Remote - Canada",
-      "postingUrl": "https://job-boards.greenhouse.io/novoed/jobs/8055650",
-      "postedDate": "2026-07-10",
-      "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
       "discoveryScore": 88
     },
     {

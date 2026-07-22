@@ -64,7 +64,18 @@ cd ui && npm run dev
 ```
 
 The Analyze action records an audited workflow run in `data/jobs.db`, starts an
-ephemeral read-only Codex analysis, and validates the resulting artifact before
-it can mark the analysis complete. `JOB_ANALYSIS_COMMAND` can override the
-default worker with another approved command that accepts a lead ID and prints
-the resulting `analysis.json` path.
+ephemeral read-only analysis, and validates the resulting artifact before it
+can mark the analysis complete. By default this runs on Codex.
+
+To switch between Codex and Claude Code without restarting the app, run:
+
+```bash
+python3 scripts/set_analysis_provider.py claude   # or: codex
+```
+
+This writes `data/analysis_provider.txt`, which `run_analysis_worker.py` reads
+fresh on every run — the change applies to the very next Analyze click, no
+restart needed. `JOB_ANALYSIS_PROVIDER` (env var) takes precedence over the
+file if set, and `JOB_ANALYSIS_COMMAND` remains available as a full override
+for another approved command that accepts a lead ID and prints the resulting
+`analysis.json` path.

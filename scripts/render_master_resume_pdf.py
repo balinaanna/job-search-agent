@@ -42,7 +42,13 @@ def render(output: Path, data: dict) -> Path:
         story.append(Spacer(1, 5))
     story.append(Paragraph("PROJECTS", styles["Section"]))
     for project in career.get("projects", []):
-        story += [Paragraph(text(project.get("name")), styles["Role"]), Paragraph(text(project.get("summary")), styles["BodySmall"])]
+        role = project.get("role")
+        heading = f"{text(project.get('name'))} | {text(role)}" if role else text(project.get("name"))
+        dates = project.get("dates", {})
+        meta = " | ".join(value for value in (text(project.get("type")), text(project.get("organization")), text(project.get("status")), f"{text(dates.get('start'))} - {text(dates.get('end'))}" if dates else "") if value)
+        story += [Paragraph(heading, styles["Role"]), Paragraph(meta, styles["Meta"]), Paragraph(text(project.get("summary")), styles["BodySmall"])]
+        story += [Paragraph(text(item), styles["BulletSmall"], bulletText="-") for item in project.get("highlights", [])]
+        story.append(Spacer(1, 4))
     story.append(Paragraph("EDUCATION & CERTIFICATIONS", styles["Section"]))
     for item in career.get("education", []):
         story.append(Paragraph(f"<b>{text(item.get('credential'))}, {text(item.get('field'))}</b> - {text(item.get('institution'))}", styles["BodySmall"]))

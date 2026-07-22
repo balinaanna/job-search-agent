@@ -88,6 +88,11 @@ def build_resume_plan(lead_id: str, codex: str, model: str) -> Path:
 Create a resume plan using hermes-skills/resume-planner/SKILL.md from
 {analysis_path.relative_to(ROOT)} and {strategy_path.relative_to(ROOT)}.
 Follow AGENTS.md and all verified profile records. Do not browse or draft resume prose.
+For every technical, AI, software engineering, systems analysis, business analysis, product,
+implementation, or technical project role, include the current ai_job_search_agent project in
+the plan. Select only the job-relevant verified evidence from ev_job_agent_product_analysis,
+ev_job_agent_full_stack_delivery, ev_job_agent_ai_workflows, and
+ev_job_agent_safety_and_quality; do not force every aspect into one resume.
 Return only schema-conforming JSON. Use application_id {manifest['application_id']},
 application_slug {manifest['application_slug']}, workspace_path {workspace.relative_to(ROOT)},
 and mode {'practice_only' if manifest['fit']['recommendation'] == 'do_not_apply' else 'active_application'}.

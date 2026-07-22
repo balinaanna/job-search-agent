@@ -14,6 +14,21 @@ from profile_version import profile_version, analysis_profile_version
 
 
 ROOT = Path(__file__).resolve().parent.parent
+PROVIDER_FILE = ROOT / "data/analysis_provider.txt"
+PROVIDER_COMMANDS = {
+    "codex": [sys.executable, "scripts/analyze_job_with_codex.py"],
+    "claude": [sys.executable, "scripts/analyze_job_with_claude.py"],
+}
+
+
+def resolve_command() -> list[str]:
+    configured = os.environ.get("JOB_ANALYSIS_COMMAND")
+    if configured:
+        return shlex.split(configured)
+    provider = os.environ.get("JOB_ANALYSIS_PROVIDER")
+    if not provider and PROVIDER_FILE.exists():
+        provider = PROVIDER_FILE.read_text(encoding="utf-8").strip()
+    return PROVIDER_COMMANDS.get((provider or "codex").strip().lower(), PROVIDER_COMMANDS["codex"])
 
 
 def finalize_analysis(
@@ -64,12 +79,7 @@ def main() -> int:
             return 0
         except subprocess.CalledProcessError:
             pass
-    configured = os.environ.get("JOB_ANALYSIS_COMMAND")
-    command = (
-        shlex.split(configured)
-        if configured
-        else [sys.executable, "scripts/analyze_job_with_codex.py"]
-    )
+    command = resolve_command()
     try:
         completed = subprocess.run(
             [*command, lead_id], cwd=ROOT, check=True, capture_output=True, text=True
