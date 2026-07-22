@@ -65,6 +65,10 @@ def normalize_trace(trace: dict, resume: str, plan: dict) -> None:
     summary["missing_planned_bullets"] = sorted(planned - mapped)
 
 
+def normalize_section_headings(resume: str) -> str:
+    return re.sub(r"^##\s+CORE SKILLS\s*$", "## SKILLS", resume, flags=re.MULTILINE)
+
+
 def write_resume(lead_id: str, codex: str, model: str) -> Path:
     workspace = find_workspace(lead_id)
     manifest_path = workspace / "application_manifest.json"
@@ -85,13 +89,15 @@ application_id {manifest['application_id']}. Keep Markdown ATS-friendly.
         result = Path(directory) / "resume-result.json"
         schema = Path(directory) / "resume-output-schema.json"
         schema.write_text(json.dumps(output_schema()), encoding="utf-8")
-        subprocess.run(
+        generated = subprocess.run(
             [codex, "exec", "--ephemeral", "--sandbox", "read-only", "--model", model,
              "--cd", str(ROOT), "--output-schema", str(schema),
-             "--output-last-message", str(result), prompt], cwd=ROOT, check=True,
+             "--output-last-message", str(result), prompt], cwd=ROOT, capture_output=True, text=True,
         )
+        if generated.returncode:
+            raise ValueError("Resume drafting failed. Retry the resume step.")
         payload = json.loads(result.read_text(encoding="utf-8"))
-    resume = payload["resume_markdown"].strip() + "\n"
+    resume = normalize_section_headings(payload["resume_markdown"].strip()) + "\n"
     trace = payload["trace"]
     normalize_trace(trace, resume, plan)
     resume_path = workspace / "resume.md"
@@ -99,10 +105,13 @@ application_id {manifest['application_id']}. Keep Markdown ATS-friendly.
     (workspace / "resume_trace.json").write_text(json.dumps(trace, indent=2) + "\n", encoding="utf-8")
     manifest["status"] = "drafting"
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    subprocess.run(
+    validation = subprocess.run(
         [os.sys.executable, "scripts/validate_resume_draft.py", str(workspace),
-         "--schema", str(TRACE_SCHEMA)], cwd=ROOT, check=True,
+         "--schema", str(TRACE_SCHEMA)], cwd=ROOT, capture_output=True, text=True,
     )
+    if validation.returncode:
+        details = (validation.stdout or validation.stderr).strip()
+        raise ValueError(details or "Generated resume did not pass validation.")
     return resume_path
 
 
@@ -112,8 +121,12 @@ def main() -> int:
     parser.add_argument("--codex", default=os.environ.get("CODEX_EXECUTABLE", "/Applications/ChatGPT.app/Contents/Resources/codex"))
     parser.add_argument("--model", default=os.environ.get("RESUME_WRITER_MODEL", "gpt-5.6-sol"))
     args = parser.parse_args()
-    print(write_resume(args.lead_id, args.codex, args.model))
-    return 0
+    try:
+        print(write_resume(args.lead_id, args.codex, args.model))
+        return 0
+    except (ValueError, OSError, json.JSONDecodeError) as exc:
+        print(f"Resume could not be prepared: {exc}", file=os.sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

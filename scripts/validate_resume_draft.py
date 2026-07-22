@@ -50,6 +50,11 @@ def expected_sections(plan):
     return [labels[x["section"]] for x in items if x.get("section") in labels]
 
 
+def content_without_certifications(resume: str) -> str:
+    """Credential names remain truthful even when a title keyword is excluded."""
+    return re.sub(r"^##\s+CERTIFICATIONS\s*$.*?(?=^##\s+|\Z)", "", resume, flags=re.MULTILINE | re.DOTALL)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("workspace", type=Path)
@@ -158,10 +163,11 @@ def main():
         if count > role_limits[rid]:
             errors.append(f"{rid} exceeds bullet limit")
 
+    keyword_content = content_without_certifications(resume)
     for item in plan.get("excluded_keywords", []):
         if isinstance(item, dict) and isinstance(item.get("term"), str):
             term = item["term"]
-            if re.search(rf"\b{re.escape(term)}\b", resume, flags=re.IGNORECASE):
+            if re.search(rf"\b{re.escape(term)}\b", keyword_content, flags=re.IGNORECASE):
                 errors.append(f"excluded keyword appears: {term}")
 
     words = len(re.findall(r"\b[\w’'-]+\b", resume))
