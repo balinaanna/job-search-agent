@@ -23,6 +23,32 @@ const labels: Record<string, string> = {
   decide_later: "Decide later",
 };
 
+function markdownInline(value: string): ReactNode[] {
+  return value.split(/(\*\*[^*]+\*\*)/g).filter(Boolean).map((part, index) =>
+    part.startsWith("**") && part.endsWith("**") ? <strong key={index}>{part.slice(2, -2)}</strong> : part
+  );
+}
+
+function TailoredResumePreview({ markdown }: { markdown: string }) {
+  const lines = markdown.split(/\r?\n/), blocks: ReactNode[] = [];
+  for (let index = 0; index < lines.length;) {
+    const line = lines[index].trim();
+    if (!line) { index += 1; continue; }
+    if (line.startsWith("### ")) { blocks.push(<h3 key={index}>{markdownInline(line.slice(4))}</h3>); index += 1; continue; }
+    if (line.startsWith("## ")) { blocks.push(<h2 key={index}>{markdownInline(line.slice(3))}</h2>); index += 1; continue; }
+    if (line.startsWith("# ")) { blocks.push(<h1 key={index}>{markdownInline(line.slice(2))}</h1>); index += 1; continue; }
+    if (line.startsWith("- ")) {
+      const items: ReactNode[] = [], start = index;
+      while (index < lines.length && lines[index].trim().startsWith("- ")) {
+        items.push(<li key={index}>{markdownInline(lines[index].trim().slice(2))}</li>); index += 1;
+      }
+      blocks.push(<ul key={start}>{items}</ul>); continue;
+    }
+    blocks.push(<p key={index}>{markdownInline(line)}</p>); index += 1;
+  }
+  return <article className="tailored-resume-preview">{blocks}</article>;
+}
+
 export function DecisionButtons({ leadId }: { leadId: string }) {
   const [status, setStatus] = useState("analysis_completed");
   const [message, setMessage] = useState("");
@@ -377,7 +403,7 @@ function ResumeReviewAction({ leadId, initialStatus, onStatus }: { leadId: strin
   return <section className="resume-review">
     <header><div><span>RECRUITER-STYLE REVIEW</span><strong>{review.review.review_score.total}/100</strong></div><b>{review.review.verdict.replaceAll("_", " ")}</b></header>
     <p>{review.review.first_impression}</p>
-    <details><summary>Read tailored resume</summary><pre>{review.resume}</pre></details>
+    <details><summary>Read tailored resume</summary><TailoredResumePreview markdown={review.resume}/></details>
     <details open={review.review.findings.some((item) => ["critical", "high"].includes(item.severity))}><summary>Review findings ({review.review.findings.length})</summary>
       <div className="review-findings">{review.review.findings.length ? review.review.findings.map((item) => <article key={item.finding_id}><span className={item.severity}>{item.severity}</span><strong>{item.location}</strong><p>{item.problem}</p><small>{item.revision_instruction}</small></article>) : <p>No revision findings.</p>}</div>
     </details>
