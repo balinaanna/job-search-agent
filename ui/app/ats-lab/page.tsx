@@ -4,7 +4,7 @@ import { useState } from "react";
 
 export default function AtsCompatibilityLab() {
   const [step, setStep] = useState(1);
-  return <main style={{ maxWidth: 760, margin: "40px auto", padding: 24, fontFamily: "Arial, sans-serif" }}>
+  return <main style={{ maxWidth: 760, margin: "40px auto", padding: 24 }}>
     <header><small>LOCAL TEST PAGE · NO DATA IS SENT</small><h1>ATS compatibility lab</h1><p>This simulated application exercises common Greenhouse and Lever-style controls. It has no submission endpoint.</p></header>
     <form onSubmit={(event) => event.preventDefault()} style={{ display: "grid", gap: 18, padding: 22, border: "1px solid #ccd8d1", borderRadius: 12 }}>
       {step === 1 ? <>
