@@ -99,12 +99,14 @@ h2 { margin-bottom:0; font:500 23px/1.2 Georgia,serif; }
 .resume-review details { border-top:1px solid var(--line); padding-top:11px; }
 .resume-review summary { cursor:pointer; color:#34443d; font-size:13px; font-weight:750; }
 .tailored-resume-preview{max-height:560px;overflow:auto;margin:12px 0 0;padding:28px 34px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#25332d}.tailored-resume-preview h1{margin:0;text-align:center;font:600 28px/1.2 Georgia,serif}.tailored-resume-preview>p{margin:5px 0;color:#45534d;font-size:13px;line-height:1.55}.tailored-resume-preview>h1+p{text-align:center;color:#5f6c66}.tailored-resume-preview h2{margin:24px 0 10px;padding-bottom:5px;border-bottom:1px solid #a9c1b4;color:var(--green);font-size:14px;letter-spacing:.08em}.tailored-resume-preview h3{margin:15px 0 3px;font-size:14px}.tailored-resume-preview ul{margin:6px 0 12px;padding-left:21px}.tailored-resume-preview li{margin:5px 0;color:#37463f;font-size:13px;line-height:1.5}.tailored-resume-preview strong{color:#24332c}
+.cover-letter-preview{max-height:560px;overflow:auto;margin:12px 0 0;padding:32px 38px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#34423c}.cover-letter-preview p{margin:0 0 16px;font:13px/1.65 Georgia,serif}.cover-letter-preview p:last-child{margin-bottom:0}.cover-letter-preview p:first-child{color:#5b6963}.cover-letter-preview span{display:inline}.cover-letter-preview strong{color:#24332c}
 .review-findings,.evidence-trace { display:grid; gap:8px; margin-top:10px; }
 .review-findings article,.evidence-trace article { padding:10px 11px; border-radius:7px; background:#fff; border:1px solid var(--line); }
 .review-findings article>span { display:inline-block; margin-right:7px; padding:2px 5px; border-radius:5px; background:#f0f1ef; color:#68716d; font-size:12px; font-weight:800; text-transform:uppercase; }
 .review-findings article>span.critical,.review-findings article>span.high { background:#fbe7e2; color:#9a3f2e; }
 .review-findings article strong { font-size:12px; }
 .review-findings p,.evidence-trace p { margin:7px 0 4px; color:#4f5d57; font-size:12px; line-height:1.45; }
+.review-findings p.finding-impact { margin-top:5px; padding:6px 8px; border-radius:5px; background:#f5f7f6; color:#58665f; }
 .review-findings small,.evidence-trace small { color:var(--muted); font-size:12px; line-height:1.4; }
 .resume-review>label { display:grid; gap:6px; color:#34443d; font-size:12px; font-weight:700; }
 .resume-review textarea { min-height:72px; resize:vertical; padding:10px; border:1px solid var(--line); border-radius:7px; background:#fff; color:var(--ink); font:13px/1.45 Arial,sans-serif; }

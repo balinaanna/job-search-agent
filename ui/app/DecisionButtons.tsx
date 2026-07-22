@@ -50,6 +50,13 @@ function TailoredResumePreview({ markdown }: { markdown: string }) {
   return <article className="tailored-resume-preview">{blocks}</article>;
 }
 
+function CoverLetterPreview({ letter }: { letter: string }) {
+  const blocks = letter.trim().split(/\r?\n\s*\r?\n/).filter(Boolean);
+  return <article className="cover-letter-preview">{blocks.map((block, index) =>
+    <p key={index}>{block.split(/\r?\n/).map((line, lineIndex) => <span key={lineIndex}>{markdownInline(line.replace(/^#+\s*/, ""))}{lineIndex < block.split(/\r?\n/).length - 1 && <br/>}</span>)}</p>
+  )}</article>;
+}
+
 export function DecisionButtons({ leadId }: { leadId: string }) {
   const [status, setStatus] = useState("analysis_completed");
   const [message, setMessage] = useState("");
@@ -724,9 +731,9 @@ function CoverLetterReviewAction({ leadId, initialStatus, onStatus }: { leadId: 
 
   if (!data) return <div className="strategy-action"><div><strong>Cover letter draft ready</strong><span>{message}</span></div><button disabled={Boolean(working)} onClick={startReview}>{working ? "Reviewing letter…" : "Review cover letter"}</button></div>;
 
-  return <section className="resume-review"><header><div><span>COVER LETTER REVIEW</span><strong>{data.review.score}/100</strong></div><b>{data.review.verdict.replaceAll("_", " ")}</b></header><p>{data.review.first_impression.summary}</p>
-    <details><summary>Read cover letter</summary><pre>{data.letter}</pre></details>
-    <details open={data.review.findings.some((item) => ["critical", "high"].includes(item.severity))}><summary>Review findings ({data.review.findings.length})</summary><div className="review-findings">{data.review.findings.length ? data.review.findings.map((item) => <article key={item.finding_id}><span className={item.severity}>{item.severity}</span><strong>{item.paragraph_id}</strong><p>{item.issue}</p><small>{item.revision_instruction}</small></article>) : <p>No revision findings.</p>}</div></details>
+  return <section className="resume-review"><header><div><span>COVER LETTER QUALITY</span><strong>{data.review.score}/100</strong></div><b>{data.review.verdict.replaceAll("_", " ")}</b></header><small className="review-score-context">Recruiter-style assessment of this cover-letter draft. This score measures document quality, not your fit for the job.</small><p>{data.review.first_impression.summary}</p>
+    <details><summary>Read cover letter</summary><CoverLetterPreview letter={data.letter}/></details>
+    <details open={data.review.findings.some((item) => ["critical", "high"].includes(item.severity))}><summary>Review findings ({data.review.findings.length})</summary><div className="review-findings">{data.review.findings.length ? data.review.findings.map((item) => <article key={item.finding_id}><span className={item.severity}>{item.severity}</span><strong>{item.paragraph_id}</strong><p>{item.issue}</p>{item.impact&&<p className="finding-impact"><b>Impact:</b> {item.impact}</p>}<small>{item.revision_instruction}</small></article>) : <p>No revision findings.</p>}</div></details>
     <details><summary>Evidence trace ({data.trace.paragraphs.length} paragraphs)</summary><div className="evidence-trace">{data.trace.paragraphs.map((item) => <article key={item.paragraph_id}><p>{item.text}</p><small>Evidence: {item.evidence_ids.join(", ")}</small></article>)}</div></details>
     <label><span>Revision notes</span><textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Tell the agent what should change before approval." /></label>
     <div className="review-actions"><button disabled={busy || !notes.trim() || data.review.verdict === "ready"} onClick={() => decide("request_revision")}>Request revision</button><button className="approve" disabled={busy || data.review.verdict !== "ready"} onClick={() => decide("approve")}>Approve cover letter</button></div>
