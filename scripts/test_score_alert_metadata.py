@@ -17,7 +17,7 @@ class AlertMetadataScoreTests(unittest.TestCase):
     def test_scores_matching_title_without_claiming_verified_fit(self) -> None:
         result = score_alert_metadata({"title": "Senior AI Engineer"}, CRITERIA)
         self.assertGreaterEqual(result["score"], 75)
-        self.assertEqual(result["basis"], "Title only")
+        self.assertEqual(result["basis"], "Alert metadata")
         self.assertIn("without opening", result["limitations"][0])
 
     def test_explicitly_excluded_title_scores_low(self) -> None:
@@ -27,3 +27,8 @@ class AlertMetadataScoreTests(unittest.TestCase):
     def test_unknown_title_stays_conservative(self) -> None:
         result = score_alert_metadata({"title": "Office Coordinator"}, CRITERIA)
         self.assertLess(result["score"], 55)
+
+    def test_known_canadian_location_adds_small_bounded_signal(self) -> None:
+        unknown = score_alert_metadata({"title": "AI Engineer"}, CRITERIA)
+        local = score_alert_metadata({"title": "AI Engineer", "location": "Vancouver, BC"}, CRITERIA)
+        self.assertEqual(local["score"], unknown["score"] + 4)

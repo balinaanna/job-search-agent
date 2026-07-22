@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from job_alert_inbox import AlertInboxStore, parse_alert, save_captured_posting
+from job_alert_inbox import AlertInboxStore, anchor_metadata, parse_alert, save_captured_posting
 
 
 class JobAlertInboxTests(unittest.TestCase):
@@ -24,6 +24,18 @@ class JobAlertInboxTests(unittest.TestCase):
         jobs = parse_alert("linkedin", '<a href="https://job-boards.greenhouse.io/acme/jobs/12345?source=email">Platform Engineer</a>')
         self.assertEqual(jobs[0]["source"], "greenhouse")
         self.assertEqual(jobs[0]["posting_url"], "https://job-boards.greenhouse.io/acme/jobs/12345")
+
+    def test_extracts_company_and_location_from_alert_content(self):
+        content = '<div><a href="https://www.linkedin.com/jobs/view/12345">AI Engineer</a></div><div>Example AI Inc.</div><div>Vancouver, BC (Hybrid)</div><div>Build applied AI products.</div>'
+        job = parse_alert("linkedin", content)[0]
+        self.assertEqual(job["company"], "Example AI Inc.")
+        self.assertEqual(job["location"], "Vancouver, BC (Hybrid)")
+        self.assertIn("Build applied AI", job["email_excerpt"])
+
+    def test_extracts_title_and_company_from_at_pattern(self):
+        value = anchor_metadata("Backend Engineer at Acme", [])
+        self.assertEqual(value["title"], "Backend Engineer")
+        self.assertEqual(value["company"], "Acme")
 
     def test_deduplicates_imported_jobs(self):
         with tempfile.TemporaryDirectory() as directory:

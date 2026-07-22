@@ -22,10 +22,16 @@ def score_alert_metadata(job: dict[str, Any], criteria: dict[str, Any]) -> dict[
     title_score = max(20, min(100, round(best)))
     # Unknown requirements, logistics, and employer context stay neutral rather than receiving assumed credit.
     score = round(title_score * 0.75 + 50 * 0.25)
+    location = str(job.get("location") or "").casefold()
+    if location and any(value in location for value in ("remote", "canada", "british columbia", "vancouver", "richmond", "burnaby")):
+        score += 4
+    elif location and any(value in location for value in ("united states", " usa", "new york", "california", "europe", "uk only")):
+        score -= 15
+    score = max(0, min(100, score))
     label = "Promising title" if score >= 75 else "Possible title match" if score >= 55 else "Weak title match"
     return {
         "score": score,
         "label": label,
-        "basis": "Title only",
-        "limitations": ["Calculated without opening the job board.", "Requirements, location, seniority, and responsibilities are not yet verified."],
+        "basis": "Alert metadata",
+        "limitations": ["Calculated without opening the job board.", "Requirements, seniority, and responsibilities are not yet verified."],
     }

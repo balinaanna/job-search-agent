@@ -18,6 +18,7 @@ from safe_capture_policy import capture_capability
 
 SOURCES = {"linkedin", "indeed", "eluta"}
 GENERIC_TEXT = {"apply", "apply now", "view job", "view jobs", "see job", "see jobs", "learn more", "jobs", "job alert"}
+LOCATION_TERMS = ("remote", "canada", "british columbia", " bc", "vancouver", "richmond", "burnaby", "surrey", "toronto", "ontario", "calgary", "alberta")
 
 
 class AnchorParser(HTMLParser):
@@ -31,6 +32,19 @@ class AnchorParser(HTMLParser):
         if tag.casefold() == "a" and self.current:
             self.anchors.append((" ".join("".join(self.text).split()), html.unescape(self.current)))
             self.current = None; self.text = []
+
+
+class EmailTextParser(HTMLParser):
+    BLOCKS = {"br", "div", "p", "li", "tr", "td", "h1", "h2", "h3", "h4", "h5", "h6"}
+    def __init__(self):
+        super().__init__(convert_charrefs=True); self.parts = []
+    def handle_starttag(self, tag, attrs):
+        if tag.casefold() in self.BLOCKS: self.parts.append("\n")
+    def handle_endtag(self, tag):
+        if tag.casefold() in self.BLOCKS: self.parts.append("\n")
+    def handle_data(self, data): self.parts.append(data)
+    def lines(self) -> list[str]:
+        return [" ".join(line.split()) for line in "".join(self.parts).splitlines() if line.split()]
 
 
 def email_body(value: str) -> str:
@@ -56,6 +70,40 @@ def unwrap_url(value: str) -> str:
     return current
 
 
+def alert_lines(body: str) -> list[str]:
+    parser = EmailTextParser(); parser.feed(body)
+    return parser.lines()
+
+
+def location_like(value: str) -> bool:
+    normalized = f" {value.casefold()}"
+    return any(term in normalized for term in LOCATION_TERMS)
+
+
+def anchor_metadata(anchor_text: str, lines: list[str]) -> dict[str, str | None]:
+    title = " ".join(anchor_text.split()).strip(" |–—-")
+    company = location = None
+    at_match = re.match(r"^(.+?)\s+at\s+(.+?)(?:\s+[·|]\s+(.+))?$", title, re.I)
+    if at_match:
+        title, company, location = (value.strip() if value else None for value in at_match.groups())
+    candidates: list[str] = []
+    index = next((i for i, line in enumerate(lines) if title.casefold() in line.casefold()), None)
+    if index is not None:
+        for line in lines[index + 1:index + 7]:
+            cleaned = line.strip(" |–—-")
+            lowered = cleaned.casefold()
+            if len(cleaned) < 2 or lowered in GENERIC_TEXT or lowered == title.casefold() or lowered.startswith(("view ", "apply ", "posted ")):
+                continue
+            candidates.append(cleaned)
+    if not location:
+        location = next((item for item in candidates if location_like(item)), None)
+    if not company:
+        company = next((item for item in candidates if item != location and not location_like(item) and len(item) <= 120), None)
+    excerpt_parts = [item for item in candidates if item not in {company, location}][:3]
+    excerpt = " · ".join(excerpt_parts)[:500] or None
+    return {"title": title or anchor_text, "company": company, "location": location, "email_excerpt": excerpt}
+
+
 def canonical_job_url(value: str, source: str) -> str | None:
     value = unwrap_url(value); parsed = urlparse(value); host = parsed.netloc.casefold().removeprefix("www.")
     if source == "linkedin" and host.endswith("linkedin.com") and "/jobs/view/" in parsed.path:
@@ -74,11 +122,12 @@ def canonical_job_url(value: str, source: str) -> str | None:
 def parse_alert(source: str, content: str) -> list[dict]:
     if source not in SOURCES: raise ValueError("Source must be LinkedIn, Indeed, or Eluta.")
     if not isinstance(content, str) or not content.strip(): raise ValueError("Paste or upload a job-alert email first.")
-    body = email_body(content); parser = AnchorParser(); parser.feed(body)
+    body = email_body(content); parser = AnchorParser(); parser.feed(body); lines = alert_lines(body)
     if not parser.anchors:
         parser.anchors = [("Job from alert", match) for match in re.findall(r"https?://[^\s<>\"]+", body)]
     results = []
     for text, link in parser.anchors:
+        metadata = anchor_metadata(text, lines)
         unwrapped = unwrap_url(link)
         plan = automatic_capture_plan(unwrapped)
         url = canonical_job_url(unwrapped, source)
@@ -87,9 +136,9 @@ def parse_alert(source: str, content: str) -> list[dict]:
             parsed = urlparse(unwrapped)
             url = urlunparse(("https", parsed.netloc.casefold(), parsed.path.rstrip("/"), "", "", ""))
             result_source = plan["platform"]
-        title = " ".join(text.split()).strip(" |–—-")
+        title = str(metadata["title"] or "")
         if not url or len(title) < 4 or title.casefold() in GENERIC_TEXT: continue
-        results.append({"source": result_source, "title": title[:300], "posting_url": url})
+        results.append({"source": result_source, "title": title[:300], "posting_url": url, "company": metadata["company"], "location": metadata["location"], "email_excerpt": metadata["email_excerpt"]})
     unique = {item["posting_url"]: item for item in results}
     return list(unique.values())
 
@@ -120,6 +169,9 @@ class AlertInboxStore:
         if "lead_id" not in columns: self.connection.execute("ALTER TABLE alert_jobs ADD COLUMN lead_id TEXT")
         if "capture_error" not in columns: self.connection.execute("ALTER TABLE alert_jobs ADD COLUMN capture_error TEXT")
         if "capture_updated_at" not in columns: self.connection.execute("ALTER TABLE alert_jobs ADD COLUMN capture_updated_at TEXT")
+        if "company" not in columns: self.connection.execute("ALTER TABLE alert_jobs ADD COLUMN company TEXT")
+        if "location" not in columns: self.connection.execute("ALTER TABLE alert_jobs ADD COLUMN location TEXT")
+        if "email_excerpt" not in columns: self.connection.execute("ALTER TABLE alert_jobs ADD COLUMN email_excerpt TEXT")
         self.connection.execute("""CREATE TABLE IF NOT EXISTS gmail_alert_messages (uid TEXT PRIMARY KEY, processed_at TEXT NOT NULL)""")
         self.connection.commit()
     def import_alert(self, source: str, content: str) -> dict:
@@ -127,7 +179,7 @@ class AlertInboxStore:
         with self.connection:
             for job in jobs:
                 job_id = hashlib.sha256(job["posting_url"].encode()).hexdigest()[:20]
-                cursor = self.connection.execute("INSERT OR IGNORE INTO alert_jobs(id,source,title,posting_url,status,received_at) VALUES (?, ?, ?, ?, 'needs_capture', ?)", (job_id, job["source"], job["title"], job["posting_url"], timestamp))
+                cursor = self.connection.execute("INSERT OR IGNORE INTO alert_jobs(id,source,title,posting_url,status,received_at,company,location,email_excerpt) VALUES (?, ?, ?, ?, 'needs_capture', ?, ?, ?, ?)", (job_id, job["source"], job["title"], job["posting_url"], timestamp, job.get("company"), job.get("location"), job.get("email_excerpt")))
                 added += cursor.rowcount
         return {"found": len(jobs), "added": added, "duplicates": len(jobs) - added, "jobs": self.list()}
     def list(self) -> list[dict]:
