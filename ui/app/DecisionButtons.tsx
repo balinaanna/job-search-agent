@@ -20,7 +20,7 @@ type CandidateStrategy = { strategy_headline:string; source_analysis:{recommenda
 
 const labels: Record<string, string> = {
   pursue: "Pursue",
-  pass: "Passed",
+  pass: "Do not apply",
   decide_later: "Decide later",
 };
 
@@ -109,14 +109,14 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
   if (["application_answers_approved", "form_filling_started", "submission_review_required", "submission_authorized", "submission_in_progress", "submission_blocked", "application_submitted"].includes(status)) return inWorkspace(<FormFillAction leadId={leadId} initialStatus={status} onStatus={setStatus} />);
   if (["cover_letter_revision_requested", "cover_letter_revision_running", "cover_letter_revision_failed"].includes(status)) return inWorkspace(<CoverLetterRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />);
   if (["resume_revision_requested", "resume_revision_running", "resume_revision_failed"].includes(status)) return inWorkspace(<ResumeRevisionAction leadId={leadId} initialStatus={status} onStatus={setStatus} />);
-  if (status === "pass") return <div className="decision-saved pass"><strong>{labels[status]}</strong><span>Removed from active consideration</span></div>;
+  if (status === "pass") return <div className="decision-saved pass"><strong>{labels[status]}</strong><span>Marked as not applying</span></div>;
 
   return <div className="decision-control">
     <span>What would you like to do?</span>
     <div>
       <button className="pursue" disabled={busy} onClick={() => decide("pursue")}>Pursue</button>
       <button disabled={busy} onClick={() => decide("decide_later")}>{status === "decide_later" ? "Saved for later" : "Decide later"}</button>
-      <button disabled={busy} onClick={() => decide("pass")}>Pass</button>
+      <button className="do-not-apply" disabled={busy} onClick={() => decide("pass")}>Do not apply</button>
     </div>
     {message && <small role="status">{message}</small>}
   </div>;
@@ -125,7 +125,8 @@ export function DecisionButtons({ leadId }: { leadId: string }) {
 const workspaceStages = ["Analysis", "Strategy", "Resume", "Cover letter", "Package", "Apply"];
 function CandidateStrategyReview({ strategy, expanded }: { strategy:CandidateStrategy; expanded:boolean }) {
   const recommendation = strategy.source_analysis.recommendation === "do_not_apply" ? "Do not apply" : strategy.source_analysis.recommendation.replaceAll("_", " ");
-  return <details className="candidate-strategy-review" open={expanded}><summary><div><span>APPLICATION STRATEGY</span><strong>{strategy.positioning.positioning_statement}</strong></div><b>{strategy.source_analysis.total_score}% verified fit · {recommendation}</b><span className="strategy-expand-hint"><i>⌄</i></span></summary><div className="candidate-strategy-body"><p className="strategy-headline">{strategy.strategy_headline}</p><section><h4>How to position your experience</h4><p>{strategy.positioning.differentiator}</p><ul>{strategy.positioning.pillars.map(item=><li key={item}>{item}</li>)}</ul></section><section><h4>What the hiring manager likely needs</h4><ul>{strategy.hiring_manager_mindset.slice(0,5).map(item=><li key={item}>{item}</li>)}</ul></section><section><h4>Main risks and honest response</h4><div className="strategy-risk-list">{strategy.risks.screening.slice(0,5).map(item=><article key={item.risk}><span>{item.severity}</span><div><strong>{item.risk}</strong><p>{item.mitigation}</p></div></article>)}</div></section><section><h4>Resume direction</h4><p>{strategy.resume_strategy.target_identity}</p><ul>{strategy.resume_strategy.summary_focus.map(item=><li key={item}>{item}</li>)}</ul></section>{strategy.interview_strategy?.response_strategy&&<section><h4>Interview direction</h4><p>{strategy.interview_strategy.response_strategy}</p></section>}</div></details>;
+  const recommendationTone = strategy.source_analysis.recommendation === "do_not_apply" ? "negative" : strategy.source_analysis.recommendation === "apply" ? "positive" : "caution";
+  return <details className="candidate-strategy-review" open={expanded}><summary><div className="strategy-summary-copy"><span>APPLICATION STRATEGY</span><strong>{strategy.positioning.positioning_statement}</strong></div><div className="strategy-fit"><span>{strategy.source_analysis.total_score}% verified fit</span><span className={`strategy-decision ${recommendationTone}`}>{recommendation}</span></div><div className="strategy-disclosure"><em/><i aria-hidden="true"/></div></summary><div className="candidate-strategy-body"><p className="strategy-headline">{strategy.strategy_headline}</p><section><h4>How to position your experience</h4><p>{strategy.positioning.differentiator}</p><ul>{strategy.positioning.pillars.map(item=><li key={item}>{item}</li>)}</ul></section><section><h4>What the hiring manager likely needs</h4><ul>{strategy.hiring_manager_mindset.slice(0,5).map(item=><li key={item}>{item}</li>)}</ul></section><section><h4>Main risks and honest response</h4><div className="strategy-risk-list">{strategy.risks.screening.slice(0,5).map(item=><article key={item.risk}><span>{item.severity}</span><div><strong>{item.risk}</strong><p>{item.mitigation}</p></div></article>)}</div></section><section><h4>Resume direction</h4><p>{strategy.resume_strategy.target_identity}</p><ul>{strategy.resume_strategy.summary_focus.map(item=><li key={item}>{item}</li>)}</ul></section>{strategy.interview_strategy?.response_strategy&&<section><h4>Interview direction</h4><p>{strategy.interview_strategy.response_strategy}</p></section>}</div></details>;
 }
 function workflowStage(status: string) {
   if (status === "application_submitted") return 6;
