@@ -24,6 +24,15 @@ python3 scripts/initialize_profile.py
 
 This creates only missing files and never overwrites existing profile data.
 
+## Safe capture mode
+
+Automatic collection is deny-by-default. The agent never automates LinkedIn,
+Indeed, or Eluta and never uses job-board credentials, cookies, or browser
+sessions. It currently collects complete postings only through reviewed public
+Greenhouse and Lever APIs. Unknown or blocked sources stay in the manual capture
+queue. Redirects must remain on the approved allowlist, and access controls or
+rate limits are never bypassed.
+
 ## Current interface
 
 Refresh its data from the repository root:

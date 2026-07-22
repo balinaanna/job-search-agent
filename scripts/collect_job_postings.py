@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import subprocess
 import sys
 from datetime import datetime, timezone
 from html import unescape
@@ -15,6 +14,8 @@ from typing import Any, Callable
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urljoin, urlparse, urlunparse
 from urllib.request import Request, urlopen
+
+from safe_capture_policy import UnsafeCaptureURL, validate_automatic_capture_url
 
 
 DEFAULT_SOURCES_PATH = Path("strategy/job_sources.json")
@@ -68,12 +69,17 @@ def html_to_text(value: str) -> str:
 
 
 def fetch_json(url: str, timeout: float = 30.0) -> Any:
+    try:
+        validate_automatic_capture_url(url)
+    except UnsafeCaptureURL as exc:
+        raise CollectionError(str(exc)) from exc
     request = Request(
         url,
         headers={"Accept": "application/json", "User-Agent": USER_AGENT},
     )
     try:
         with urlopen(request, timeout=timeout) as response:
+            validate_automatic_capture_url(response.geturl())
             payload = response.read().decode("utf-8")
     except HTTPError as exc:
         raise CollectionError(
@@ -89,26 +95,22 @@ def fetch_json(url: str, timeout: float = 30.0) -> Any:
 
 
 def fetch_text(url: str, timeout: float = 30.0) -> str:
+    try:
+        validate_automatic_capture_url(url)
+    except UnsafeCaptureURL as exc:
+        raise CollectionError(str(exc)) from exc
     request = Request(
         url,
         headers={"Accept": "text/html", "User-Agent": USER_AGENT},
     )
     try:
         with urlopen(request, timeout=timeout) as response:
+            validate_automatic_capture_url(response.geturl())
             return response.read().decode("utf-8", errors="replace")
     except HTTPError as exc:
         raise CollectionError(f"HTTP {exc.code} while collecting {url}") from exc
     except URLError as exc:
-        try:
-            result = subprocess.run(
-                ["curl", "-fsSL", "--max-time", str(int(timeout)), "-A", USER_AGENT, url],
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            return result.stdout
-        except (OSError, subprocess.CalledProcessError) as fallback:
-            raise CollectionError(f"Unable to collect {url}: {exc.reason}") from fallback
+        raise CollectionError(f"Unable to collect {url}: {exc.reason}") from exc
 
 
 def required_string(value: Any, path: str) -> str:
@@ -505,7 +507,9 @@ def collect_source(
         region = source.get("region", "global")
         payload = fetcher(lever_url(source["site"], region))
         return lever_postings(source, payload, collected_at)
-    return eluta_postings(source, collected_at, text_fetcher)
+    raise CollectionError(
+        "Safe capture mode blocks automated Eluta access; jobs remain in the manual capture queue."
+    )
 
 
 def load_sources(path: Path) -> list[dict[str, Any]]:

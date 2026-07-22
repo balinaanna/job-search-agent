@@ -35,6 +35,14 @@ SCHEMA_PATH = ROOT / (
 
 
 class JobPostingCollectorTests(unittest.TestCase):
+    def test_safe_capture_blocks_automated_eluta_collection(self) -> None:
+        with self.assertRaisesRegex(CollectionError, "manual capture queue"):
+            collect_source(
+                {"company": "Eluta", "platform": "eluta", "queries": ["Engineer"], "locations": ["Canada"]},
+                COLLECTED_AT,
+                text_fetcher=lambda _: self.fail("Blocked source must not be requested"),
+            )
+
     def test_html_to_text_preserves_readable_blocks(self) -> None:
         result = html_to_text("<p>Build APIs &amp; tools.</p><ul><li>Python</li></ul>")
         self.assertEqual(result, "Build APIs & tools.\nPython")

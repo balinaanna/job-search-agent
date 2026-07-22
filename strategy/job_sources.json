@@ -17,7 +17,7 @@
       "max_queries": 3,
       "max_locations": 3,
       "max_results_per_search": 5,
-      "enabled": true
+      "enabled": false
     },
     {
       "company": "Durable",

@@ -94,6 +94,23 @@ Stop for review before:
 - references
 - consent to background checks
 
+## Safe capture mode
+
+Protect the user's job-board accounts and use safe capture mode for every
+discovery or posting-enrichment feature.
+
+- Never automate access to LinkedIn, Indeed, or Eluta pages.
+- Never use job-board credentials, cookies, browser profiles, or authenticated sessions.
+- Never bypass CAPTCHAs, access controls, rate limits, robots rules, or bot protection.
+- Never use proxies or identity-obscuring techniques to evade blocking.
+- Automatically collect only from explicitly reviewed public employer or ATS APIs and feeds.
+- Deny unknown hosts by default; adding a source requires an explicit allowlist change and tests.
+- Validate redirects as strictly as initial URLs and stop if a redirect leaves the allowlist.
+- Cache and deduplicate captures; do not repeatedly request the same posting.
+- Treat HTTP 401, 403, 429, login requirements, and bot challenges as a stop condition.
+- Route unavailable or disallowed postings to the manual capture queue.
+- Automatic capture never authorizes automatic application submission.
+
 ## Writing style
 
 Use clear, natural English.
