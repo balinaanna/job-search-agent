@@ -1,0 +1,31 @@
+from __future__ import annotations
+
+from typing import Any
+
+from filter_job_leads import contains_phrase
+from score_job_leads import title_similarity
+
+
+def score_alert_metadata(job: dict[str, Any], criteria: dict[str, Any]) -> dict[str, Any]:
+    """Estimate fit from locally stored alert metadata without opening the job board."""
+    title = str(job.get("title") or "").strip()
+    strategy = criteria["search_strategy"]
+    if any(contains_phrase(title, excluded) for excluded in strategy["excluded_titles"]):
+        return {
+            "score": 5,
+            "label": "Low title match",
+            "basis": "Title only",
+            "limitations": ["The title is explicitly excluded by the search strategy.", "Requirements, location, and seniority are not yet verified."],
+        }
+    targets = strategy["primary_targets"] + strategy["secondary_targets"] + strategy["conditional_targets"]
+    best = max((target["priority_score"] * title_similarity(title, target["title"]) for target in targets), default=25)
+    title_score = max(20, min(100, round(best)))
+    # Unknown requirements, logistics, and employer context stay neutral rather than receiving assumed credit.
+    score = round(title_score * 0.75 + 50 * 0.25)
+    label = "Promising title" if score >= 75 else "Possible title match" if score >= 55 else "Weak title match"
+    return {
+        "score": score,
+        "label": label,
+        "basis": "Title only",
+        "limitations": ["Calculated without opening the job board.", "Requirements, location, seniority, and responsibilities are not yet verified."],
+    }

@@ -35,6 +35,7 @@ from discovery_store import DiscoveryStore
 from search_settings import load_search_settings, save_search_settings
 from job_alert_inbox import AlertInboxStore, canonical_job_url, save_captured_posting
 from safe_capture_policy import capture_capability
+from score_alert_metadata import score_alert_metadata
 from interview_preparation import prepare_for_lead
 from build_strategy_with_codex import find_analysis
 from export_dashboard_data import build_dashboard_data
@@ -252,6 +253,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if parts == ["api", "job-alerts"]:
             jobs = self.alert_store.list()
+            criteria = load_json(ROOT / "strategy/job_search_criteria.json")
             leads_by_url = {}
             for lead in load_leads(self.leads_directory):
                 source = lead["source"].get("platform")
@@ -259,6 +261,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
                 leads_by_url[(source, canonical_job_url(posting_url, source) or posting_url)] = lead["lead_id"]
             for job in jobs:
                 job["capture"] = {**capture_capability(job["posting_url"]), "status": job["status"], "error": job.get("capture_error")}
+                job["preliminary_fit"] = score_alert_metadata(job, criteria)
                 canonical = canonical_job_url(job["posting_url"], job["source"]) or job["posting_url"]
                 linked_lead = leads_by_url.get((job["source"], canonical))
                 if not job.get("lead_id") and linked_lead:
