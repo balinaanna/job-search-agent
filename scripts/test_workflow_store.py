@@ -7,11 +7,17 @@ import unittest
 from pathlib import Path
 
 from workflow_store import WorkflowStore
-from workflow_api import enrich_jobs_with_workflow
+from workflow_api import can_request_analysis, enrich_jobs_with_workflow
 from analyze_job_with_codex import strict_output_schema
 
 
 class WorkflowStoreTests(unittest.TestCase):
+    def test_user_can_override_automatic_discovery_rejection(self) -> None:
+        self.assertTrue(can_request_analysis("rejected"))
+        self.assertTrue(can_request_analysis("new"))
+        self.assertFalse(can_request_analysis("archived"))
+        self.assertFalse(can_request_analysis("pass"))
+
     def test_live_jobs_include_latest_workflow_status(self):
         run = self.store.record_completed_analysis("lead-live", "analysis.json")
         self.store.transition(run["id"], "pursue", "user")

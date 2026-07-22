@@ -85,6 +85,12 @@ def practice_confirmation_required(plan: dict, payload: dict) -> bool:
     return plan.get("application", {}).get("mode") == "practice_only" and payload.get("practice_only_confirmed") is not True
 
 
+def can_request_analysis(lead_status: str) -> bool:
+    # `rejected` is an automatic discovery-screen result, not a user decision.
+    # An explicit Analyze action must be allowed to override it.
+    return lead_status not in {"archived", "closed", "applied", "pass"}
+
+
 def archived_posting(lead: dict) -> dict:
     return {
         "lead_id": lead["lead_id"], "company": lead["identity"]["company"], "title": lead["position"]["title"],
@@ -843,7 +849,7 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             self.respond(404, {"error": "Job lead not found."})
             return
         lead = load_json(lead_path)
-        if lead["status"]["lead_status"] in {"archived", "rejected", "closed", "applied"}:
+        if not can_request_analysis(lead["status"]["lead_status"]):
             self.respond(409, {"error": "This job cannot enter analysis from its current state."})
             return
         run = self.store.request_analysis(lead_id)
