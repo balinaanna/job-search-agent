@@ -138,9 +138,8 @@ def canonical_job_url(value: str, source: str) -> str | None:
         if parsed.path not in excluded and not parsed.path.endswith("-jobs"):
             return urlunparse(("https", "www.eluta.ca", parsed.path, "", "", ""))
     if source == "ziprecruiter" and host.endswith("ziprecruiter.com"):
-        excluded = {"", "/", "/jobs", "/jobs-search", "/candidate/search", "/investigate"}
-        if parsed.path not in excluded and re.match(r"^/(jobs|c)/", parsed.path):
-            return urlunparse(("https", "www.ziprecruiter.com", parsed.path, "", "", ""))
+        jid = parse_qs(parsed.query).get("jid", [None])[0]
+        if jid: return f"https://www.ziprecruiter.com{parsed.path}?{urlencode({'jid': jid})}"
     return None
 
 

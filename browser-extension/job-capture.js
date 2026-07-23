@@ -12,9 +12,8 @@
     if (host.endsWith("indeed.com")) { const key = url.searchParams.get("jk"); return key ? `https://ca.indeed.com/viewjob?jk=${encodeURIComponent(key)}` : null; }
     if (host.endsWith("eluta.ca") && url.pathname.startsWith("/spl/")) return `https://www.eluta.ca${url.pathname}`;
     if (host.endsWith("ziprecruiter.com")) {
-      const excluded = new Set(["", "/", "/jobs", "/jobs-search", "/candidate/search", "/investigate"]);
-      if (!excluded.has(url.pathname) && /^\/(jobs|c)\//.test(url.pathname)) return `https://www.ziprecruiter.com${url.pathname}`;
-      return null;
+      const jid = url.searchParams.get("jid");
+      return jid ? `https://www.ziprecruiter.com${url.pathname}?jid=${encodeURIComponent(jid)}` : null;
     }
     return null;
   }
@@ -45,7 +44,7 @@
     },
     indeed: { title: ["h1.jobsearch-JobInfoHeader-title", "h1"], company: ["[data-testid='inlineHeader-companyName']", "[data-company-name]"], description: ["#jobDescriptionText", "[class*='jobDescription']"], location: ["[data-testid='job-location']", "[class*='location']"] },
     eluta: { title: ["h1", "[itemprop='title']"], company: ["[itemprop='hiringOrganization']", "[class*='employer']", "[class*='company']"], description: ["[itemprop='description']", "[class*='description']", "main"], location: ["[itemprop='jobLocation']", "[class*='location']"] },
-    ziprecruiter: { title: ["h1[data-testid='job-title']", "h1"], company: ["[data-testid='job-company-name']", "[class*='hiring-company']", "[class*='company']"], description: ["[data-testid='job-description']", "[class*='job_description']", "[class*='jobDescription']", "main"], location: ["[data-testid='job-location']", "[class*='location']"] },
+    ziprecruiter: { title: ["h1"], company: ["a[href^='/co/']", "[data-testid*='company' i]", "[class*='company']"], description: ["main"], location: ["[class*='location']"] },
   };
   function extract(document, url) {
     const source = sourceForUrl(url); if (!source) throw new Error("Open an individual LinkedIn, Indeed, Eluta, or ZipRecruiter job first.");
@@ -55,7 +54,7 @@
     const description = text(posting?.description) || firstText(document, fields.description) || semanticDescription(document);
     const location = locationValue(posting?.jobLocation) || firstText(document, fields.location);
     const missing = [!title && "title", !company && "employer", description.length < 200 && "complete description"].filter(Boolean);
-    if (missing.length) throw new Error(`Adapter 0.5.5 could not identify: ${missing.join(", ")}. Expand the job description, then try again.`);
+    if (missing.length) throw new Error(`Adapter 0.5.6 could not identify: ${missing.join(", ")}. Expand the job description, then try again.`);
     const canonical = postingUrl(url);
     return { source, company, role: title, posting_url: canonical, application_url: text(posting?.url) || canonical, description_text: description, location_raw: location || null, workplace_type_raw: posting?.jobLocationType === "TELECOMMUTE" ? "Remote" : null, employment_type_raw: text(posting?.employmentType) || null, posted_date: text(posting?.datePosted) || null };
   }
