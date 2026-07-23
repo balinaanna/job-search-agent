@@ -29,6 +29,10 @@ def word_count(text: str) -> int:
     return len(re.findall(r"\b[\w’'-]+\b", text))
 
 
+def en_dash_lines(text: str) -> list[int]:
+    return [i + 1 for i, line in enumerate(text.splitlines()) if "–" in line]
+
+
 def collect_trace_element_ids(trace: dict) -> set[str]:
     ids = set()
     for element in trace.get("elements", []):
@@ -164,6 +168,10 @@ def main() -> int:
     for phrase in forbidden_phrases:
         if normalize(phrase) in normalized_letter:
             errors.append(f"Forbidden phrase found: {phrase}")
+
+    dash_lines = en_dash_lines(letter_text)
+    if dash_lines:
+        errors.append(f"en dash (–) found; use a plain hyphen (-) instead. Lines: {dash_lines}")
 
     final_resume_text = final_resume_path.read_text(encoding="utf-8")
     resume_lines = [

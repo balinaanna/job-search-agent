@@ -29,6 +29,11 @@ Avoid stacking several abstract nouns in one sentence.
 
 Avoid unnecessary adjectives.
 
+## Punctuation
+
+Never use an en dash (–). Use a plain hyphen (-) for ranges (e.g. "2022-01 - 2023-02") and
+compound modifiers.
+
 ## Preferred wording
 
 Prefer:

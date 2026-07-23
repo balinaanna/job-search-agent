@@ -50,6 +50,10 @@ def expected_sections(plan):
     return [labels[x["section"]] for x in items if x.get("section") in labels]
 
 
+def en_dash_lines(text: str) -> list[int]:
+    return [i + 1 for i, line in enumerate(text.splitlines()) if "–" in line]
+
+
 def content_without_certifications(resume: str) -> str:
     """Credential names remain truthful even when a title keyword is excluded."""
     return re.sub(r"^##\s+CERTIFICATIONS\s*$.*?(?=^##\s+|\Z)", "", resume, flags=re.MULTILINE | re.DOTALL)
@@ -176,6 +180,10 @@ def main():
 
     if trace.get("validation_summary", {}).get("unmapped_bullets"):
         errors.append("trace contains unmapped bullets")
+
+    dash_lines = en_dash_lines(resume)
+    if dash_lines:
+        errors.append(f"en dash (–) found; use a plain hyphen (-) instead. Lines: {dash_lines}")
 
     if errors:
         print("Validation failed:")

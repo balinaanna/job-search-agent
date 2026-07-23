@@ -37,6 +37,10 @@ def normalize(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def en_dash_lines(text: str) -> list[int]:
+    return [i + 1 for i, line in enumerate(text.splitlines()) if "–" in line]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("workspace", type=Path)
@@ -282,6 +286,10 @@ def main() -> int:
         errors.append("Revision before word count mismatch.")
     if counts.get("after") != actual_after_words:
         errors.append("Revision after word count mismatch.")
+
+    dash_lines = en_dash_lines(current_letter)
+    if dash_lines:
+        errors.append(f"en dash (–) found; use a plain hyphen (-) instead. Lines: {dash_lines}")
 
     target_min = plan.get("structure", {}).get("target_words_min")
     target_max = plan.get("structure", {}).get("target_words_max")

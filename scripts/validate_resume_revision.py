@@ -22,6 +22,10 @@ def word_count(path: Path) -> int:
     return len(re.findall(r"\b[\w’'-]+\b", path.read_text(encoding="utf-8")))
 
 
+def en_dash_lines(path: Path) -> list[int]:
+    return [i + 1 for i, line in enumerate(path.read_text(encoding="utf-8").splitlines()) if "–" in line]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("workspace", type=Path)
@@ -170,6 +174,11 @@ def main() -> int:
         errors.append(f"Missing file: {resume_path}")
     if not trace_path.exists():
         errors.append(f"Missing file: {trace_path}")
+
+    if resume_path.exists():
+        dash_lines = en_dash_lines(resume_path)
+        if dash_lines:
+            errors.append(f"en dash (–) found; use a plain hyphen (-) instead. Lines: {dash_lines}")
 
     if errors:
         print("Validation failed:")
