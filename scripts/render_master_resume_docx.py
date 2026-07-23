@@ -123,7 +123,7 @@ def render(output: Path, data: dict) -> Path:
         run.font.size = Pt(10.5)
         add_meta_line(document, " | ".join(value for value in (text(role.get("location")), date_range(role.get("dates", {}))) if value))
         add_body(document, text(role.get("summary")))
-        for item in role.get("responsibilities", []):
+        for item in role.get("accomplishments", []):
             add_bullet(document, text(item))
 
     add_section_heading(document, "PROJECTS")
