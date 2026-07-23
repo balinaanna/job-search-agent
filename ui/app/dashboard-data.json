@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-23T18:46:20.689316+00:00",
+  "generatedAt": "2026-07-23T18:52:09.457248+00:00",
   "summary": {
-    "discovered": 255,
+    "discovered": 256,
     "awaitingAnalysis": 16,
     "readyToPursue": 3,
-    "stretch": 6,
+    "stretch": 7,
     "applicationsInProgress": 0
   },
   "analyzedJobs": [
@@ -235,6 +235,25 @@
       ],
       "risk": "The role combines an incompatible on-site Trail requirement with core expectations for ML model development and production AI lifecycle ownership that are not supported by the verified profile.",
       "nextAction": "Do not apply unless Anna first confirms willingness to relocate to Trail and determines that Teck would consider strong AI-workflow and solutions-analysis experience without direct ML model-development depth."
+    },
+    {
+      "id": "icounter-frontend-developer-ai-products-61e69c3d8f",
+      "company": "iCOUNTER",
+      "role": "Frontend Developer - AI Products",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/listing/D-U08a-Hx-Zt7py-jClJUQ",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T18:47:43.931368+00:00",
+      "discoveryScore": 87,
+      "fitScore": 59,
+      "recommendation": "selective_apply",
+      "reasons": [
+        "Core JavaScript/TypeScript/React skills and general frontend responsibilities (component architecture, testing, designer collaboration, code review) are directly supported by Dooly, Techery, and current project evidence.",
+        "Logistics are strong: Vancouver hybrid role is commutable from Richmond BC, and Anna is a Canadian citizen requiring no sponsorship.",
+        "The current AI Job Search and Application Agent project gives some transferable AI-product frontend evidence (a React/TypeScript UI surfacing AI-generated analysis output) that can honestly address part of the AI-UI requirement."
+      ],
+      "risk": "The role's defining mandatory requirement, hands-on experience building LLM chat interfaces and streaming token-rendering UI, is not directly evidenced anywhere in the verified profile, creating real screening risk in a role whose title and description center on AI-product UI work.",
+      "nextAction": "Apply selectively only if Anna specifically wants to return to full-time hands-on frontend engineering; in the application, lead with the React/TypeScript work on the job search agent project and the Hermes/Ollama integration to show adjacent AI-integration experience, and be ready to honestly address the chat/streaming-UI gap if raised during screening."
     },
     {
       "id": "specsavers-data-analyst-fccab6a6e9",
