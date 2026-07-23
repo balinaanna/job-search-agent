@@ -8,7 +8,7 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Pt, RGBColor
 
-from resume_format import date_range, format_date, humanize_group
+from resume_format import date_range, humanize_group, training_suffix
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -128,7 +128,7 @@ def render(output: Path, data: dict) -> Path:
         run = paragraph.add_run(text(item.get("name")))
         run.bold = True
         run.font.size = Pt(10)
-        paragraph.add_run(f" - {format_date(item.get('completion'))}").font.size = Pt(10)
+        paragraph.add_run(text(training_suffix(item))).font.size = Pt(10)
 
     add_section_heading(document, "SKILLS")
     for group, items in list(skills.items()) + list(technologies.items()):

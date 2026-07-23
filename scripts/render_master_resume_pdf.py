@@ -11,7 +11,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
-from resume_format import date_range, format_date, humanize_group
+from resume_format import date_range, humanize_group, training_suffix
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -57,7 +57,7 @@ def render(output: Path, data: dict) -> Path:
     for item in career.get("education", []):
         story.append(Paragraph(f"<b>{text(item.get('credential'))}, {text(item.get('field'))}</b> - {text(item.get('institution'))} ({text(date_range(item.get('dates', {})))})", styles["BodySmall"]))
     for item in career.get("training_and_certifications", []):
-        story.append(Paragraph(f"<b>{text(item.get('name'))}</b> - {text(format_date(item.get('completion')))}", styles["BodySmall"]))
+        story.append(Paragraph(f"<b>{text(item.get('name'))}</b>{text(training_suffix(item))}", styles["BodySmall"]))
     story.append(Paragraph("SKILLS", styles["Section"]))
     for group, items in list(skills.items()) + list(technologies.items()):
         if not items:

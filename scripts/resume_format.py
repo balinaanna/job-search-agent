@@ -20,5 +20,20 @@ def date_range(dates: dict) -> str:
     return " - ".join(part for part in (format_date(dates.get("start")), format_date(dates.get("end"))) if part)
 
 
+def training_date(item: dict) -> str:
+    if item.get("dates"):
+        return date_range(item["dates"])
+    return format_date(item.get("completion"))
+
+
+def training_suffix(item: dict) -> str:
+    provider_location = ", ".join(part for part in (str(item.get("provider") or ""), str(item.get("location") or "")) if part)
+    suffix = f" - {provider_location}" if provider_location else ""
+    date_display = training_date(item)
+    if date_display:
+        suffix += f" ({date_display})"
+    return suffix
+
+
 def humanize_group(name: str) -> str:
     return " ".join(word.upper() if word.lower() == "ai" else word.title() for word in name.replace("_", " ").split(" "))
