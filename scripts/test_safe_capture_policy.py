@@ -17,6 +17,7 @@ class SafeCapturePolicyTests(unittest.TestCase):
             "https://www.linkedin.com/jobs/view/1",
             "https://ca.indeed.com/viewjob?jk=1",
             "https://www.eluta.ca/spl/job-1",
+            "https://www.ziprecruiter.com/jobs/acme-1",
         ):
             with self.assertRaisesRegex(UnsafeCaptureURL, "manual capture queue"):
                 validate_automatic_capture_url(url)
@@ -33,4 +34,5 @@ class SafeCapturePolicyTests(unittest.TestCase):
         self.assertEqual(greenhouse["api_url"], "https://boards-api.greenhouse.io/v1/boards/acme/jobs/12345")
         self.assertEqual(lever["api_url"], "https://api.lever.co/v0/postings/acme/abc-123")
         self.assertEqual(capture_capability("https://www.linkedin.com/jobs/view/1")["mode"], "manual_required")
+        self.assertEqual(capture_capability("https://www.ziprecruiter.com/jobs/acme-1")["mode"], "manual_required")
         self.assertEqual(capture_capability("https://jobs.lever.co/acme/abc-123")["mode"], "automatic_available")

@@ -10,9 +10,11 @@ class JobAlertInboxTests(unittest.TestCase):
         linkedin = parse_alert("linkedin", '<a href="https://www.linkedin.com/jobs/view/12345/?tracking=x">Applied AI Engineer</a>')
         indeed = parse_alert("indeed", '<a href="https://ca.indeed.com/rc/clk?jk=abc123&from=alert">Backend AI Engineer</a>')
         eluta = parse_alert("eluta", '<a href="https://www.eluta.ca/spl/software-engineer-abc123">Software Engineer</a>')
+        ziprecruiter = parse_alert("ziprecruiter", '<a href="https://www.ziprecruiter.com/jobs/acme-software-engineer-abc123?tracking=x">Software Engineer</a>')
         self.assertEqual(linkedin[0]["posting_url"], "https://www.linkedin.com/jobs/view/12345")
         self.assertEqual(indeed[0]["posting_url"], "https://ca.indeed.com/viewjob?jk=abc123")
         self.assertEqual(eluta[0]["title"], "Software Engineer")
+        self.assertEqual(ziprecruiter[0]["posting_url"], "https://www.ziprecruiter.com/jobs/acme-software-engineer-abc123")
 
     def test_canonicalizes_linkedin_email_and_browser_urls_identically(self):
         email_job = parse_alert("linkedin", '<a href="https://www.linkedin.com/comm/jobs/view/software-engineer-12345?tracking=x">Software Engineer</a>')

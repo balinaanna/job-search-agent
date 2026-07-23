@@ -3,7 +3,7 @@ from __future__ import annotations
 from urllib.parse import urlsplit
 
 
-BLOCKED_JOB_BOARD_DOMAINS = ("linkedin.com", "indeed.com", "eluta.ca")
+BLOCKED_JOB_BOARD_DOMAINS = ("linkedin.com", "indeed.com", "eluta.ca", "ziprecruiter.com")
 APPROVED_PUBLIC_API_HOSTS = {
     "boards-api.greenhouse.io",
     "api.lever.co",

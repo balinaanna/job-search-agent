@@ -16,7 +16,7 @@ from safe_capture_policy import automatic_capture_plan
 from safe_capture_policy import capture_capability
 
 
-SOURCES = {"linkedin", "indeed", "eluta"}
+SOURCES = {"linkedin", "indeed", "eluta", "ziprecruiter"}
 GENERIC_TEXT = {"apply", "apply now", "view job", "view jobs", "see job", "see jobs", "learn more", "jobs", "job alert"}
 LOCATION_TERMS = ("british columbia", "ontario", "alberta", "vancouver", "richmond", "burnaby", "surrey", "toronto", "calgary")
 COMPANY_NOISE = {
@@ -137,11 +137,15 @@ def canonical_job_url(value: str, source: str) -> str | None:
         excluded = {"", "/", "/jobs", "/search", "/postjobs", "/employers"}
         if parsed.path not in excluded and not parsed.path.endswith("-jobs"):
             return urlunparse(("https", "www.eluta.ca", parsed.path, "", "", ""))
+    if source == "ziprecruiter" and host.endswith("ziprecruiter.com"):
+        excluded = {"", "/", "/jobs", "/jobs-search", "/candidate/search", "/investigate"}
+        if parsed.path not in excluded and re.match(r"^/(jobs|c)/", parsed.path):
+            return urlunparse(("https", "www.ziprecruiter.com", parsed.path, "", "", ""))
     return None
 
 
 def parse_alert(source: str, content: str) -> list[dict]:
-    if source not in SOURCES: raise ValueError("Source must be LinkedIn, Indeed, or Eluta.")
+    if source not in SOURCES: raise ValueError("Source must be LinkedIn, Indeed, Eluta, or ZipRecruiter.")
     if not isinstance(content, str) or not content.strip(): raise ValueError("Paste or upload a job-alert email first.")
     body = email_body(content); parser = AnchorParser(); parser.feed(body); lines = alert_lines(body)
     if not parser.anchors:
@@ -177,7 +181,7 @@ def normalize_posted_date(value: object) -> str | None:
 
 def save_captured_posting(payload: dict, output_directory: Path) -> Path:
     source = payload.get("source")
-    if source not in SOURCES: raise ValueError("Capture source must be LinkedIn, Indeed, or Eluta.")
+    if source not in SOURCES: raise ValueError("Capture source must be LinkedIn, Indeed, Eluta, or ZipRecruiter.")
     required = {}
     for name in ("company", "role", "posting_url", "description_text"):
         value = payload.get(name)
