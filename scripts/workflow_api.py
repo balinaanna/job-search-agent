@@ -33,6 +33,7 @@ from workflow_store import WorkflowStore
 from application_tracker import initial_tracker, update_tracker
 from discovery_store import DiscoveryStore
 from search_settings import load_search_settings, save_search_settings
+from job_preferences_settings import load_job_preferences, save_job_preferences
 from job_alert_inbox import AlertInboxStore, canonical_job_url, save_captured_posting
 from safe_capture_policy import capture_capability
 from score_alert_metadata import score_alert_metadata
@@ -277,6 +278,12 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
                 self.respond(500, {"error": str(exc)})
             return
+        if parts == ["api", "profile", "job-preferences"]:
+            try:
+                self.respond(200, load_job_preferences(ROOT / "profile/job_preferences.yaml"))
+            except (OSError, ValueError, KeyError, yaml.YAMLError) as exc:
+                self.respond(500, {"error": f"Job preferences could not be loaded: {exc}"})
+            return
         if parts == ["api", "job-alerts"]:
             jobs = self.alert_store.list()
             criteria = load_json(ROOT / "strategy/job_search_criteria.json")
@@ -330,6 +337,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             return
         if parts == ["api", "search-settings"]:
             self.update_search_settings()
+            return
+        if parts == ["api", "profile", "job-preferences"]:
+            self.update_job_preferences()
             return
         if parts == ["api", "job-alerts", "import"]:
             self.import_job_alert()
@@ -573,6 +583,16 @@ class WorkflowHandler(BaseHTTPRequestHandler):
             self.respond(400, {"error": str(exc)})
             return
         self.respond(200, settings)
+
+    def update_job_preferences(self) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+            preferences = save_job_preferences(payload, ROOT / "profile/job_preferences.yaml")
+        except (OSError, ValueError, KeyError, json.JSONDecodeError, yaml.YAMLError) as exc:
+            self.respond(400, {"error": str(exc)})
+            return
+        self.respond(200, preferences)
 
     def import_job_alert(self) -> None:
         try:
