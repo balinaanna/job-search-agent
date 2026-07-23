@@ -25,6 +25,7 @@ export default function Home() {
           <a className="nav-item" href="/add-jobs"><span>＋</span> Add jobs</a>
           <a className="nav-item" href="/applications"><span>▤</span> Applications</a>
           <a className="nav-item" href="/profile"><span>◇</span> Career profile</a>
+          <a className="nav-item" href="/job-preferences"><span>⚙</span> Job preferences</a>
         </nav>
         <div className="sidebar-note">
           <span className="status-dot" />

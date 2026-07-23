@@ -25,9 +25,9 @@ const WEIGHT_LABELS: Array<[string, string]> = [
 ];
 
 export function JobPreferences() {
-  const [open, setOpen] = useState(false), [prefs, setPrefs] = useState<Preferences | null>(null);
+  const [prefs, setPrefs] = useState<Preferences | null>(null);
   const [message, setMessage] = useState(""), [saving, setSaving] = useState(false);
-  useEffect(() => { if (!open || prefs) return; fetch("http://localhost:8787/api/profile/job-preferences").then(async (response) => { const value = await response.json(); if (!response.ok) throw new Error(value.error); return value; }).then(setPrefs).catch(() => setMessage("Start the local workflow service to edit job preferences.")); }, [open, prefs]);
+  useEffect(() => { fetch("http://localhost:8787/api/profile/job-preferences").then(async (response) => { const value = await response.json(); if (!response.ok) throw new Error(value.error); return value; }).then(setPrefs).catch(() => setMessage("Start the local workflow service to edit job preferences.")); }, []);
 
   const lines = (value: string) => value.split("\n").map((item) => item.trim()).filter(Boolean);
   const weightTotal = prefs ? Object.values(prefs.fit_scoring.weights).reduce((sum, value) => sum + (Number.isFinite(value) ? value : 0), 0) : 0;
@@ -48,9 +48,7 @@ export function JobPreferences() {
     }
   }
 
-  return <div className="job-preferences-control">
-    <button className="settings-button" type="button" onClick={() => setOpen((value) => !value)}>{open ? "Close job preferences" : "Job preferences"}</button>
-    {open && <section className="settings-panel" aria-label="Job fit and application preferences">
+  return <section className="settings-panel job-preferences-page" aria-label="Job fit and application preferences">
       <div className="section-heading"><div><p className="eyebrow">FIT &amp; APPLICATION PREFERENCES</p><h2>What should count as a good fit?</h2><p className="settings-subtext">Separate from Search settings, which control what gets discovered — these guide fit scoring and hard-reject rules once a job is analyzed.</p></div></div>
       {!prefs ? <p className="settings-message" role="status">{message || "Loading your preferences…"}</p> : <>
         <div className="settings-grid">
@@ -100,6 +98,5 @@ export function JobPreferences() {
         </fieldset>
         <div className="settings-footer"><p role="status">{message}</p><button type="button" onClick={save} disabled={saving || weightTotal !== 100}>{saving ? "Saving…" : "Save job preferences"}</button></div>
       </>}
-    </section>}
-  </div>;
+    </section>;
 }
