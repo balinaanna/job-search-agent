@@ -124,7 +124,13 @@ def join_results(
         for lead in leads
         if lead["lead_id"] not in matched_ids
         and lead["status"]["lead_status"] != "archived"
-        and lead["discovery"].get("full_analysis_recommended") is True
+        and (
+            lead["discovery"].get("full_analysis_recommended") is True
+            # A user-captured lead (browser extension or alert import) was deliberately
+            # chosen by hand, so it must stay visible even if the bulk-discovery scorer
+            # would have skipped it (e.g. its job function isn't in the auto-queue allowlist).
+            or lead["discovery"].get("search_query", "").endswith(" job alert")
+        )
     ]
     results.sort(
         key=lambda item: (

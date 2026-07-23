@@ -102,6 +102,15 @@ class FitQueueTests(unittest.TestCase):
         self.assertEqual(63, results[0].analysis["score"]["total_score"])
         self.assertEqual([], awaiting)
 
+    def test_manually_captured_lead_awaits_analysis_even_when_scorer_would_skip_it(self) -> None:
+        self.lead["discovery"]["full_analysis_recommended"] = False
+        self.lead["discovery"]["search_query"] = "ziprecruiter job alert"
+
+        results, awaiting = join_results([self.lead], [])
+
+        self.assertEqual(results, [])
+        self.assertEqual(awaiting, [self.lead])
+
     def test_canonical_workspace_matches_when_model_rephrases_company_and_source(self) -> None:
         analysis = analysis_for(self.lead, 60, "selective_apply")
         analysis["job"]["company"] = f"{self.lead['identity']['company']} on behalf of a partner"

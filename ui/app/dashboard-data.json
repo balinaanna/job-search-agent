@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-23T19:09:41.397380+00:00",
+  "generatedAt": "2026-07-23T19:33:03.618083+00:00",
   "summary": {
-    "discovered": 256,
-    "awaitingAnalysis": 16,
+    "discovered": 257,
+    "awaitingAnalysis": 18,
     "readyToPursue": 3,
     "stretch": 7,
     "applicationsInProgress": 0
@@ -241,7 +241,7 @@
       "company": "iCOUNTER",
       "role": "Frontend Developer - AI Products",
       "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IkQtVTA4YS1IeC1adDdweS1qQ2xKVVEiLCJtYXRjaF9pZCI6IjAxOWY4YWMxLTI1MGYtNzFkYi04N2VjLWEyY2U5MDJjMzBiYyIsImJpZF90cmFja2luZ19kYXRhIjoiQUFHSkt4dkNmejRTMElIRDB2Y0RYQVZSa0dnZDRoeGFTcDkza3VtcUFuUDRjMlpTWkVQMnB5aWd3YVNSVC1jS1A4X0twaHVhNWVNIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IkQtVTA4YS1IeC1adDdweS1qQ2xKVVEiLCJtYXRjaF9pZCI6IjAxOWY4YWMxLTI1MGYtNzFkYi04N2VjLWEyY2U5MDJjMzBiYyIsImJpZF90cmFja2luZ19kYXRhIjoiQUFHSkt4dkNmejRTMElIRDB2Y0RYQVZSa0dnZDRoeGFTcDkza3VtcUFuUDRjMlpTWkVQMnB5aWd3YVNSVC1jS1A4X0twaHVhNWVNIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
       "postedDate": null,
       "firstSeenAt": "2026-07-23T18:47:43.931368+00:00",
       "discoveryScore": 87,
@@ -517,6 +517,16 @@
       "discoveryScore": 82
     },
     {
+      "id": "lighthouse-software-group-ai-native-full-stack-product-engineer-510704fd08",
+      "company": "Lighthouse Software Group",
+      "role": "AI-Native Full Stack Product Engineer",
+      "location": "Unspecified",
+      "postingUrl": "https://www.linkedin.com/jobs/view/4385161185",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-21T00:01:36.297181+00:00",
+      "discoveryScore": 82
+    },
+    {
       "id": "robots-pencils-principal-ai-engineer-fedc15db90",
       "company": "Robots & Pencils",
       "role": "Principal AI Engineer",
@@ -625,6 +635,16 @@
       "postedDate": "2026-05-28",
       "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
       "discoveryScore": 70
+    },
+    {
+      "id": "oliver-agency-north-america-genai-designer-97dcabf30c",
+      "company": "OLIVER Agency - North America",
+      "role": "GenAI Designer",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6Ik80cTJzT1JxajFOU3hpNXI0ZksyMHciLCJtYXRjaF9pZCI6IjAxOWY5MDMzLTY5NDAtNzM1OC04ZDU3LWUxNmI0ZWFiOTEwMSIsImJpZF90cmFja2luZ19kYXRhIjoiQUFHQ3BDenNxd1hrN3dpcnFPdWxDSE9rOGNVR0VmSWN4N0x0XzlZS0lick80TU1GbWhwSmNKRjJBazhWTFJwUU9KVDJZUEp0VGpvIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T19:12:38.905118+00:00",
+      "discoveryScore": 66
     }
   ]
 }
