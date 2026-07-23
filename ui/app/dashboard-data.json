@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-22T16:34:24.594021+00:00",
+  "generatedAt": "2026-07-23T05:50:44.282057+00:00",
   "summary": {
     "discovered": 255,
     "awaitingAnalysis": 16,
-    "readyToPursue": 4,
-    "stretch": 5,
+    "readyToPursue": 3,
+    "stretch": 6,
     "applicationsInProgress": 0
   },
   "analyzedJobs": [
@@ -45,25 +45,6 @@
       ],
       "risk": "Anna lacks verified production-scale agent-platform, execution-engine, evaluation, observability, and Kubernetes experience, and her recent engineering work is smaller in scale than Cohere's enterprise platform context.",
       "nextAction": "Apply selectively if Anna wants an engineering-centred role. Before tailoring any materials, confirm that returning to daily full-stack development fits her current direction, then seek explicit approval for a separate tailoring workflow."
-    },
-    {
-      "id": "emterra-group-business-analyst-3723007fad",
-      "company": "Emterra Group",
-      "role": "Business Analyst",
-      "location": "Surrey, BC, CA",
-      "postingUrl": "https://ca.indeed.com/viewjob?jk=c546d3b541abde9b",
-      "postedDate": "2026-07-17",
-      "firstSeenAt": "2026-07-22T16:30:07.586397+00:00",
-      "discoveryScore": 59,
-      "fitScore": 76,
-      "recommendation": "apply",
-      "reasons": [
-        "Direct Business Analyst experience in requirements, workflows, specifications, stakeholder discussions, and cross-functional delivery",
-        "Current verified AI workflow and Python application experience",
-        "Strong SQL, systems investigation, reporting, and data-validation evidence"
-      ],
-      "risk": "The job's most visible deliverables include advanced Power BI dashboards and AI chatbots, while Anna has only transferable evidence for those specific platforms and capabilities.",
-      "nextAction": "Apply selectively if the employer accepts adjacent dashboard and AI-application experience. Before investing in the required assessment, confirm that advanced Power BI and production chatbot delivery are not strict screening requirements; do not submit anything without explicit approval."
     },
     {
       "id": "amazon-front-end-engineer-chronicle-analytics-eb95c58058",
@@ -273,6 +254,25 @@
       ],
       "risk": "The job is fundamentally a Power BI specialist role, while Anna has no verified Power BI, DAX, Power Query, or Databricks experience and lacks the requested 3–5 years as a Data Analyst.",
       "nextAction": "Do not prioritize an application. Focus on Data Analyst or Reporting Analyst roles that accept SQL, Excel, Python, stakeholder analysis, and transferable systems experience without requiring established Power BI subject-matter expertise."
+    },
+    {
+      "id": "emterra-group-business-analyst-3723007fad",
+      "company": "Emterra Group",
+      "role": "Business Analyst",
+      "location": "Surrey, BC, CA",
+      "postingUrl": "https://ca.indeed.com/viewjob?jk=c546d3b541abde9b",
+      "postedDate": "2026-07-17",
+      "firstSeenAt": "2026-07-22T16:30:07.586397+00:00",
+      "discoveryScore": 59,
+      "fitScore": 56,
+      "recommendation": "selective_apply",
+      "reasons": [
+        "Strong, directly evidenced business-analysis foundation (requirements gathering, stakeholder liaison, executive communication) matches the role's BA and coordination responsibilities.",
+        "Direct SQL evidence and hands-on prompt-engineering experience align with two explicitly listed technical qualifications.",
+        "Exceeds the minimum 1-year Business Analyst requirement, with recent, directly relevant AI-project delivery (Freedive BC dive-conditions agent, AI job search agent)."
+      ],
+      "risk": "The role's two headline deliverables, Power BI/DAX dashboard development and leading AI chatbot solutions on named platforms, have zero direct or transferable evidence in Anna's verified profile, creating meaningful screening and early-performance risk.",
+      "nextAction": "Treat as a selective, stretch application. Proceed only if Anna is comfortable being transparent in screening about lacking hands-on Power BI/DAX and chatbot-platform experience, framing it honestly as a learnable extension of her existing SQL, data-modeling, and AI-workflow background rather than claiming direct proficiency on the resume."
     },
     {
       "id": "grafana-labs-staff-ai-engineer-canada-remote-29e9f95e05",

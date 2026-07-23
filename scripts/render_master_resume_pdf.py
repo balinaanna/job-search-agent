@@ -11,6 +11,8 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
+from resume_format import date_range, format_date, humanize_group
+
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -36,30 +38,31 @@ def render(output: Path, data: dict) -> Path:
     story += [Paragraph("PROFESSIONAL SUMMARY", styles["Section"]), Paragraph(text(career["career_summary"]["positioning"]), styles["BodySmall"])]
     story.append(Paragraph("WORK EXPERIENCE", styles["Section"]))
     for role in career.get("employment", []):
-        dates = role.get("dates", {}); date_label = f"{dates.get('start','')} - {dates.get('end','')}"
-        story += [Paragraph(f"{text(role.get('official_title'))} | {text(role.get('organization'))}", styles["Role"]), Paragraph(f"{text(role.get('location'))} | {text(date_label)}", styles["Meta"]), Paragraph(text(role.get("summary")), styles["BodySmall"])]
+        date_label = date_range(role.get("dates", {}))
+        story += [Paragraph(f"{text(role.get('official_title'))} | {text(role.get('organization'))}", styles["Role"]), Paragraph(" | ".join(value for value in (text(role.get("location")), text(date_label)) if value), styles["Meta"]), Paragraph(text(role.get("summary")), styles["BodySmall"])]
         story += [Paragraph(text(item), styles["BulletSmall"], bulletText="-") for item in role.get("responsibilities", [])]
         story.append(Spacer(1, 5))
     story.append(Paragraph("PROJECTS", styles["Section"]))
     for project in career.get("projects", []):
         role = project.get("role")
         heading = f"{text(project.get('name'))} | {text(role)}" if role else text(project.get("name"))
-        dates = project.get("dates", {})
-        meta = " | ".join(value for value in (text(project.get("type")), text(project.get("organization")), text(project.get("status")), f"{text(dates.get('start'))} - {text(dates.get('end'))}" if dates else "") if value)
+        date_label = date_range(project.get("dates", {}))
+        meta = " | ".join(value for value in (text(project.get("type")), text(project.get("organization")), text(project.get("status")), text(date_label)) if value)
         story += [Paragraph(heading, styles["Role"]), Paragraph(meta, styles["Meta"]), Paragraph(text(project.get("summary")), styles["BodySmall"])]
+        if project.get("url"):
+            story.append(Paragraph(text(project["url"]), styles["Meta"]))
         story += [Paragraph(text(item), styles["BulletSmall"], bulletText="-") for item in project.get("highlights", [])]
         story.append(Spacer(1, 4))
     story.append(Paragraph("EDUCATION & CERTIFICATIONS", styles["Section"]))
     for item in career.get("education", []):
-        story.append(Paragraph(f"<b>{text(item.get('credential'))}, {text(item.get('field'))}</b> - {text(item.get('institution'))}", styles["BodySmall"]))
+        story.append(Paragraph(f"<b>{text(item.get('credential'))}, {text(item.get('field'))}</b> - {text(item.get('institution'))} ({text(date_range(item.get('dates', {})))})", styles["BodySmall"]))
     for item in career.get("training_and_certifications", []):
-        story.append(Paragraph(f"<b>{text(item.get('name'))}</b> - {text(item.get('completion'))}", styles["BodySmall"]))
-    story.append(Paragraph("MASTER SKILLS INVENTORY", styles["Section"]))
-    for group, items in skills.items():
-        story += [Paragraph(text(group.replace("_", " ").title()), styles["Role"]), Paragraph(", ".join(f"{text(item.get('name'))} ({text(item.get('proficiency'))})" for item in items), styles["Inventory"])]
-    story.append(Paragraph("TECHNOLOGIES", styles["Section"]))
-    for group, items in technologies.items():
-        story += [Paragraph(text(group.replace("_", " ").title()), styles["Role"]), Paragraph(", ".join(f"{text(item.get('name'))} ({text(item.get('level'))})" for item in items), styles["Inventory"])]
+        story.append(Paragraph(f"<b>{text(item.get('name'))}</b> - {text(format_date(item.get('completion')))}", styles["BodySmall"]))
+    story.append(Paragraph("SKILLS", styles["Section"]))
+    for group, items in list(skills.items()) + list(technologies.items()):
+        if not items:
+            continue
+        story += [Paragraph(text(humanize_group(group)), styles["Role"]), Paragraph(", ".join(text(item.get("name")) for item in items), styles["Inventory"])]
     doc = SimpleDocTemplate(str(output), pagesize=letter, rightMargin=.65*inch, leftMargin=.65*inch, topMargin=.55*inch, bottomMargin=.55*inch, title="Anna Stupachenko - Master Resume")
     doc.build(story)
     return output

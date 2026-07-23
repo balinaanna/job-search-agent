@@ -201,6 +201,9 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         if parts == ["api", "profile", "master-resume.pdf"]:
             self.get_master_resume_pdf()
             return
+        if parts == ["api", "profile", "master-resume.docx"]:
+            self.get_master_resume_docx()
+            return
         if len(parts) == 4 and parts[:3] == ["api", "profile", "runs"]:
             try: self.respond(200, self.profile_store.get(parts[3]))
             except KeyError: self.respond(404, {"error": "Profile rebuild was not found."})
@@ -951,19 +954,29 @@ class WorkflowHandler(BaseHTTPRequestHandler):
         except (OSError, KeyError, yaml.YAMLError) as exc:
             self.respond(500, {"error": f"Career profile could not be loaded: {exc}"})
 
+    def render_master_resume(self, script: str) -> bytes:
+        bundled_python = Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3"
+        renderer_python = bundled_python if bundled_python.exists() else Path(sys.executable)
+        data_path = ROOT / "data/profile-rebuilds/master-profile-export.json"
+        data_path.parent.mkdir(parents=True, exist_ok=True)
+        data_path.write_text(json.dumps(master_profile_data()), encoding="utf-8")
+        completed = subprocess.run([str(renderer_python), script, "--data", str(data_path)], cwd=ROOT, check=True, capture_output=True, text=True)
+        path = ROOT / completed.stdout.strip().splitlines()[-1]
+        return path.read_bytes()
+
     def get_master_resume_pdf(self) -> None:
         try:
-            bundled_python = Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3"
-            renderer_python = bundled_python if bundled_python.exists() else Path(sys.executable)
-            data_path = ROOT / "data/profile-rebuilds/master-profile-export.json"
-            data_path.parent.mkdir(parents=True, exist_ok=True)
-            data_path.write_text(json.dumps(master_profile_data()), encoding="utf-8")
-            completed = subprocess.run([str(renderer_python), "scripts/render_master_resume_pdf.py", "--data", str(data_path)], cwd=ROOT, check=True, capture_output=True, text=True)
-            path = ROOT / completed.stdout.strip().splitlines()[-1]
-            body = path.read_bytes()
+            body = self.render_master_resume("scripts/render_master_resume_pdf.py")
         except (subprocess.CalledProcessError, OSError, IndexError) as exc:
             self.respond(500, {"error": f"Master resume PDF could not be created: {exc}"}); return
         self.send_response(200); self.send_header("Content-Type", "application/pdf"); self.send_header("Content-Length", str(len(body))); self.send_header("Content-Disposition", 'attachment; filename="Anna_Stupachenko_Master_Resume.pdf"'); self.end_headers(); self.wfile.write(body)
+
+    def get_master_resume_docx(self) -> None:
+        try:
+            body = self.render_master_resume("scripts/render_master_resume_docx.py")
+        except (subprocess.CalledProcessError, OSError, IndexError) as exc:
+            self.respond(500, {"error": f"Master resume DOCX could not be created: {exc}"}); return
+        self.send_response(200); self.send_header("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"); self.send_header("Content-Length", str(len(body))); self.send_header("Content-Disposition", 'attachment; filename="Anna_Stupachenko_Master_Resume.docx"'); self.end_headers(); self.wfile.write(body)
 
     def request_profile_rebuild(self) -> None:
         try:
