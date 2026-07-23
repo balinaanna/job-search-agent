@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-23T05:50:44.282057+00:00",
+  "generatedAt": "2026-07-23T07:23:14.298298+00:00",
   "summary": {
     "discovered": 255,
     "awaitingAnalysis": 16,
@@ -311,6 +311,25 @@
       ],
       "risk": "The position requires senior production Python and applied ML depth that the verified profile does not support, especially model training, background processing, AI performance tuning, RAG, and vector databases.",
       "nextAction": "Do not apply. Prioritize AI workflow, solutions, implementation, systems, or technical analyst roles where Anna's AI application work and engineering foundation are strengths without requiring unsupported production ML specialization."
+    },
+    {
+      "id": "render-software-engineer-growth-all-levels-27a9a773c4",
+      "company": "Render",
+      "role": "Software Engineer, Growth (all levels)",
+      "location": "Unspecified",
+      "postingUrl": "https://www.linkedin.com/jobs/view/4356448514",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-21T18:44:17.318230+00:00",
+      "discoveryScore": 85,
+      "fitScore": 44,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Anna's directly employed software-engineering experience totals roughly 4.5 years and ended in 2021, well short of the posting's 6+ years professional experience shipping software.",
+        "The role is a pure individual-contributor engineering position with on-call duties, diverging from Anna's stated current direction toward people-facing BA, implementation, and support roles.",
+        "Canadian remote hiring eligibility is unconfirmed, and the posting's Bay Area-centric benefits and no-new-sponsorship language suggest a US-centric hiring model."
+      ],
+      "risk": "Meeting the stated 6+ years professional experience shipping software would require presenting UX/business-analysis years as engineering years, which is not truthful, and the role's IC/on-call scope doesn't match Anna's recent people-facing, project-based work.",
+      "nextAction": "Do not apply. If Anna wants to pursue pure software-engineering roles again, prioritize postings with a lower years-of-experience bar or ones that credit her combined ~10 years of technical work more broadly, and confirm Canadian remote-hiring eligibility before spending time on US-headquartered, Bay Area-centric startups like this one."
     },
     {
       "id": "grafana-labs-staff-ai-engineer-grafana-ai-ml-canada-remote-8d8aaad1e4",
