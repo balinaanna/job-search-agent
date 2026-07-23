@@ -34,7 +34,9 @@ Return only a JSON object conforming exactly to the provided output schema.
 Every evidence ID must exist in profile/evidence.yaml. The full evidence-based
 score must supersede the preliminary discovery score.
 """.strip()
-    schema = json.dumps(strict_output_schema(load_json(SCHEMA_PATH)))
+    strict_schema = strict_output_schema(load_json(SCHEMA_PATH))
+    strict_schema.pop("$schema", None)
+    schema = json.dumps(strict_schema)
     completed = subprocess.run(
         [
             claude,
@@ -53,11 +55,18 @@ score must supersede the preliminary discovery score.
             prompt,
         ],
         cwd=ROOT,
-        check=True,
         capture_output=True,
         text=True,
     )
-    response = json.loads(completed.stdout)
+    if completed.returncode != 0:
+        detail = (completed.stderr or completed.stdout or "").strip()[-2000:]
+        raise RuntimeError(f"claude CLI exited with status {completed.returncode}: {detail}")
+    try:
+        response = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(
+            f"claude CLI did not return valid JSON: {completed.stdout.strip()[-2000:]}"
+        ) from exc
     if response.get("is_error"):
         raise RuntimeError(response.get("result", "Claude Code analysis failed."))
     analysis = json.loads(response["result"])
