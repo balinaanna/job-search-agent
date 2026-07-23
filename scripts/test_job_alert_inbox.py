@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from job_alert_inbox import AlertInboxStore, anchor_metadata, company_like, normalize_posted_date, parse_alert, save_captured_posting
+from normalize_job_lead import canonicalize_url
 
 
 class JobAlertInboxTests(unittest.TestCase):
@@ -16,13 +17,20 @@ class JobAlertInboxTests(unittest.TestCase):
         self.assertEqual(eluta[0]["title"], "Software Engineer")
         self.assertEqual(ziprecruiter[0]["posting_url"], "https://www.ziprecruiter.com/c/Acme/Job/Software-Engineer/-in-Vancouver,BC?jid=abc123")
 
-    def test_canonicalizes_ziprecruiter_sponsored_listing_urls_by_stable_listing_key(self):
-        # The v2 blob embeds a stable listing_key alongside a per-visit match_id/bid_tracking_data
-        # that changes every time the same job is viewed again; only listing_key should matter.
-        first_visit = parse_alert("ziprecruiter", '<a href="https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IjEyMyIsIm1hdGNoX2lkIjoiYSJ9?tsid=1">GenAI Designer</a>')
-        second_visit = parse_alert("ziprecruiter", '<a href="https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IjEyMyIsIm1hdGNoX2lkIjoiYiJ9?tsid=2">GenAI Designer</a>')
-        self.assertEqual(first_visit[0]["posting_url"], "https://www.ziprecruiter.com/jobs/v2/listing/123")
-        self.assertEqual(first_visit[0]["posting_url"], second_visit[0]["posting_url"])
+    def test_preserves_navigable_ziprecruiter_v2_url_while_deduplicating_by_listing_key(self):
+        # ZipRecruiter's /jobs/v2/<blob> pages require the original tracking-bearing blob to
+        # load (the stable listing_key alone 404s), so posting_url must stay untouched even
+        # though match_id/bid_tracking_data change every time the same job is revisited.
+        # Deduplication instead relies on normalize_job_lead.canonicalize_url reducing the
+        # blob to its stable listing_key at the lead-identity stage.
+        first_visit_url = "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IjEyMyIsIm1hdGNoX2lkIjoiYSJ9?tsid=1"
+        second_visit_url = "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IjEyMyIsIm1hdGNoX2lkIjoiYiJ9?tsid=2"
+        first_visit = parse_alert("ziprecruiter", f'<a href="{first_visit_url}">GenAI Designer</a>')
+        second_visit = parse_alert("ziprecruiter", f'<a href="{second_visit_url}">GenAI Designer</a>')
+        self.assertEqual(first_visit[0]["posting_url"], first_visit_url)
+        self.assertEqual(second_visit[0]["posting_url"], second_visit_url)
+        self.assertEqual(canonicalize_url(first_visit[0]["posting_url"]), "https://www.ziprecruiter.com/jobs/v2/listing/123")
+        self.assertEqual(canonicalize_url(first_visit[0]["posting_url"]), canonicalize_url(second_visit[0]["posting_url"]))
 
     def test_canonicalizes_linkedin_email_and_browser_urls_identically(self):
         email_job = parse_alert("linkedin", '<a href="https://www.linkedin.com/comm/jobs/view/software-engineer-12345?tracking=x">Software Engineer</a>')

@@ -26,6 +26,15 @@
     return null;
   }
   function sourceForUrl(value) { const normalized = postingUrl(value); if (!normalized) return null; const host = new URL(normalized).hostname; return host.includes("linkedin") ? "linkedin" : host.includes("indeed") ? "indeed" : host.includes("ziprecruiter") ? "ziprecruiter" : "eluta"; }
+  function navigableUrl(value) {
+    const url = new URL(value); const host = url.hostname.replace(/^www\./, "");
+    if (host.endsWith("ziprecruiter.com") && /^\/jobs\/v2\/([\w-]+)$/.test(url.pathname) && !url.searchParams.get("jid")) {
+      // The /jobs/v2/<blob> path only loads with its original tracking data intact;
+      // the stable listing-key form derived by postingUrl() 404s when visited directly.
+      return value;
+    }
+    return postingUrl(value) || value;
+  }
   function text(value) { return typeof value === "string" ? value.replace(/<[^>]+>/g, " ").replace(/&nbsp;/gi, " ").replace(/\s+/g, " ").trim() : ""; }
   function firstText(document, selectors) { for (const selector of selectors) { const value = text(document.querySelector(selector)?.textContent); if (value) return value; } return ""; }
   function semanticDescription(document) {
@@ -63,9 +72,9 @@
     const description = text(posting?.description) || firstText(document, fields.description) || semanticDescription(document);
     const location = locationValue(posting?.jobLocation) || firstText(document, fields.location);
     const missing = [!title && "title", !company && "employer", description.length < 200 && "complete description"].filter(Boolean);
-    if (missing.length) throw new Error(`Adapter 0.5.9 could not identify: ${missing.join(", ")}. Expand the job description, then try again.`);
-    const canonical = postingUrl(url);
-    return { source, company, role: title, posting_url: canonical, application_url: text(posting?.url) || canonical, description_text: description, location_raw: location || null, workplace_type_raw: posting?.jobLocationType === "TELECOMMUTE" ? "Remote" : null, employment_type_raw: text(posting?.employmentType) || null, posted_date: text(posting?.datePosted) || null };
+    if (missing.length) throw new Error(`Adapter 0.5.10 could not identify: ${missing.join(", ")}. Expand the job description, then try again.`);
+    const realUrl = navigableUrl(url);
+    return { source, company, role: title, posting_url: realUrl, application_url: text(posting?.url) || realUrl, description_text: description, location_raw: location || null, workplace_type_raw: posting?.jobLocationType === "TELECOMMUTE" ? "Remote" : null, employment_type_raw: text(posting?.employmentType) || null, posted_date: text(posting?.datePosted) || null };
   }
-  return { sourceForUrl, postingUrl, semanticDescription, extract };
+  return { sourceForUrl, postingUrl, navigableUrl, semanticDescription, extract };
 });

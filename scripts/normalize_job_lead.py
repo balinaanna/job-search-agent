@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
+from job_alert_inbox import ziprecruiter_v2_stable_url
 from validate_job_lead import (
     JobLeadValidationError,
     load_json,
@@ -183,6 +184,11 @@ def slugify(value: str) -> str:
 
 def canonicalize_url(url: str) -> str:
     parts = urlsplit(url)
+    host = parts.netloc.casefold().removeprefix("www.")
+    if host.endswith("ziprecruiter.com"):
+        stable = ziprecruiter_v2_stable_url(parts.path)
+        if stable:
+            return stable
 
     filtered_query = [
         (key, value)

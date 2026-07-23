@@ -126,6 +126,27 @@ def anchor_metadata(anchor_text: str, lines: list[str]) -> dict[str, str | None]
     return {"title": title or anchor_text, "company": company, "location": location, "email_excerpt": excerpt}
 
 
+def ziprecruiter_v2_stable_url(path: str) -> str | None:
+    """Reduce a ziprecruiter.com /jobs/v2/<blob> path to a stable identity URL.
+
+    The blob embeds a stable listing_key alongside per-visit tracking fields
+    (match_id, bid_tracking_data) that ZipRecruiter regenerates every time the
+    same posting is viewed. This stable form is for identity/dedup matching
+    only -- ZipRecruiter's server requires the original full blob to actually
+    load the posting, so this URL is not itself navigable.
+    """
+    v2 = re.match(r"^/jobs/v2/([\w-]+)$", path)
+    if not v2:
+        return None
+    try:
+        padded = v2.group(1) + "=" * (-len(v2.group(1)) % 4)
+        decoded = json.loads(base64.b64decode(padded))
+        listing_key = decoded.get("listing_key") if isinstance(decoded, dict) else None
+    except (ValueError, TypeError, json.JSONDecodeError):
+        listing_key = None
+    return f"https://www.ziprecruiter.com/jobs/v2/listing/{listing_key}" if listing_key else None
+
+
 def canonical_job_url(value: str, source: str) -> str | None:
     value = unwrap_url(value); parsed = urlparse(value); host = parsed.netloc.casefold().removeprefix("www.")
     if source == "linkedin" and host.endswith("linkedin.com") and "/jobs/view/" in parsed.path:
@@ -141,15 +162,7 @@ def canonical_job_url(value: str, source: str) -> str | None:
     if source == "ziprecruiter" and host.endswith("ziprecruiter.com"):
         jid = parse_qs(parsed.query).get("jid", [None])[0]
         if jid: return f"https://www.ziprecruiter.com{parsed.path}?{urlencode({'jid': jid})}"
-        v2 = re.match(r"^/jobs/v2/([\w-]+)$", parsed.path)
-        if v2:
-            try:
-                padded = v2.group(1) + "=" * (-len(v2.group(1)) % 4)
-                decoded = json.loads(base64.b64decode(padded))
-                listing_key = decoded.get("listing_key") if isinstance(decoded, dict) else None
-            except (ValueError, TypeError, json.JSONDecodeError):
-                listing_key = None
-            if listing_key: return f"https://www.ziprecruiter.com/jobs/v2/listing/{listing_key}"
+        return ziprecruiter_v2_stable_url(parsed.path)
     return None
 
 
@@ -170,6 +183,10 @@ def parse_alert(source: str, content: str) -> list[dict]:
             parsed = urlparse(unwrapped)
             url = urlunparse(("https", parsed.netloc.casefold(), parsed.path.rstrip("/"), "", "", ""))
             result_source = plan["platform"]
+        # ZipRecruiter's /jobs/v2/<blob> pages require the original tracking-bearing blob
+        # to load; the stable listing-key form is for identity matching only.
+        if url and source == "ziprecruiter" and "/jobs/v2/listing/" in url:
+            url = unwrapped
         title = str(metadata["title"] or "")
         if not url or len(title) < 4 or title.casefold() in GENERIC_TEXT: continue
         results.append({"source": result_source, "title": title[:300], "posting_url": url, "company": metadata["company"], "location": metadata["location"], "email_excerpt": metadata["email_excerpt"]})
@@ -197,8 +214,12 @@ def save_captured_posting(payload: dict, output_directory: Path) -> Path:
         if not isinstance(value, str) or not value.strip(): raise ValueError(f"Captured {name.replace('_', ' ')} is required.")
         required[name] = value.strip()
     if len(required["description_text"]) < 200: raise ValueError("Capture the complete job description before importing.")
-    if sourceFor := canonical_job_url(required["posting_url"], source): required["posting_url"] = sourceFor
-    else: raise ValueError("The captured URL does not match its job source.")
+    canonical = canonical_job_url(required["posting_url"], source)
+    if not canonical: raise ValueError("The captured URL does not match its job source.")
+    # ZipRecruiter's /jobs/v2/<blob> pages require the original tracking-bearing blob to
+    # load; the stable listing-key form is for identity matching only, not navigation.
+    if not (source == "ziprecruiter" and "/jobs/v2/listing/" in canonical):
+        required["posting_url"] = canonical
     posting = {**required, "application_url": payload.get("application_url") or required["posting_url"], "external_job_id": None, "platform": source, "location_raw": payload.get("location_raw"), "workplace_type_raw": payload.get("workplace_type_raw"), "employment_type_raw": payload.get("employment_type_raw"), "department": None, "salary": {"minimum": None, "maximum": None, "currency": None, "period": None, "source": None}, "posted_date": normalize_posted_date(payload.get("posted_date")), "deadline": None, "collected_at": datetime.now(timezone.utc).isoformat(), "search_query": f"{source} job alert"}
     output_directory.mkdir(parents=True, exist_ok=True)
     name = f"captured-{source}-{hashlib.sha256(required['posting_url'].encode()).hexdigest()[:20]}.json"
