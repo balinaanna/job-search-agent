@@ -83,16 +83,19 @@ Do not draft the final summary.
 
 ### 5. Plan section order and space
 
-Choose among:
+Use this fixed section order. Include or exclude each section based on relevance,
+but never reorder the included sections:
 
-- header;
-- professional summary;
-- core skills;
-- professional experience;
-- selected projects;
-- education;
-- certifications;
-- additional information.
+1. header;
+2. professional summary;
+3. core skills;
+4. education;
+5. certifications;
+6. professional experience;
+7. selected projects;
+8. additional information.
+
+Within education and certifications, order entries most recent to oldest.
 
 For each section specify purpose, space budget, required content, optional content,
 and exclusions.

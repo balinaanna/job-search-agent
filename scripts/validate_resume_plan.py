@@ -82,6 +82,12 @@ def planned_record_id(item, plan_name=None):
     key = f"{singular}_id" if singular else None
     return item.get(key) if key else None
 
+CANONICAL_SECTION_ORDER = [
+    "header", "professional_summary", "core_skills", "education", "certifications",
+    "professional_experience", "selected_projects", "additional_information",
+]
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("workspace", type=Path)
@@ -131,6 +137,21 @@ def main():
     if len(orders) != len(set(orders)):
         errors.append("duplicate included section order")
 
+    included_sections = sorted(
+        (x for x in plan.get("section_plan", []) if isinstance(x, dict) and x.get("included")),
+        key=lambda x: x.get("order", 0),
+    )
+    section_names = [x.get("section") for x in included_sections]
+    duplicate_sections = sorted({name for name in section_names if section_names.count(name) > 1})
+    if duplicate_sections:
+        errors.append("section appears more than once in section_plan: " + ", ".join(duplicate_sections))
+    expected_relative_order = [s for s in CANONICAL_SECTION_ORDER if s in section_names]
+    if section_names != expected_relative_order:
+        errors.append(
+            f"section order must follow the canonical sequence {CANONICAL_SECTION_ORDER}; "
+            f"expected {expected_relative_order}, found {section_names}"
+        )
+
     bullet_ids = []
     for i, entry in enumerate(plan.get("experience_plan", [])):
         if not isinstance(entry, dict):
@@ -163,6 +184,7 @@ def main():
     if dupes:
         errors.append("duplicate bullet IDs: " + ", ".join(dupes))
 
+    display_labels = []
     for group in plan.get("skills_plan", []):
         if not isinstance(group, dict):
             continue
@@ -177,6 +199,12 @@ def main():
                 valid = skill_ids if record_type == "skill" else tech_ids
             if record_id not in valid:
                 errors.append(f"unknown {record_type} ID: {record_id}")
+            if isinstance(item.get("display_label"), str):
+                display_labels.append(item["display_label"].strip().lower())
+
+    duplicate_labels = sorted({label for label in display_labels if display_labels.count(label) > 1})
+    if duplicate_labels:
+        errors.append("skill/technology display label repeated across groups: " + ", ".join(duplicate_labels))
 
     for item in plan.get("project_plan", []):
         if isinstance(item, dict) and item.get("project_id") not in project_ids:
@@ -186,6 +214,15 @@ def main():
         for item in plan.get(name, []):
             if isinstance(item, dict) and planned_record_id(item, name) not in valid:
                 errors.append(f"unknown {name} ID: {planned_record_id(item, name)}")
+
+    def recency_key(item):
+        return str(item.get("end_date") or item.get("completion") or item.get("start_date") or "")
+
+    for name in ("education_plan", "certification_plan"):
+        items = [x for x in plan.get(name, []) if isinstance(x, dict)]
+        keys = [recency_key(x) for x in items]
+        if keys != sorted(keys, reverse=True):
+            errors.append(f"{name} entries must be ordered most recent to oldest")
 
     if not (a.workspace/"resume_plan.md").exists():
         errors.append("resume_plan.md is missing")

@@ -37,3 +37,32 @@ def training_suffix(item: dict) -> str:
 
 def humanize_group(name: str) -> str:
     return " ".join(word.upper() if word.lower() == "ai" else word.title() for word in name.replace("_", " ").split(" "))
+
+
+def recency_key(item: dict) -> str:
+    dates = item.get("dates")
+    if isinstance(dates, dict):
+        return str(dates.get("end") or dates.get("start") or "")
+    return str(item.get("completion") or "")
+
+
+def sort_recent_first(items: list) -> list:
+    return sorted(items, key=recency_key, reverse=True)
+
+
+def merge_skill_groups(skills: dict, technologies: dict) -> list:
+    """Combine skills and technologies into one ordered list of (group, items),
+    dropping later duplicate names (case-insensitive) and empty groups."""
+    seen_names: set[str] = set()
+    merged = []
+    for group, items in list(skills.items()) + list(technologies.items()):
+        deduped = []
+        for item in items:
+            name_key = str(item.get("name", "")).strip().lower()
+            if name_key in seen_names:
+                continue
+            seen_names.add(name_key)
+            deduped.append(item)
+        if deduped:
+            merged.append((group, deduped))
+    return merged

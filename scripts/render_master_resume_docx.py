@@ -8,7 +8,7 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Pt, RGBColor
 
-from resume_format import date_range, humanize_group, training_suffix
+from resume_format import date_range, humanize_group, merge_skill_groups, sort_recent_first, training_suffix
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -114,15 +114,17 @@ def render(output: Path, data: dict) -> Path:
         for item in project.get("highlights", []):
             add_bullet(document, text(item))
 
-    add_section_heading(document, "EDUCATION & CERTIFICATIONS")
-    for item in career.get("education", []):
+    add_section_heading(document, "EDUCATION")
+    for item in sort_recent_first(career.get("education", [])):
         paragraph = document.add_paragraph()
         paragraph.paragraph_format.space_after = Pt(2)
         run = paragraph.add_run(f"{text(item.get('credential'))}, {text(item.get('field'))}")
         run.bold = True
         run.font.size = Pt(10)
         paragraph.add_run(f" - {text(item.get('institution'))} ({date_range(item.get('dates', {}))})").font.size = Pt(10)
-    for item in career.get("training_and_certifications", []):
+
+    add_section_heading(document, "CERTIFICATIONS")
+    for item in sort_recent_first(career.get("training_and_certifications", [])):
         paragraph = document.add_paragraph()
         paragraph.paragraph_format.space_after = Pt(2)
         run = paragraph.add_run(text(item.get("name")))
@@ -131,9 +133,7 @@ def render(output: Path, data: dict) -> Path:
         paragraph.add_run(text(training_suffix(item))).font.size = Pt(10)
 
     add_section_heading(document, "SKILLS")
-    for group, items in list(skills.items()) + list(technologies.items()):
-        if not items:
-            continue
+    for group, items in merge_skill_groups(skills, technologies):
         heading = document.add_paragraph()
         heading.paragraph_format.space_after = Pt(1)
         run = heading.add_run(humanize_group(group))
