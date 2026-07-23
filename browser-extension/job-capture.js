@@ -35,6 +35,7 @@
     return candidates.sort((left, right) => left.length - right.length)[0] || "";
   }
   function linkedinTitle(document) { const value = text(document.title); const hiring = value.match(/^(.+?) hiring (.+?) in .+? \| LinkedIn$/i); if (hiring) return { company: hiring[1], title: hiring[2] }; const parts = value.split("|").map(text).filter(Boolean); return parts.length >= 3 && parts.at(-1)?.toLowerCase() === "linkedin" ? { title: parts[0], company: parts[1] } : {}; }
+  function ziprecruiterTitle(document) { const heading = document.querySelector('h1[class*="header-md"], h2[class*="header-md"]'); return { title: heading ? text(heading.textContent) : "" }; }
   function jobPosting(document) { for (const node of document.querySelectorAll('script[type="application/ld+json"]')) { try { const parsed = JSON.parse(node.textContent || "null"); const values = Array.isArray(parsed) ? parsed : parsed?.["@graph"] || [parsed]; const found = values.find((item) => item?.["@type"] === "JobPosting"); if (found) return found; } catch {} } return null; }
   function locationValue(value) { const location = Array.isArray(value) ? value[0] : value; const address = location?.address || location; return text([address?.addressLocality, address?.addressRegion, address?.addressCountry].filter(Boolean).join(", ")) || text(location?.name); }
   const selectors = {
@@ -46,17 +47,17 @@
     },
     indeed: { title: ["h1.jobsearch-JobInfoHeader-title", "h1"], company: ["[data-testid='inlineHeader-companyName']", "[data-company-name]"], description: ["#jobDescriptionText", "[class*='jobDescription']"], location: ["[data-testid='job-location']", "[class*='location']"] },
     eluta: { title: ["h1", "[itemprop='title']"], company: ["[itemprop='hiringOrganization']", "[class*='employer']", "[class*='company']"], description: ["[itemprop='description']", "[class*='description']", "main"], location: ["[itemprop='jobLocation']", "[class*='location']"] },
-    ziprecruiter: { title: ["h1", "h2"], company: ["a[href^='/co/']", "[data-testid*='company' i]", "[class*='company']"], description: [], location: ["[class*='location']"] },
+    ziprecruiter: { title: [], company: ["a[href^='/co/']", "[data-testid*='company' i]", "[class*='company']"], description: [], location: ["[class*='location']"] },
   };
   function extract(document, url) {
     const source = sourceForUrl(url); if (!source) throw new Error("Open an individual LinkedIn, Indeed, Eluta, or ZipRecruiter job first.");
-    const posting = jobPosting(document), fields = selectors[source], titleFallback = source === "linkedin" ? linkedinTitle(document) : {};
+    const posting = jobPosting(document), fields = selectors[source], titleFallback = source === "linkedin" ? linkedinTitle(document) : source === "ziprecruiter" ? ziprecruiterTitle(document) : {};
     const title = text(posting?.title) || firstText(document, fields.title) || titleFallback.title || "";
     const company = text(posting?.hiringOrganization?.name) || firstText(document, fields.company) || titleFallback.company || "";
     const description = text(posting?.description) || firstText(document, fields.description) || semanticDescription(document);
     const location = locationValue(posting?.jobLocation) || firstText(document, fields.location);
     const missing = [!title && "title", !company && "employer", description.length < 200 && "complete description"].filter(Boolean);
-    if (missing.length) throw new Error(`Adapter 0.5.7 could not identify: ${missing.join(", ")}. Expand the job description, then try again.`);
+    if (missing.length) throw new Error(`Adapter 0.5.8 could not identify: ${missing.join(", ")}. Expand the job description, then try again.`);
     const canonical = postingUrl(url);
     return { source, company, role: title, posting_url: canonical, application_url: text(posting?.url) || canonical, description_text: description, location_raw: location || null, workplace_type_raw: posting?.jobLocationType === "TELECOMMUTE" ? "Remote" : null, employment_type_raw: text(posting?.employmentType) || null, posted_date: text(posting?.datePosted) || null };
   }
