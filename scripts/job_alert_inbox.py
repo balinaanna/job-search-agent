@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import hashlib
 import html
 import re
@@ -140,7 +141,15 @@ def canonical_job_url(value: str, source: str) -> str | None:
     if source == "ziprecruiter" and host.endswith("ziprecruiter.com"):
         jid = parse_qs(parsed.query).get("jid", [None])[0]
         if jid: return f"https://www.ziprecruiter.com{parsed.path}?{urlencode({'jid': jid})}"
-        if parsed.path.startswith("/jobs/v2/"): return f"https://www.ziprecruiter.com{parsed.path}"
+        v2 = re.match(r"^/jobs/v2/([\w-]+)$", parsed.path)
+        if v2:
+            try:
+                padded = v2.group(1) + "=" * (-len(v2.group(1)) % 4)
+                decoded = json.loads(base64.b64decode(padded))
+                listing_key = decoded.get("listing_key") if isinstance(decoded, dict) else None
+            except (ValueError, TypeError, json.JSONDecodeError):
+                listing_key = None
+            if listing_key: return f"https://www.ziprecruiter.com/jobs/v2/listing/{listing_key}"
     return None
 
 

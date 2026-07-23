@@ -14,7 +14,13 @@
     if (host.endsWith("ziprecruiter.com")) {
       const jid = url.searchParams.get("jid");
       if (jid) return `https://www.ziprecruiter.com${url.pathname}?jid=${encodeURIComponent(jid)}`;
-      if (url.pathname.startsWith("/jobs/v2/")) return `https://www.ziprecruiter.com${url.pathname}`;
+      const v2 = url.pathname.match(/^\/jobs\/v2\/([\w-]+)$/);
+      if (v2) {
+        try {
+          const decoded = JSON.parse(atob(v2[1] + "=".repeat((4 - (v2[1].length % 4)) % 4)));
+          if (decoded?.listing_key) return `https://www.ziprecruiter.com/jobs/v2/listing/${encodeURIComponent(decoded.listing_key)}`;
+        } catch { /* fall through */ }
+      }
       return null;
     }
     return null;
@@ -57,7 +63,7 @@
     const description = text(posting?.description) || firstText(document, fields.description) || semanticDescription(document);
     const location = locationValue(posting?.jobLocation) || firstText(document, fields.location);
     const missing = [!title && "title", !company && "employer", description.length < 200 && "complete description"].filter(Boolean);
-    if (missing.length) throw new Error(`Adapter 0.5.8 could not identify: ${missing.join(", ")}. Expand the job description, then try again.`);
+    if (missing.length) throw new Error(`Adapter 0.5.9 could not identify: ${missing.join(", ")}. Expand the job description, then try again.`);
     const canonical = postingUrl(url);
     return { source, company, role: title, posting_url: canonical, application_url: text(posting?.url) || canonical, description_text: description, location_raw: location || null, workplace_type_raw: posting?.jobLocationType === "TELECOMMUTE" ? "Remote" : null, employment_type_raw: text(posting?.employmentType) || null, posted_date: text(posting?.datePosted) || null };
   }
