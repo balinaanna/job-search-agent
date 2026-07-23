@@ -140,6 +140,7 @@ def canonical_job_url(value: str, source: str) -> str | None:
     if source == "ziprecruiter" and host.endswith("ziprecruiter.com"):
         jid = parse_qs(parsed.query).get("jid", [None])[0]
         if jid: return f"https://www.ziprecruiter.com{parsed.path}?{urlencode({'jid': jid})}"
+        if parsed.path.startswith("/jobs/v2/"): return f"https://www.ziprecruiter.com{parsed.path}"
     return None
 
 

@@ -16,6 +16,10 @@ class JobAlertInboxTests(unittest.TestCase):
         self.assertEqual(eluta[0]["title"], "Software Engineer")
         self.assertEqual(ziprecruiter[0]["posting_url"], "https://www.ziprecruiter.com/c/Acme/Job/Software-Engineer/-in-Vancouver,BC?jid=abc123")
 
+    def test_canonicalizes_ziprecruiter_sponsored_listing_urls(self):
+        jobs = parse_alert("ziprecruiter", '<a href="https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IjEyMyJ9?tsid=100000404">GenAI Designer</a>')
+        self.assertEqual(jobs[0]["posting_url"], "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IjEyMyJ9")
+
     def test_canonicalizes_linkedin_email_and_browser_urls_identically(self):
         email_job = parse_alert("linkedin", '<a href="https://www.linkedin.com/comm/jobs/view/software-engineer-12345?tracking=x">Software Engineer</a>')
         browser_job = parse_alert("linkedin", '<a href="https://www.linkedin.com/jobs/view/12345/">Software Engineer</a>')
