@@ -85,6 +85,35 @@ def render(output: Path, data: dict) -> Path:
     add_section_heading(document, "PROFESSIONAL SUMMARY")
     add_body(document, text(career["career_summary"]["positioning"]))
 
+    add_section_heading(document, "SKILLS")
+    for group, items in merge_skill_groups(skills, technologies):
+        heading = document.add_paragraph()
+        heading.paragraph_format.space_after = Pt(1)
+        run = heading.add_run(humanize_group(group))
+        run.bold = True
+        run.font.size = Pt(9.5)
+        body = document.add_paragraph()
+        body.paragraph_format.space_after = Pt(4)
+        body.add_run(", ".join(text(item.get("name")) for item in items)).font.size = Pt(9)
+
+    add_section_heading(document, "EDUCATION")
+    for item in sort_recent_first(career.get("education", [])):
+        paragraph = document.add_paragraph()
+        paragraph.paragraph_format.space_after = Pt(2)
+        run = paragraph.add_run(f"{text(item.get('credential'))}, {text(item.get('field'))}")
+        run.bold = True
+        run.font.size = Pt(10)
+        paragraph.add_run(f" - {text(item.get('institution'))} ({date_range(item.get('dates', {}))})").font.size = Pt(10)
+
+    add_section_heading(document, "CERTIFICATIONS")
+    for item in sort_recent_first(career.get("training_and_certifications", [])):
+        paragraph = document.add_paragraph()
+        paragraph.paragraph_format.space_after = Pt(2)
+        run = paragraph.add_run(text(item.get("name")))
+        run.bold = True
+        run.font.size = Pt(10)
+        paragraph.add_run(text(training_suffix(item))).font.size = Pt(10)
+
     add_section_heading(document, "WORK EXPERIENCE")
     for role in career.get("employment", []):
         heading = document.add_paragraph()
@@ -113,35 +142,6 @@ def render(output: Path, data: dict) -> Path:
         add_body(document, text(project.get("summary")))
         for item in project.get("highlights", []):
             add_bullet(document, text(item))
-
-    add_section_heading(document, "EDUCATION")
-    for item in sort_recent_first(career.get("education", [])):
-        paragraph = document.add_paragraph()
-        paragraph.paragraph_format.space_after = Pt(2)
-        run = paragraph.add_run(f"{text(item.get('credential'))}, {text(item.get('field'))}")
-        run.bold = True
-        run.font.size = Pt(10)
-        paragraph.add_run(f" - {text(item.get('institution'))} ({date_range(item.get('dates', {}))})").font.size = Pt(10)
-
-    add_section_heading(document, "CERTIFICATIONS")
-    for item in sort_recent_first(career.get("training_and_certifications", [])):
-        paragraph = document.add_paragraph()
-        paragraph.paragraph_format.space_after = Pt(2)
-        run = paragraph.add_run(text(item.get("name")))
-        run.bold = True
-        run.font.size = Pt(10)
-        paragraph.add_run(text(training_suffix(item))).font.size = Pt(10)
-
-    add_section_heading(document, "SKILLS")
-    for group, items in merge_skill_groups(skills, technologies):
-        heading = document.add_paragraph()
-        heading.paragraph_format.space_after = Pt(1)
-        run = heading.add_run(humanize_group(group))
-        run.bold = True
-        run.font.size = Pt(9.5)
-        body = document.add_paragraph()
-        body.paragraph_format.space_after = Pt(4)
-        body.add_run(", ".join(text(item.get("name")) for item in items)).font.size = Pt(9)
 
     document.save(str(output))
     return output

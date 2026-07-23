@@ -36,6 +36,15 @@ def render(output: Path, data: dict) -> Path:
     contact = career["contact"]; candidate = career["candidate"]
     story = [Paragraph(text(candidate["name"]), styles["Name"]), Paragraph(" | ".join(text(contact.get(key)) for key in ("location", "email", "phone", "linkedin") if contact.get(key)), styles["Contact"])]
     story += [Paragraph("PROFESSIONAL SUMMARY", styles["Section"]), Paragraph(text(career["career_summary"]["positioning"]), styles["BodySmall"])]
+    story.append(Paragraph("SKILLS", styles["Section"]))
+    for group, items in merge_skill_groups(skills, technologies):
+        story += [Paragraph(text(humanize_group(group)), styles["Role"]), Paragraph(", ".join(text(item.get("name")) for item in items), styles["Inventory"])]
+    story.append(Paragraph("EDUCATION", styles["Section"]))
+    for item in sort_recent_first(career.get("education", [])):
+        story.append(Paragraph(f"<b>{text(item.get('credential'))}, {text(item.get('field'))}</b> - {text(item.get('institution'))} ({text(date_range(item.get('dates', {})))})", styles["BodySmall"]))
+    story.append(Paragraph("CERTIFICATIONS", styles["Section"]))
+    for item in sort_recent_first(career.get("training_and_certifications", [])):
+        story.append(Paragraph(f"<b>{text(item.get('name'))}</b>{text(training_suffix(item))}", styles["BodySmall"]))
     story.append(Paragraph("WORK EXPERIENCE", styles["Section"]))
     for role in career.get("employment", []):
         date_label = date_range(role.get("dates", {}))
@@ -53,15 +62,6 @@ def render(output: Path, data: dict) -> Path:
             story.append(Paragraph(text(project["url"]), styles["Meta"]))
         story += [Paragraph(text(item), styles["BulletSmall"], bulletText="-") for item in project.get("highlights", [])]
         story.append(Spacer(1, 4))
-    story.append(Paragraph("EDUCATION", styles["Section"]))
-    for item in sort_recent_first(career.get("education", [])):
-        story.append(Paragraph(f"<b>{text(item.get('credential'))}, {text(item.get('field'))}</b> - {text(item.get('institution'))} ({text(date_range(item.get('dates', {})))})", styles["BodySmall"]))
-    story.append(Paragraph("CERTIFICATIONS", styles["Section"]))
-    for item in sort_recent_first(career.get("training_and_certifications", [])):
-        story.append(Paragraph(f"<b>{text(item.get('name'))}</b>{text(training_suffix(item))}", styles["BodySmall"]))
-    story.append(Paragraph("SKILLS", styles["Section"]))
-    for group, items in merge_skill_groups(skills, technologies):
-        story += [Paragraph(text(humanize_group(group)), styles["Role"]), Paragraph(", ".join(text(item.get("name")) for item in items), styles["Inventory"])]
     doc = SimpleDocTemplate(str(output), pagesize=letter, rightMargin=.65*inch, leftMargin=.65*inch, topMargin=.55*inch, bottomMargin=.55*inch, title="Anna Stupachenko - Master Resume")
     doc.build(story)
     return output
