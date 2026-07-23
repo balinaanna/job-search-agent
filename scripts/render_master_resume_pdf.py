@@ -48,7 +48,7 @@ def render(output: Path, data: dict) -> Path:
     story.append(Paragraph("WORK EXPERIENCE", styles["Section"]))
     for role in career.get("employment", []):
         date_label = date_range(role.get("dates", {}))
-        story += [Paragraph(f"{text(role.get('official_title'))} | {text(role.get('organization'))}", styles["Role"]), Paragraph(" | ".join(value for value in (text(role.get("location")), text(date_label)) if value), styles["Meta"]), Paragraph(text(role.get("summary")), styles["BodySmall"])]
+        story += [Paragraph(f"{text(role.get('official_title'))} | {text(role.get('organization'))}", styles["Role"]), Paragraph(" | ".join(value for value in (text(role.get("location")), text(role.get("engagement_type")), text(date_label)) if value), styles["Meta"]), Paragraph(text(role.get("summary")), styles["BodySmall"])]
         story += [Paragraph(text(item), styles["BulletSmall"], bulletText="-") for item in role.get("accomplishments", [])]
         story.append(Spacer(1, 5))
     story.append(Paragraph("PROJECTS", styles["Section"]))

@@ -121,7 +121,7 @@ def render(output: Path, data: dict) -> Path:
         run = heading.add_run(f"{text(role.get('official_title'))} | {text(role.get('organization'))}")
         run.bold = True
         run.font.size = Pt(10.5)
-        add_meta_line(document, " | ".join(value for value in (text(role.get("location")), date_range(role.get("dates", {}))) if value))
+        add_meta_line(document, " | ".join(value for value in (text(role.get("location")), text(role.get("engagement_type")), date_range(role.get("dates", {}))) if value))
         add_body(document, text(role.get("summary")))
         for item in role.get("accomplishments", []):
             add_bullet(document, text(item))
