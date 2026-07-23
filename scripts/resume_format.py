@@ -50,12 +50,20 @@ def sort_recent_first(items: list) -> list:
     return sorted(items, key=recency_key, reverse=True)
 
 
+GROUP_ALIASES = {
+    "ai_and_automation": "ai",
+}
+
+
 def merge_skill_groups(skills: dict, technologies: dict) -> list:
     """Combine skills and technologies into one ordered list of (group, items),
-    dropping later duplicate names (case-insensitive) and empty groups."""
+    folding aliased groups (e.g. ai_and_automation into ai) into a single heading,
+    dropping later duplicate names (case-insensitive), and dropping empty groups."""
     seen_names: set[str] = set()
-    merged = []
+    order: list[str] = []
+    grouped: dict[str, list] = {}
     for group, items in list(skills.items()) + list(technologies.items()):
+        canonical = GROUP_ALIASES.get(group, group)
         deduped = []
         for item in items:
             name_key = str(item.get("name", "")).strip().lower()
@@ -63,6 +71,10 @@ def merge_skill_groups(skills: dict, technologies: dict) -> list:
                 continue
             seen_names.add(name_key)
             deduped.append(item)
-        if deduped:
-            merged.append((group, deduped))
-    return merged
+        if not deduped:
+            continue
+        if canonical not in grouped:
+            grouped[canonical] = []
+            order.append(canonical)
+        grouped[canonical].extend(deduped)
+    return [(name, grouped[name]) for name in order]
