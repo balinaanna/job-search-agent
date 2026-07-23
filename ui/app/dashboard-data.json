@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-23T19:33:03.618083+00:00",
+  "generatedAt": "2026-07-23T19:36:38.787030+00:00",
   "summary": {
     "discovered": 257,
-    "awaitingAnalysis": 18,
+    "awaitingAnalysis": 17,
     "readyToPursue": 3,
     "stretch": 7,
     "applicationsInProgress": 0
@@ -463,6 +463,25 @@
       ],
       "risk": "The job's core screening requirements are senior production AI/ML engineering capabilities that the verified profile does not support and, in several cases, explicitly prohibits claiming.",
       "nextAction": "Do not apply. Prioritize AI workflow, implementation, systems analysis, application consulting, or technically informed client-facing roles where the existing AI application and software background are directly relevant without requiring unsupported production ML expertise."
+    },
+    {
+      "id": "oliver-agency-north-america-genai-designer-97dcabf30c",
+      "company": "OLIVER Agency - North America",
+      "role": "GenAI Designer",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6Ik80cTJzT1JxajFOU3hpNXI0ZksyMHciLCJtYXRjaF9pZCI6IjAxOWY5MDMzLTY5NDAtNzM1OC04ZDU3LWUxNmI0ZWFiOTEwMSIsImJpZF90cmFja2luZ19kYXRhIjoiQUFHQ3BDenNxd1hrN3dpcnFPdWxDSE9rOGNVR0VmSWN4N0x0XzlZS0lick80TU1GbWhwSmNKRjJBazhWTFJwUU9KVDJZUEp0VGpvIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T19:12:38.905118+00:00",
+      "discoveryScore": 66,
+      "fitScore": 24,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Core daily work requires hands-on Adobe Creative Suite production (Photoshop, Illustrator, InDesign) and Anna has zero verified experience with any of these tools.",
+        "The role is high-volume retail/agency ad-creative production; Anna's design background is SaaS product UX/interaction design and design systems, a different craft.",
+        "The posting's 'GenAI' work is generative-image tooling (background generation, compositing, lifestyle scenes) for visual assets, while Anna's GenAI experience is LLM/text application workflow design — the skills do not transfer despite the shared 'GenAI' label."
+      ],
+      "risk": "Applying would require presenting Adobe Creative Suite skills and retail ad-production/compositing experience Anna has never used and could not defend in an interview or on the job.",
+      "nextAction": "Do not apply. Continue targeting AI workflow, business/systems analysis, and technical roles where Anna's verified full-stack, LLM-workflow, and analysis experience directly applies."
     }
   ],
   "awaitingAnalysis": [
@@ -635,16 +654,6 @@
       "postedDate": "2026-05-28",
       "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
       "discoveryScore": 70
-    },
-    {
-      "id": "oliver-agency-north-america-genai-designer-97dcabf30c",
-      "company": "OLIVER Agency - North America",
-      "role": "GenAI Designer",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6Ik80cTJzT1JxajFOU3hpNXI0ZksyMHciLCJtYXRjaF9pZCI6IjAxOWY5MDMzLTY5NDAtNzM1OC04ZDU3LWUxNmI0ZWFiOTEwMSIsImJpZF90cmFja2luZ19kYXRhIjoiQUFHQ3BDenNxd1hrN3dpcnFPdWxDSE9rOGNVR0VmSWN4N0x0XzlZS0lick80TU1GbWhwSmNKRjJBazhWTFJwUU9KVDJZUEp0VGpvIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T19:12:38.905118+00:00",
-      "discoveryScore": 66
     }
   ]
 }
