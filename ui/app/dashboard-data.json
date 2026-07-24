@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-23T20:49:14.192929+00:00",
+  "generatedAt": "2026-07-24T01:08:08.513057+00:00",
   "summary": {
     "discovered": 275,
-    "awaitingAnalysis": 35,
+    "awaitingAnalysis": 34,
     "readyToPursue": 3,
     "stretch": 7,
     "applicationsInProgress": 0
@@ -465,6 +465,25 @@
       "nextAction": "Do not apply. Prioritize AI workflow, implementation, systems analysis, application consulting, or technically informed client-facing roles where the existing AI application and software background are directly relevant without requiring unsupported production ML expertise."
     },
     {
+      "id": "village-farms-international-technology-lead-integration-agentic-ai-m-a-enablement-8352d3c62b",
+      "company": "Village Farms International",
+      "role": "Technology Lead - Integration & Agentic AI (M&A Enablement)",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6ImNvYlNZZmh5UUZjb194NDBta2FVVmciLCJtYXRjaF9pZCI6IjAxOWY5MGE1LThhOTEtNzFlMi1hODg4LTRhMTBlMzEyZGIwMiIsImJpZF90cmFja2luZ19kYXRhIjoiQUFGZm52akdLQWVyVGx5d1R3enM5SS1RcTlkRXhtSjYxTUpQYVFDTkZwd0V2dmxoWTNmNkhLOFZPeWVWS3gyMXQ4VU9qT0RyTU00Iiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:24:06.073123+00:00",
+      "discoveryScore": 39,
+      "fitScore": 25,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "The core mandatory technologies (Azure Logic Apps/Functions/Service Bus/API Management, Entra ID/OAuth2 secure architecture, ERP integration) have no direct or transferable evidence in Anna's profile.",
+        "The role is a senior, highly technical Lead position requiring 7+ years of specialist enterprise integration architecture experience, which exceeds Anna's verified seniority and diverges from her stated target direction toward more people-facing analyst and AI-workflow roles.",
+        "M&A technology integration leadership (cutover planning, data migration, stabilization) is entirely unsupported by any evidence record."
+      ],
+      "risk": "Applying would require presenting Azure integration engineering and ERP/M&A integration expertise Anna does not have, which she could not defend in an interview.",
+      "nextAction": "Do not apply. If Anna wants to pursue integration-adjacent roles, look for postings closer to her actual technology stack (REST APIs, cross-system troubleshooting, applied AI workflows) rather than an Azure-specialist enterprise integration lead role."
+    },
+    {
       "id": "oliver-agency-north-america-genai-designer-97dcabf30c",
       "company": "OLIVER Agency - North America",
       "role": "GenAI Designer",
@@ -824,16 +843,6 @@
       "postedDate": null,
       "firstSeenAt": "2026-07-23T20:31:05.200151+00:00",
       "discoveryScore": 49
-    },
-    {
-      "id": "village-farms-international-technology-lead-integration-agentic-ai-m-a-enablement-8352d3c62b",
-      "company": "Village Farms International",
-      "role": "Technology Lead - Integration & Agentic AI (M&A Enablement)",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6ImNvYlNZZmh5UUZjb194NDBta2FVVmciLCJtYXRjaF9pZCI6IjAxOWY5MGE1LThhOTEtNzFlMi1hODg4LTRhMTBlMzEyZGIwMiIsImJpZF90cmFja2luZ19kYXRhIjoiQUFGZm52akdLQWVyVGx5d1R3enM5SS1RcTlkRXhtSjYxTUpQYVFDTkZwd0V2dmxoWTNmNkhLOFZPeWVWS3gyMXQ4VU9qT0RyTU00Iiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:24:06.073123+00:00",
-      "discoveryScore": 39
     }
   ]
 }
