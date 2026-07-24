@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-24T06:01:54.837604+00:00",
+  "generatedAt": "2026-07-24T06:31:28.043187+00:00",
   "summary": {
-    "discovered": 275,
-    "awaitingAnalysis": 17,
+    "discovered": 311,
+    "awaitingAnalysis": 21,
     "readyToPursue": 7,
     "stretch": 9,
     "applicationsInProgress": 0
@@ -868,6 +868,16 @@
       "discoveryScore": 87
     },
     {
+      "id": "innodata-data-engineer-01b7313cd1",
+      "company": "Innodata",
+      "role": "Data Engineer",
+      "location": "Remote - Canada",
+      "postingUrl": "https://job-boards.greenhouse.io/innodatainc/jobs/4283837009",
+      "postedDate": "2026-06-11",
+      "firstSeenAt": "2026-07-24T06:31:16.328990+00:00",
+      "discoveryScore": 85
+    },
+    {
       "id": "amazon-canada-machine-learning-engineer-aice-ai-center-of-excellence-0c3c4a2cb3",
       "company": "Amazon Canada",
       "role": "Machine Learning Engineer, AICE - AI Center of Excellence",
@@ -875,6 +885,16 @@
       "postingUrl": "https://www.eluta.ca/spl/machine-learning-engineer-aice-ai-center-of-excellence-79866b9b042e1af787c83fd5a1bb7824",
       "postedDate": "2026-07-17",
       "firstSeenAt": "2026-07-21T19:14:25.505605+00:00",
+      "discoveryScore": 82
+    },
+    {
+      "id": "grafana-labs-senior-machine-learning-engineer-developer-advocacy-can-3000c41ce2",
+      "company": "Grafana Labs",
+      "role": "Senior Machine Learning Engineer, Developer Advocacy | Canada | Remote",
+      "location": "Canada (Remote)",
+      "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6121756004",
+      "postedDate": "2026-07-22",
+      "firstSeenAt": "2026-07-24T06:31:16.328990+00:00",
       "discoveryScore": 82
     },
     {
@@ -905,6 +925,16 @@
       "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6111473004",
       "postedDate": "2026-07-08",
       "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 79
+    },
+    {
+      "id": "innodata-ai-ml-research-engineer-llm-post-training-evaluation-d9b1c34441",
+      "company": "Innodata",
+      "role": "AI/ML Research Engineer, LLM Post-Training & Evaluation",
+      "location": "Remote - Canada",
+      "postingUrl": "https://job-boards.greenhouse.io/innodatainc/jobs/4330331009",
+      "postedDate": "2026-07-23",
+      "firstSeenAt": "2026-07-24T06:31:16.328990+00:00",
       "discoveryScore": 79
     },
     {
@@ -965,6 +995,16 @@
       "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6119900004",
       "postedDate": "2026-07-20",
       "firstSeenAt": "2026-07-21T19:14:25.505605+00:00",
+      "discoveryScore": 75
+    },
+    {
+      "id": "innodata-technical-solutions-architect-evals-fine-tuning-d8d8308c7f",
+      "company": "Innodata",
+      "role": "Technical Solutions Architect, Evals & Fine-Tuning",
+      "location": "Remote - Canada",
+      "postingUrl": "https://job-boards.greenhouse.io/innodatainc/jobs/4330362009",
+      "postedDate": "2026-07-23",
+      "firstSeenAt": "2026-07-24T06:31:16.328990+00:00",
       "discoveryScore": 75
     },
     {
