@@ -35,7 +35,7 @@ def render(output: Path, data: dict) -> Path:
     styles.add(ParagraphStyle(name="BulletSmall", parent=styles["Normal"], fontSize=8.2, leading=11.5, leftIndent=10, firstLineIndent=-6, bulletIndent=0, spaceAfter=2))
     contact = career["contact"]; candidate = career["candidate"]
     story = [Paragraph(text(candidate["name"]), styles["Name"]), Paragraph(" | ".join(text(contact.get(key)) for key in ("location", "email", "phone", "linkedin") if contact.get(key)), styles["Contact"])]
-    story += [Paragraph("PROFESSIONAL SUMMARY", styles["Section"]), Paragraph(text(career["career_summary"]["positioning"]), styles["BodySmall"])]
+    story += [Paragraph("PROFESSIONAL SUMMARY", styles["Section"]), Paragraph(text(career["career_summary"]["positioning"]).replace("\n", "<br/>"), styles["BodySmall"])]
     story.append(Paragraph("SKILLS", styles["Section"]))
     for group, items in merge_skill_groups(skills, technologies):
         story += [Paragraph(text(humanize_group(group)), styles["Role"]), Paragraph(", ".join(text(item.get("name")) for item in items), styles["Inventory"])]

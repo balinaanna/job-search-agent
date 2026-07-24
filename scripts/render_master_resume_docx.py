@@ -45,8 +45,12 @@ def add_body(document: Document, value: str) -> None:
         return
     paragraph = document.add_paragraph()
     paragraph.paragraph_format.space_after = Pt(4)
-    run = paragraph.add_run(value)
+    lines = value.split("\n")
+    run = paragraph.add_run(lines[0])
     run.font.size = Pt(10)
+    for line in lines[1:]:
+        run.add_break()
+        run.add_text(line)
 
 
 def add_bullet(document: Document, value: str) -> None:
