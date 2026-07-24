@@ -138,7 +138,7 @@ def main() -> int:
         errors.append("verdict_consistent is inaccurate.")
 
     planned_bullet_ids = set()
-    for entry in plan.get("experience_plan", []):
+    for entry in plan.get("experience_plan", []) + plan.get("project_plan", []):
         if isinstance(entry, dict):
             for bullet in entry.get("planned_bullets", []):
                 if isinstance(bullet, dict) and isinstance(bullet.get("bullet_id"), str):
