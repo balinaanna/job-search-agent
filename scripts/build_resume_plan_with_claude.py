@@ -48,6 +48,11 @@ ev_job_agent_safety_and_quality; do not force every aspect into one resume.
 Return only schema-conforming JSON. Use application_id {manifest['application_id']},
 application_slug {manifest['application_slug']}, workspace_path {workspace.relative_to(ROOT)},
 and mode {'practice_only' if manifest['fit']['recommendation'] == 'do_not_apply' else 'active_application'}.
+Assign section_plan order strictly as: 1 header, 2 professional_summary, 3 core_skills,
+4 education, 5 certifications, 6 professional_experience, 7 selected_projects,
+8 additional_information. Do not reorder this sequence even though professional experience
+before education is more conventional; this candidate's resumes intentionally lead with
+skills and credentials before the work history.
 """.strip()
     strict_schema = strict_output_schema(load_json(PLAN_SCHEMA))
     strict_schema.pop("$schema", None)
