@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-24T01:08:08.513057+00:00",
+  "generatedAt": "2026-07-24T06:01:54.837604+00:00",
   "summary": {
     "discovered": 275,
-    "awaitingAnalysis": 34,
-    "readyToPursue": 3,
-    "stretch": 7,
+    "awaitingAnalysis": 17,
+    "readyToPursue": 7,
+    "stretch": 9,
     "applicationsInProgress": 0
   },
   "analyzedJobs": [
@@ -26,6 +26,25 @@
       ],
       "risk": "The employer may prefer a currently specialized frontend engineer with demonstrated high-traffic scale and deeper recent automated-testing experience; Anna's strongest directly verified React employment ended in 2021.",
       "nextAction": "Apply selectively if Anna is comfortable returning to a role centered on daily frontend development. If proceeding later, prioritize Dooly product-engineering evidence and keep claims about scale, testing depth, cross-browser optimization, and recency precise."
+    },
+    {
+      "id": "apera-ai-inc-business-operations-engineer-f29db71c4e",
+      "company": "Apera AI Inc",
+      "role": "Business Operations Engineer",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IktoXzhwRTZUWU9YM1JIVTFoLWxXVlEiLCJtYXRjaF9pZCI6IjAxOWY5MGI1LWZmNGEtNzc2YS1hMWIxLWRjNDU2YjUzMTlhMSIsImJpZF90cmFja2luZ19kYXRhIjoiQUFFc3NCalRBUmpSWWFjOXduZVlYNGlXc1luUjlVZ2VncFliMHhFUkRFd0JybVcwaHctUGRidHhZcFY5Ni14b1ZYUUdpMUJud2NFIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:42:39.633291+00:00",
+      "discoveryScore": 79,
+      "fitScore": 77,
+      "recommendation": "apply",
+      "reasons": [
+        "Anna has direct, hands-on evidence of shipping AI-assisted internal tools (the AI job search platform and the Freedive dive-conditions app), matching the core 'ship functional tools' requirement.",
+        "Her combined engineering background (Dooly, Techery) and operations-coordination background (Freedive) closely matches the 'Biz Ops or Engineering, or equivalent' hiring bar.",
+        "Strong root-cause diagnosis and cross-functional translation evidence (Salesforce investigation, integrated-systems troubleshooting, stakeholder requirements work) supports the diagnostician and translation priorities."
+      ],
+      "risk": "The posting does not state a location or workplace type, and Canadian hiring eligibility is unconfirmed, so it is unclear whether Apera would consider a Richmond, BC-based candidate; there is also no direct evidence of tracking sustained 90-day tool adoption at an organizational scale.",
+      "nextAction": "Apply, and use the screening process to confirm location/work-arrangement expectations and Canadian hiring eligibility before investing further time in tailoring materials."
     },
     {
       "id": "cohere-software-engineer-agents-automations-5d6d778bb2",
@@ -64,6 +83,63 @@
       ],
       "risk": "The posting expects architecture-level ownership and engineering mentorship that Anna cannot claim, while the role's coding-heavy focus is not her preferred career direction.",
       "nextAction": "Apply if Anna is genuinely open to a predominantly hands-on frontend engineering role, positioning the application around React product delivery, design systems, cross-layer troubleshooting, and requirements translation while leaving architecture ownership and mentoring unclaimed."
+    },
+    {
+      "id": "saltworks-technologies-full-stack-developer-5edc545254",
+      "company": "Saltworks Technologies",
+      "role": "Full Stack Developer",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6Ik9PLVpCUXdFUVZ1SHVuNXFqazZ3ZXciLCJtYXRjaF9pZCI6IjAxOWY5MGE1LThhOTEtNzMxZi05OTk1LWYwOTA2ZWE0ZGFmNCIsImJpZF90cmFja2luZ19kYXRhIjoiQUFFdmMzYVNUWDN2aFAtaVR4b1pZRTd5Y1ZsNnVwWDlIeV91T0hUTWZnRG82NFJmQlJYRzc4OU5PaFN3d1hqa3ZVR3RoZWRqWF80Iiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:27:00.079506+00:00",
+      "discoveryScore": 82,
+      "fitScore": 72,
+      "recommendation": "apply",
+      "reasons": [
+        "Anna already lives in Richmond, BC, exactly where this on-site role is based, removing the location and commute risk that affects most other technical postings.",
+        "Strong, direct full-stack development evidence across React, JavaScript/TypeScript, Python, PostgreSQL, and REST API integration from Dooly, Techery, and the current independent AI Job Search Agent project.",
+        "The role's emphasis on translating business requirements from non-technical stakeholders into working software plays directly to Anna's strongest and most differentiated evidence."
+      ],
+      "risk": "The posting expects a Node.js/TypeScript back-end framework (NestJS/NodeJS), SOAP APIs, and hands-on AWS or Azure cloud services; Anna's verified back-end evidence is Ruby on Rails and Python/Flask with no direct cloud-provider or SOAP experience, so these gaps would need honest clarification if raised during screening.",
+      "nextAction": "Apply, but state Ruby on Rails/Python back-end experience and Azure AI-900/GCP cloud familiarity honestly rather than implying direct NestJS, SOAP, or AWS/Azure hands-on expertise, and be ready to discuss these specific gaps plainly if raised in screening."
+    },
+    {
+      "id": "spring-financial-inc-software-engineer-f5777f3664",
+      "company": "Spring Financial Inc.",
+      "role": "Software Engineer",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IjFfaW9YTEtJc1U1OFRWNzhwejNWRFEiLCJtYXRjaF9pZCI6IjAxOWY5MGE1LThhOTEtNzIwYy05MDUzLTZiMWRmMWE5N2M0MyIsImJpZF90cmFja2luZ19kYXRhIjoiQUFGcFJhdDBIeTJoS1VtaFNWSmhTM2QxOWd1eWpIdmdqaktSUURkUGprRW1YSWVCTk1GV3l3MnM0QzdhTHBIOGw4WHRILWU2T2RFIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:26:37.824870+00:00",
+      "discoveryScore": 94,
+      "fitScore": 72,
+      "recommendation": "apply",
+      "reasons": [
+        "Direct, unusually close evidence match on the JD's central and most distinctive requirement: directing AI coding agents through spec-based development and reviewing every generated change, via the AI Job Search Agent project.",
+        "Strong full-stack technical evidence (React, TypeScript, Python, SQLite, REST APIs) directly supports the 'build across the stack' responsibility.",
+        "Demonstrated production debugging and cross-layer troubleshooting from the Dooly Full-Stack Software Engineer role satisfies the 'debug production issues with team support' requirement."
+      ],
+      "risk": "The role is explicitly designed and compensated as an entry-level position (1-2 years experience, $74k-$87k), while Anna's roughly 10 years of combined technical and analytical experience plus a master's degree create a real overqualification and retention-concern risk during screening.",
+      "nextAction": "Apply, but prepare a clear, honest explanation for screening of why this specific AI-native, hands-on engineering opportunity fits her current goals despite her broader experience level."
+    },
+    {
+      "id": "brex-systems-analyst-ii-aa962be851",
+      "company": "Brex",
+      "role": "Systems Analyst II",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6ImZRNEZvNjBLcmRObmlqYjdjcG9yc2ciLCJtYXRjaF9pZCI6IjAxOWY5MGFmLWFmMjctNzMyYy05MGMwLWViMGQ1MGE3MGEwNiIsImJpZF90cmFja2luZ19kYXRhIjoiQUFIOUpGVlNqeVk3NjAxc2JSLVlDZjhYbGtHaTFJelB1aDlFR3Y2aFdUeUNaRTVnN3hrSVJrb0pRNmJmMk1QWGlXeEVfdGdxRTd3Iiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:39:39.103048+00:00",
+      "discoveryScore": 65,
+      "fitScore": 71,
+      "recommendation": "apply",
+      "reasons": [
+        "Matches Anna's stated target direction (Systems Analyst / Business Systems Analyst) with hands-on building plus stakeholder-facing work.",
+        "Direct evidence of independently building and shipping full-stack tools in Python, JavaScript, SQL, and APIs (AI Job Search Agent, Dive Conditions Assistant).",
+        "Direct evidence of designing evidence-grounded AI/LLM workflows, matching the role's AI-integration expectation."
+      ],
+      "risk": "Limited direct exposure to the named GTM/Sales tech stack (Outreach, Gong, Vitally, Sierra, Nooks) and no formally titled BizOps/RevOps/TechOps experience, which could be a screening filter despite the posting's 'ability to learn quickly' language.",
+      "nextAction": "Apply, and be ready to acknowledge the GTM-tool and BizOps-title gaps honestly during screening while emphasizing the AI Job Search Agent, Freedive, and Dooly Salesforce-investigation evidence as the closest matches."
     },
     {
       "id": "zipline-intermediate-front-end-software-engineer-986cdcb24c",
@@ -275,6 +351,25 @@
       "nextAction": "Do not prioritize an application. Focus on Data Analyst or Reporting Analyst roles that accept SQL, Excel, Python, stakeholder analysis, and transferable systems experience without requiring established Power BI subject-matter expertise."
     },
     {
+      "id": "daniel-j-edelman-holdings-inc-ai-full-stack-developer-7e70b0b156",
+      "company": "Daniel J Edelman Holdings, Inc.",
+      "role": "AI Full Stack Developer",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IkxZS0hwV3VtOEtrckNkRTFqUkxycWciLCJtYXRjaF9pZCI6IjAxOWY5MGI1LWZmNGEtNzdmNi05ZDZjLWNjNmE3YWI5YmM1YyIsImJpZF90cmFja2luZ19kYXRhIjoiQUFGU1paclR6Z1B3TGxteDROcFdqLVNtTWZzNWxQM0lJMjNGR2t0TzF2eEJEU2ZHdkpYc2ZwaFowTnVqNm41RDVFWWdaZndyamZjIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:44:40.652913+00:00",
+      "discoveryScore": 75,
+      "fitScore": 58,
+      "recommendation": "selective_apply",
+      "reasons": [
+        "Direct, current full-stack evidence in React, TypeScript, and Python across the AI Job Search Agent and Dive Conditions Decision Assistant projects closely matches the role's core 'build full-stack AI applications' responsibility.",
+        "Explicit hands-on use of the exact AI-assisted coding tools named in the posting (Claude Code, OpenAI Codex), plus prior LLM API integration experience via Ollama/Hermes, is directly relevant to an AI-focused developer role.",
+        "Strong Git/GitHub, REST API, backend, and cross-functional collaboration evidence covers most of the mandatory, non-preferred requirements."
+      ],
+      "risk": "No direct hands-on evidence with OpenAI APIs, AWS, Vercel, or Supabase -- the specific AI and cloud stack the role is built around -- combined with unconfirmed Canadian hiring eligibility for this posting.",
+      "nextAction": "Apply selectively. Frame the Ollama/Hermes LLM integration and Claude Code/Codex-assisted development as directly relevant AI-tooling experience, be ready to discuss quick ramp-up on OpenAI APIs, Supabase, and AWS/Vercel during screening, and confirm Canadian remote hiring eligibility early before investing further time."
+    },
+    {
       "id": "emterra-group-business-analyst-3723007fad",
       "company": "Emterra Group",
       "role": "Business Analyst",
@@ -292,6 +387,44 @@
       ],
       "risk": "The role's two headline deliverables, Power BI/DAX dashboard development and leading AI chatbot solutions on named platforms, have zero direct or transferable evidence in Anna's verified profile, creating meaningful screening and early-performance risk.",
       "nextAction": "Treat as a selective, stretch application. Proceed only if Anna is comfortable being transparent in screening about lacking hands-on Power BI/DAX and chatbot-platform experience, framing it honestly as a learnable extension of her existing SQL, data-modeling, and AI-workflow background rather than claiming direct proficiency on the resume."
+    },
+    {
+      "id": "algaecal-associate-ai-engineer-abdad30219",
+      "company": "AlgaeCal",
+      "role": "Associate AI Engineer",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IjJZcDRGMVlFdlJXNWJ1V01tYjI0cXciLCJtYXRjaF9pZCI6IjAxOWY5MGJhLTYyZTQtNzNhOS1hYmFhLTdmNTcxMDczMDZmOSIsImJpZF90cmFja2luZ19kYXRhIjoiQUFHNHdxNTF3X3pfRUpXdU5NOFFFOFZkaTVia3BDMkZzb1lKRFRnOTVPM19CRWRKQlZvNDgzVW9TZHVuNk1RYndjNDQwMzVDd0xnIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:49:05.433846+00:00",
+      "discoveryScore": 83,
+      "fitScore": 55,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "The core substance of the work (translating business needs into AI automation, prompt engineering, AI workflow design, AI governance) aligns with Anna's target direction and existing project evidence.",
+        "Strong requirements-gathering and stakeholder-translation evidence (Freedive BC, Dooly) transfers directly to the role's 'bridge between operational teams and technical implementation' responsibility.",
+        "AI governance and safe-capture design work from the flagship AI Job Search Agent project directly supports the 'AI governance and data risk' responsibility."
+      ],
+      "risk": "The posting is structured, priced, and worded as an internship for early-career or student candidates with deferred, unspecified compensation, a poor seniority and logistics fit for someone with roughly a decade of professional experience seeking full-time paid work.",
+      "nextAction": "Do not apply to this posting. If Anna wants to pursue AlgaeCal or similar AI-automation-focused work, look for a non-internship role with clearer seniority level and compensation."
+    },
+    {
+      "id": "enkel-backoffice-solutions-ai-automation-digital-workforce-specialist-5a460e476d",
+      "company": "Enkel Backoffice Solutions",
+      "role": "AI Automation & Digital Workforce Specialist",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6InYta0Qyc0hUN0drSFBKQXpjRGk3QVEiLCJtYXRjaF9pZCI6IjAxOWY5MGFmLWFmMjctNzM4Mi1hZDk4LWYwM2M3NTEyOGQyNiIsImJpZF90cmFja2luZ19kYXRhIjoiQUFFMHVKZE10NFhrUncxY0RLYjk3UkZJWmlMNFRCdmZCMjR2RWpVOEEtTVFtWmlTbXhtZGpxWFVUM1MzNV95MlBNMnY2bXljWkRVIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:38:03.935689+00:00",
+      "discoveryScore": 60,
+      "fitScore": 52,
+      "recommendation": "selective_apply",
+      "reasons": [
+        "Direct alignment with Anna's targeted role family (AI Automation/AI Workflow Specialist) and preferred work characteristics (AI-driven automation connected to business outcomes)",
+        "Strong, well-evidenced requirements-translation and workflow-analysis skill directly matches the 'Understand & Re-engineer Processes' responsibility category",
+        "Human-in-the-loop AI design work (approval gates, validation, exception handling) on the AI Job Search Agent conceptually mirrors the posting's 'Build Operational AI Infrastructure' responsibilities"
+      ],
+      "risk": "The role's central, required qualification is 'strong experience building AI agents, intelligent automations, or workflow orchestration systems' at a 5-10 year specialist bar with named agent frameworks and finance-platform integrations. Anna's real AI-agent-building evidence is working-level, recent (since April 2026), and project-based rather than production/enterprise scale, creating a genuine risk that the resume would overstate her current specialist depth if not handled carefully.",
+      "nextAction": "If Anna applies, she should frame her AI experience honestly as hands-on but recent applied-AI workflow design layered on a decade of software engineering and business analysis, rather than as equivalent to a multi-year specialist agent-engineering track record, and be prepared to discuss the scale difference openly if asked in screening."
     },
     {
       "id": "grafana-labs-staff-ai-engineer-canada-remote-29e9f95e05",
@@ -370,6 +503,25 @@
       "nextAction": "Do not apply. Prioritize AI workflow, technical business analysis, systems analysis, implementation, or application-consulting roles where the verified AI application and software background are strong differentiators without requiring staff-level production AI ownership."
     },
     {
+      "id": "polyai-forward-deployed-ai-engineer-vancouver-9bfb4fe248",
+      "company": "PolyAI",
+      "role": "Forward Deployed AI Engineer - Vancouver",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6ImRITDlVODE3dWxNTTFRcDFyUWtfVUEiLCJtYXRjaF9pZCI6IjAxOWY5MGE1LThhOTEtNzMxNy04MGNjLTQyZDJmMGYxNDNiNiIsImJpZF90cmFja2luZ19kYXRhIjoiQUFIT1ZKNzRiNWlCYmItOXhUWHM3ZkJLbmVmeU01S0hDQ1RUdG9jcFNzSXVMNDBqVFhBdGNDZWdsY1BIbTN1TDE4R1ZWbml1eTQ0Iiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:29:39.780783+00:00",
+      "discoveryScore": 73,
+      "fitScore": 41,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Python and applied-AI workflow experience directly match the daily AI-tool-use and Python qualifications.",
+        "Client-facing communication and requirements-translation experience (Techery, Dooly, Freedive) map to the stakeholder-management expectations.",
+        "Location is workable: Richmond, BC is within commuting distance of the required Vancouver base."
+      ],
+      "risk": "The role's two named essential technologies -- SIP/RTP telephony integration and Kubernetes -- have zero supporting evidence in the profile, and the core responsibility is owning production architecture and SLAs for enterprise systems, which Anna's evidence does not support at the required depth.",
+      "nextAction": "Do not apply; the telephony-integration and production-ownership requirements would require claiming experience Anna does not have."
+    },
+    {
       "id": "growfund-ai-ai-specialist-77d538d1ff",
       "company": "GrowFund AI",
       "role": "AI Specialist",
@@ -389,6 +541,25 @@
       "nextAction": "Do not apply. Prioritize AI workflow, data analyst, systems analyst, implementation, or application roles where Anna's Python, data, software, and stakeholder experience meets the core responsibilities without implying ML model-development expertise."
     },
     {
+      "id": "learn-develop-succeed-senior-software-developer-ed7a862c3a",
+      "company": "Learn. Develop. Succeed",
+      "role": "Senior Software Developer",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6ImRUbUt2NUxKOEx1S0JURUVnbHpFcUEiLCJtYXRjaF9pZCI6IjAxOWY5MGE1LThhOTEtNzIwOS1iMjI4LTU2MjQ0MGM2OWFmMiIsImJpZF90cmFja2luZ19kYXRhIjoiQUFHNHROQ3NjcHRBbUNIc2txM3UzU2VMNVREblVTZ2txbFE3MHVtRnlhRXMzWFBSR1pPemFxSmVNSGlxTGpyOTZ3c01vdHBSZE9BIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:25:16.128660+00:00",
+      "discoveryScore": 83,
+      "fitScore": 38,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Direct, current evidence of designing agentic/AI-assisted coding workflows (Claude Code, OpenAI Codex) matches the posting's explicit enthusiasm for agentic development.",
+        "Genuine historical full-stack engineering foundation (React, Ruby on Rails, PostgreSQL, REST APIs) provides transferable, if dated, technical grounding.",
+        "Location (Vancouver, BC hybrid) and compensation are logistically compatible with Anna's base in Richmond, BC."
+      ],
+      "risk": "The role's core purpose — independent, high-autonomy ownership of architecture decisions and large-scope engineering projects, using Django and Next.js specifically, at a Senior IC level — is not honestly supported by Anna's evidence. Her forbidden_claims list explicitly blocks architecture-ownership claims, she has never held a Senior engineering title, and her most recent full-stack engineering employment ended over four years ago. Applying would require overstating current technical depth and autonomy in ways Anna could not defensibly explain in an interview.",
+      "nextAction": "Do not apply. This role falls into the 'Senior and Staff highly technical roles' hard-reject category in job_preferences.yaml. If Anna wants to pursue this employer, watch for roles closer to her target direction (BA, systems analysis, applied-AI workflow, or product roles) rather than a Senior Full Stack Engineer IC position."
+    },
+    {
       "id": "future-electronics-edge-ai-field-applications-engineer-b1f0388a61",
       "company": "Future Electronics",
       "role": "Edge AI Field Applications Engineer",
@@ -406,6 +577,25 @@
       ],
       "risk": "The job's core screening criteria require senior, hands-on Edge AI and embedded-electronics expertise that the verified profile does not support and cannot be truthfully reframed from general software or AI-assisted application work.",
       "nextAction": "Do not apply. Prioritize implementation, solutions analysis, application support, technical business analysis, or AI workflow roles where Anna's software foundation and customer-facing strengths are central and defensible."
+    },
+    {
+      "id": "delta-intelligent-building-technolo-ai-software-developer-intermediate-e5a74f7b38",
+      "company": "Delta Intelligent Building Technologies (Canada) Inc.",
+      "role": "AI Software Developer - Intermediate",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IkhOb05zblBCZjhFS2dQUXM4Y1FYc2ciLCJtYXRjaF9pZCI6IjAxOWY5MGFiLWE4NGEtNzdlZi05NzA1LTFlM2JiMmZjMWFlNSIsImJpZF90cmFja2luZ19kYXRhIjoiQUFIQXQtQ0pRS0pSd2RqSm5wNTJwYk5ZYkJ0c2J6OEVpSGEwMnFod1FVSFJ3Umo0YlZidlRjcEhwM1hmaEJsT1JfNU91N2lIYWtvIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:31:29.410916+00:00",
+      "discoveryScore": 81,
+      "fitScore": 36,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Genuine hands-on applied-AI workflow experience (prompt engineering, structured outputs, human review gates) exists from the independent AI Job Search Agent project.",
+        "Directly evidenced Git/PR workflow, cross-layer debugging, and full-stack Python/API delivery.",
+        "Hybrid Surrey, BC location and 90,000-110,000 CAD compensation are logistically compatible with Anna's preferences."
+      ],
+      "risk": "The role's core technical duties, AWS Bedrock integration, RAG pattern implementation, and embedding/vector-database work, have no direct or transferable evidence in Anna's verified profile, and the posting's first required skill, 'strong' Python proficiency, exceeds her documented 'working' level. Applying would require presenting these as stronger than they are.",
+      "nextAction": "Do not apply. If Anna wants to move toward this kind of AI/ML backend engineering role in the future, prioritize building verifiable AWS and RAG/embedding project experience first. For now, prioritize AI Workflow Specialist, Business Analyst, or Solutions Analyst roles that better match her verified evidence and stated career direction."
     },
     {
       "id": "grafana-labs-staff-software-engineer-adaptive-telemetry-databases-ca-9e973f86e0",
@@ -465,6 +655,101 @@
       "nextAction": "Do not apply. Prioritize AI workflow, implementation, systems analysis, application consulting, or technically informed client-facing roles where the existing AI application and software background are directly relevant without requiring unsupported production ML expertise."
     },
     {
+      "id": "quadreal-instructional-designer-ai-learning-8-month-contract-3efc23cd08",
+      "company": "Quadreal",
+      "role": "Instructional Designer - AI Learning - 8 Month Contract",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IkplVG9peGdHdmMtUUZZRFZrT3RTb2ciLCJtYXRjaF9pZCI6IjAxOWY5MGJhLTYyZTQtNzNmMy1hYzQyLTZlNjM2N2IyODFiNCIsImJpZF90cmFja2luZ19kYXRhIjoiQUFIRGFHb3VNLWdpNDRjSDZSWGkyazNua2dtY1pNVG5KRzVJTkVDWXIyNVhwZHh0aHlqa09PMEF3VXgwMWNpY0U1Q1VNeFdDOEFrIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:47:18.598365+00:00",
+      "discoveryScore": 58,
+      "fitScore": 33,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Vancouver hybrid location and 8-month contract length match Anna's location and employment-type preferences.",
+        "Anna has direct evidence of clear technical communication, stakeholder translation, and presenting to non-technical audiences.",
+        "Anna has hands-on, working-level generative AI tool and prompt-engineering experience relevant to the subject matter of the training content."
+      ],
+      "risk": "The role's core required qualifications (5+ years corporate instructional design experience and expert-level eLearning authoring tools) have zero supporting evidence in Anna's verified profile, making this a specialization mismatch rather than a stretch fit.",
+      "nextAction": "Do not apply. This role requires an established instructional-design and eLearning-authoring specialist background that Anna's verified record does not support; pursuing it would require fabricating core qualifications."
+    },
+    {
+      "id": "telus-ai-lead-developer-0bd982687e",
+      "company": "TELUS",
+      "role": "AI Lead/Developer",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6ImtoUDgtRHpBR1N6dEM1YjFrOW12YnciLCJtYXRjaF9pZCI6IjAxOWY5MGFmLWFmMjctNzJmYS04MGI4LThlNDNiM2UyZTk2YyIsImJpZF90cmFja2luZ19kYXRhIjoiQUFHbnloQ2lWV1dYVmoza0lCdGtwa2hJWFdnbVIwMkhZVVI0NFo3S1I4dHdQaW92dEVVWVBEWWE2WGliVzZTMWd2VW1pcTVUX0FVIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:36:02.208881+00:00",
+      "discoveryScore": 73,
+      "fitScore": 32,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "The role's core, repeatedly emphasized responsibilities (cloud AI architecture, 4+ years technical leadership/architecture ownership, mentoring, enterprise-scale AI deployment) are unsupported by Anna's verified evidence, and her records explicitly prohibit claiming architecture or engineering-leadership ownership.",
+        "Anna's real AI experience is working-level prompt/workflow orchestration on personal projects, not the 'strong background' in ML frameworks, GenAI platforms, and agentic AI the posting requires.",
+        "Full-stack coding (React, Python, REST APIs) and stakeholder communication are genuinely strong, but they are secondary to the role's core lead/architect scope, not sufficient to offset it."
+      ],
+      "risk": "Applying would require implying technical leadership, architecture ownership, and production-grade cloud/GenAI expertise that Anna cannot truthfully defend in an interview, given her career record's explicit restrictions.",
+      "nextAction": "Do not apply to this posting. If TELUS or a similar employer posts a hands-on, individual-contributor AI/full-stack developer role without the architecture-ownership and 4+ years technical-leadership requirement, that would be a much better fit to evaluate."
+    },
+    {
+      "id": "delta-controls-ai-software-developer-intermediate-d33046bc45",
+      "company": "Delta Controls",
+      "role": "AI Software Developer - Intermediate",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6InU4SUZfNW50bm1iMUZJS2Y5Q1NwcFEiLCJtYXRjaF9pZCI6IjAxOWY5MGI1LWZmNGEtNzc2MC1iMTQyLTRmMWZjZTRkMjk1ZCIsImJpZF90cmFja2luZ19kYXRhIjoiQUFITi14SDVZRWlLeElKYkpCZmFuZEpvanplRU5VdmVVSjNxSWZuNUNTUDBnX3ZrWklURURiZlEzcHl1ZWEzV25tVU9DamJTX1c0Iiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:43:36.738859+00:00",
+      "discoveryScore": 81,
+      "fitScore": 30,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Core job duties center on production RAG, agent-orchestration, and AWS Bedrock feature engineering that has no direct or credible transferable evidence in Anna's verified profile.",
+        "The role's daily work is deep, ongoing AI software development with PR-approval and mentorship authority, which conflicts with Anna's stated direction toward more people-facing, business-connected work rather than being the sole focus.",
+        "Applying competitively would require overstating Python proficiency from 'working' to 'strong' and claiming AWS, RAG, and agent-orchestration expertise, all of which forbidden_claims.yaml or the technologies.yaml usage notes disallow."
+      ],
+      "risk": "If Anna applied and reached technical screening, she could not substantiate hands-on production RAG, vector-database, agent-orchestration, or AWS Bedrock experience, and this is core, ongoing daily work for the role rather than a peripheral nice-to-have.",
+      "nextAction": "Do not apply. If Anna remains interested in Delta Controls, watch for a role closer to AI workflow analysis, implementation, or business/systems analysis rather than a hands-on AI Software Developer position."
+    },
+    {
+      "id": "salesforce-inc-agentic-data-specialist-multiple-levels-8f94b6089b",
+      "company": "Salesforce, Inc.",
+      "role": "Agentic Data Specialist (Multiple Levels)",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6Imd2SFMwbTFuX2VnbGVJOW5rU3JIUlEiLCJtYXRjaF9pZCI6IjAxOWY5MGFiLWE4NGEtNzdlYS05YzQyLTk3YzM0ZmViNWM4NCIsImJpZF90cmFja2luZ19kYXRhIjoiQUFGc0ttVXBXLXIyOU5lRkk0c3I2LU5FSFlzaVFva3FmVkgtOHVsSnlpZ0ItcEZFc0pyYWdCMTR0WFN4bUJBSWJqMWZoTk5kTjQwIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:32:40.551762+00:00",
+      "discoveryScore": 56,
+      "fitScore": 29,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Anna has genuine, direct evidence of cross-system integration troubleshooting and Salesforce-adjacent data investigation",
+        "Her REST API and Python/JavaScript full-stack background gives some baseline technical credibility",
+        "She has hands-on, if smaller-scale, applied AI workflow design experience"
+      ],
+      "risk": "The role's defining responsibilities (RAG/vector-database AI grounding, multi-agent orchestration protocols, enterprise iPaaS integration, OAuth/SAML security) have no direct or transferable evidence in Anna's profile, and truthfully representing her background would not support these core, non-negotiable requirements.",
+      "nextAction": "Do not apply. If Anna wants to pursue Salesforce-related roles, look for Business Analyst, Solutions Analyst, or Implementation Consultant postings within the Salesforce ecosystem that emphasize requirements, stakeholder work, and integration troubleshooting rather than deep AI-infrastructure and security-protocol engineering."
+    },
+    {
+      "id": "autodesk-software-developer-agentic-evaluation-e4f022e0cc",
+      "company": "Autodesk",
+      "role": "Software Developer (Agentic Evaluation)",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IkpqMnNOY3FRazVNUEx6VFZ5V3M0ZlEiLCJtYXRjaF9pZCI6IjAxOWY5MGFiLWE4NGEtNzdhZS05ZTlhLTE1NDYzNzc2MmQ1YyIsImJpZF90cmFja2luZ19kYXRhIjoiQUFIQXJOMnc0Sk43ZnBRc3F1c3kzZFdKLWl5MUt4OVpUMi1QTlY2ME03VGVaZ3VuSFhkS2NKZklVekxLUko0WloySUFWa1g0ZGxBIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:32:05.325169+00:00",
+      "discoveryScore": 76,
+      "fitScore": 26,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Minimum qualifications require hands-on expertise in PyTorch, Transformers, and scikit-learn, none of which appear anywhere in Anna's verified profile",
+        "The role's core, repeated responsibilities - building agent-orchestration systems, AI evaluation benchmarks, and MCP server tooling - have no supporting evidence in her career, skills, or evidence records",
+        "The posting also requires statistical analysis, experimental design, and developer-productivity measurement expertise, none of which is documented"
+      ],
+      "risk": "Applying would require presenting Anna's applied-AI product work (using LLMs through Hermes/Ollama and Claude Code as tools) as equivalent to ML-framework expertise and agent-evaluation-engineering depth, which she could not defend credibly in a technical screen or interview.",
+      "nextAction": "Do not apply to this posting. If this problem space is genuinely of interest, build verifiable hands-on experience with PyTorch/Transformers, MCP servers, and an agent-orchestration framework (LangGraph or AutoGen) before targeting similar ML-evaluation engineering roles."
+    },
+    {
       "id": "village-farms-international-technology-lead-integration-agentic-ai-m-a-enablement-8352d3c62b",
       "company": "Village Farms International",
       "role": "Technology Lead - Integration & Agentic AI (M&A Enablement)",
@@ -501,19 +786,47 @@
       ],
       "risk": "Applying would require presenting Adobe Creative Suite skills and retail ad-production/compositing experience Anna has never used and could not defend in an interview or on the job.",
       "nextAction": "Do not apply. Continue targeting AI workflow, business/systems analysis, and technical roles where Anna's verified full-stack, LLM-workflow, and analysis experience directly applies."
+    },
+    {
+      "id": "ubc-software-and-ai-research-coordinator-819e84e9ce",
+      "company": "Ubc",
+      "role": "Software and AI Research Coordinator",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6ImtDRVVGRXZYa0JXQ1Nid1ZQSEtxOVEiLCJtYXRjaF9pZCI6IjAxOWY5MGFiLWE4NGEtNzdmMi1hMWUwLTMzNTRmZmE4ZjM2MyIsImJpZF90cmFja2luZ19kYXRhIjoiQUFIWlRJaE15d2JQUlFmV3pYOVhUUkRsQ2tUbHMyYXNmckVQQWhCTE1LSV9naUFmN1lnaWUwLU9IZENFTmYza0JHdG03ZlRobUVRIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:31:05.200151+00:00",
+      "discoveryScore": 49,
+      "fitScore": 23,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "The role's core, daily work is developing and troubleshooting machine learning algorithms for histopathology image analysis, which has no direct or transferable evidence in Anna's profile.",
+        "The lab's domain is computational cancer biology and pathology AI, a biomedical research field with no counterpart in Anna's career history or education.",
+        "Anna's existing AI experience is LLM-based workflow design and prompt engineering, explicitly distinct from machine-learning model development under forbidden_claims.yaml."
+      ],
+      "risk": "Applying would require presenting Anna as having machine learning and medical imaging research expertise she does not have, which is both untruthful and likely to fail technical screening immediately.",
+      "nextAction": "Do not apply. Continue targeting AI workflow, business analysis, and people-facing coordination roles where Anna's technical background is a genuine asset rather than the unmet core requirement."
+    },
+    {
+      "id": "houle-electric-limited-ai-technical-specialist-fca1b455ee",
+      "company": "Houle Electric Limited",
+      "role": "AI Technical Specialist",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6Im9uT0M4V1dFNzNlUmw5TVdSSC1wdmciLCJtYXRjaF9pZCI6IjAxOWY5MGE1LThhOTEtNzIyNS05N2FiLTc0ZmQzNWQzZDI2MSIsImJpZF90cmFja2luZ19kYXRhIjoiQUFIM1VfX1hDQnpfTEYyOWhaVG1kMGY5dXU1TlpSRHYxTElOR214RmZxaUZUVks4LXFNQnotdjdnT3hsV3RYTDRJQVVrNHdSWllNIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-23T20:28:07.234599+00:00",
+      "discoveryScore": 56,
+      "fitScore": 21,
+      "recommendation": "do_not_apply",
+      "reasons": [
+        "Burnaby, BC hybrid work arrangement is a comfortable commute and matches Anna's stated location and hybrid/on-site preferences.",
+        "Anna has genuine hands-on experience designing and building a Python/Flask application that integrates a local LLM, showing real (if small-scale) applied AI development.",
+        "Strong REST API and integration-troubleshooting background could transfer to some system-integration aspects of the role."
+      ],
+      "risk": "The role requires hands-on production expertise with LangChain/agentic frameworks, RAG, vector databases, and Azure AI Services/Azure AI Search that Anna has no direct or transferable evidence for; presenting this experience truthfully would require fabricating specialist AI engineering depth she does not have.",
+      "nextAction": "Do not apply. If Anna gains verified, hands-on production experience with agentic frameworks, RAG, vector databases, and Azure AI Services, a similar posting could be reconsidered at that point."
     }
   ],
   "awaitingAnalysis": [
-    {
-      "id": "spring-financial-inc-software-engineer-f5777f3664",
-      "company": "Spring Financial Inc.",
-      "role": "Software Engineer",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IjFfaW9YTEtJc1U1OFRWNzhwejNWRFEiLCJtYXRjaF9pZCI6IjAxOWY5MGE1LThhOTEtNzIwYy05MDUzLTZiMWRmMWE5N2M0MyIsImJpZF90cmFja2luZ19kYXRhIjoiQUFGcFJhdDBIeTJoS1VtaFNWSmhTM2QxOWd1eWpIdmdqaktSUURkUGprRW1YSWVCTk1GV3l3MnM0QzdhTHBIOGw4WHRILWU2T2RFIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:26:37.824870+00:00",
-      "discoveryScore": 94
-    },
     {
       "id": "grafana-labs-staff-ai-engineer-canada-remote-fe491b18cf",
       "company": "Grafana Labs",
@@ -555,26 +868,6 @@
       "discoveryScore": 87
     },
     {
-      "id": "algaecal-associate-ai-engineer-abdad30219",
-      "company": "AlgaeCal",
-      "role": "Associate AI Engineer",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IjJZcDRGMVlFdlJXNWJ1V01tYjI0cXciLCJtYXRjaF9pZCI6IjAxOWY5MGJhLTYyZTQtNzNhOS1hYmFhLTdmNTcxMDczMDZmOSIsImJpZF90cmFja2luZ19kYXRhIjoiQUFHNHdxNTF3X3pfRUpXdU5NOFFFOFZkaTVia3BDMkZzb1lKRFRnOTVPM19CRWRKQlZvNDgzVW9TZHVuNk1RYndjNDQwMzVDd0xnIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:49:05.433846+00:00",
-      "discoveryScore": 83
-    },
-    {
-      "id": "learn-develop-succeed-senior-software-developer-ed7a862c3a",
-      "company": "Learn. Develop. Succeed",
-      "role": "Senior Software Developer",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6ImRUbUt2NUxKOEx1S0JURUVnbHpFcUEiLCJtYXRjaF9pZCI6IjAxOWY5MGE1LThhOTEtNzIwOS1iMjI4LTU2MjQ0MGM2OWFmMiIsImJpZF90cmFja2luZ19kYXRhIjoiQUFHNHROQ3NjcHRBbUNIc2txM3UzU2VMNVREblVTZ2txbFE3MHVtRnlhRXMzWFBSR1pPemFxSmVNSGlxTGpyOTZ3c01vdHBSZE9BIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:25:16.128660+00:00",
-      "discoveryScore": 83
-    },
-    {
       "id": "amazon-canada-machine-learning-engineer-aice-ai-center-of-excellence-0c3c4a2cb3",
       "company": "Amazon Canada",
       "role": "Machine Learning Engineer, AICE - AI Center of Excellence",
@@ -595,36 +888,6 @@
       "discoveryScore": 82
     },
     {
-      "id": "saltworks-technologies-full-stack-developer-5edc545254",
-      "company": "Saltworks Technologies",
-      "role": "Full Stack Developer",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6Ik9PLVpCUXdFUVZ1SHVuNXFqazZ3ZXciLCJtYXRjaF9pZCI6IjAxOWY5MGE1LThhOTEtNzMxZi05OTk1LWYwOTA2ZWE0ZGFmNCIsImJpZF90cmFja2luZ19kYXRhIjoiQUFFdmMzYVNUWDN2aFAtaVR4b1pZRTd5Y1ZsNnVwWDlIeV91T0hUTWZnRG82NFJmQlJYRzc4OU5PaFN3d1hqa3ZVR3RoZWRqWF80Iiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:27:00.079506+00:00",
-      "discoveryScore": 82
-    },
-    {
-      "id": "delta-controls-ai-software-developer-intermediate-d33046bc45",
-      "company": "Delta Controls",
-      "role": "AI Software Developer - Intermediate",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6InU4SUZfNW50bm1iMUZJS2Y5Q1NwcFEiLCJtYXRjaF9pZCI6IjAxOWY5MGI1LWZmNGEtNzc2MC1iMTQyLTRmMWZjZTRkMjk1ZCIsImJpZF90cmFja2luZ19kYXRhIjoiQUFITi14SDVZRWlLeElKYkpCZmFuZEpvanplRU5VdmVVSjNxSWZuNUNTUDBnX3ZrWklURURiZlEzcHl1ZWEzV25tVU9DamJTX1c0Iiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:43:36.738859+00:00",
-      "discoveryScore": 81
-    },
-    {
-      "id": "delta-intelligent-building-technolo-ai-software-developer-intermediate-e5a74f7b38",
-      "company": "Delta Intelligent Building Technologies (Canada) Inc.",
-      "role": "AI Software Developer - Intermediate",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IkhOb05zblBCZjhFS2dQUXM4Y1FYc2ciLCJtYXRjaF9pZCI6IjAxOWY5MGFiLWE4NGEtNzdlZi05NzA1LTFlM2JiMmZjMWFlNSIsImJpZF90cmFja2luZ19kYXRhIjoiQUFIQXQtQ0pRS0pSd2RqSm5wNTJwYk5ZYkJ0c2J6OEVpSGEwMnFod1FVSFJ3Umo0YlZidlRjcEhwM1hmaEJsT1JfNU91N2lIYWtvIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:31:29.410916+00:00",
-      "discoveryScore": 81
-    },
-    {
       "id": "robots-pencils-principal-ai-engineer-fedc15db90",
       "company": "Robots & Pencils",
       "role": "Principal AI Engineer",
@@ -633,16 +896,6 @@
       "postedDate": "2026-06-11",
       "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
       "discoveryScore": 81
-    },
-    {
-      "id": "apera-ai-inc-business-operations-engineer-f29db71c4e",
-      "company": "Apera AI Inc",
-      "role": "Business Operations Engineer",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IktoXzhwRTZUWU9YM1JIVTFoLWxXVlEiLCJtYXRjaF9pZCI6IjAxOWY5MGI1LWZmNGEtNzc2YS1hMWIxLWRjNDU2YjUzMTlhMSIsImJpZF90cmFja2luZ19kYXRhIjoiQUFFc3NCalRBUmpSWWFjOXduZVlYNGlXc1luUjlVZ2VncFliMHhFUkRFd0JybVcwaHctUGRidHhZcFY5Ni14b1ZYUUdpMUJud2NFIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:42:39.633291+00:00",
-      "discoveryScore": 79
     },
     {
       "id": "grafana-labs-staff-backend-engineer-second-horizon-canada-remote-037718cc2d",
@@ -705,26 +958,6 @@
       "discoveryScore": 77
     },
     {
-      "id": "autodesk-software-developer-agentic-evaluation-e4f022e0cc",
-      "company": "Autodesk",
-      "role": "Software Developer (Agentic Evaluation)",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IkpqMnNOY3FRazVNUEx6VFZ5V3M0ZlEiLCJtYXRjaF9pZCI6IjAxOWY5MGFiLWE4NGEtNzdhZS05ZTlhLTE1NDYzNzc2MmQ1YyIsImJpZF90cmFja2luZ19kYXRhIjoiQUFIQXJOMnc0Sk43ZnBRc3F1c3kzZFdKLWl5MUt4OVpUMi1QTlY2ME03VGVaZ3VuSFhkS2NKZklVekxLUko0WloySUFWa1g0ZGxBIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:32:05.325169+00:00",
-      "discoveryScore": 76
-    },
-    {
-      "id": "daniel-j-edelman-holdings-inc-ai-full-stack-developer-7e70b0b156",
-      "company": "Daniel J Edelman Holdings, Inc.",
-      "role": "AI Full Stack Developer",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IkxZS0hwV3VtOEtrckNkRTFqUkxycWciLCJtYXRjaF9pZCI6IjAxOWY5MGI1LWZmNGEtNzdmNi05ZDZjLWNjNmE3YWI5YmM1YyIsImJpZF90cmFja2luZ19kYXRhIjoiQUFGU1paclR6Z1B3TGxteDROcFdqLVNtTWZzNWxQM0lJMjNGR2t0TzF2eEJEU2ZHdkpYc2ZwaFowTnVqNm41RDVFWWdaZndyamZjIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:44:40.652913+00:00",
-      "discoveryScore": 75
-    },
-    {
       "id": "grafana-labs-senior-software-engineer-databases-sre-canada-remote-fa129da9a1",
       "company": "Grafana Labs",
       "role": "Senior Software Engineer - Databases, SRE | Canada | Remote",
@@ -755,26 +988,6 @@
       "discoveryScore": 74
     },
     {
-      "id": "polyai-forward-deployed-ai-engineer-vancouver-9bfb4fe248",
-      "company": "PolyAI",
-      "role": "Forward Deployed AI Engineer - Vancouver",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6ImRITDlVODE3dWxNTTFRcDFyUWtfVUEiLCJtYXRjaF9pZCI6IjAxOWY5MGE1LThhOTEtNzMxNy04MGNjLTQyZDJmMGYxNDNiNiIsImJpZF90cmFja2luZ19kYXRhIjoiQUFIT1ZKNzRiNWlCYmItOXhUWHM3ZkJLbmVmeU01S0hDQ1RUdG9jcFNzSXVMNDBqVFhBdGNDZWdsY1BIbTN1TDE4R1ZWbml1eTQ0Iiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:29:39.780783+00:00",
-      "discoveryScore": 73
-    },
-    {
-      "id": "telus-ai-lead-developer-0bd982687e",
-      "company": "TELUS",
-      "role": "AI Lead/Developer",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6ImtoUDgtRHpBR1N6dEM1YjFrOW12YnciLCJtYXRjaF9pZCI6IjAxOWY5MGFmLWFmMjctNzJmYS04MGI4LThlNDNiM2UyZTk2YyIsImJpZF90cmFja2luZ19kYXRhIjoiQUFHbnloQ2lWV1dYVmoza0lCdGtwa2hJWFdnbVIwMkhZVVI0NFo3S1I4dHdQaW92dEVVWVBEWWE2WGliVzZTMWd2VW1pcTVUX0FVIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:36:02.208881+00:00",
-      "discoveryScore": 73
-    },
-    {
       "id": "grafana-labs-staff-backend-engineer-grafana-enterprise-canada-remote-c677052b56",
       "company": "Grafana Labs",
       "role": "Staff Backend Engineer - Grafana Enterprise | Canada | Remote",
@@ -783,66 +996,6 @@
       "postedDate": "2026-05-28",
       "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
       "discoveryScore": 70
-    },
-    {
-      "id": "brex-systems-analyst-ii-aa962be851",
-      "company": "Brex",
-      "role": "Systems Analyst II",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6ImZRNEZvNjBLcmRObmlqYjdjcG9yc2ciLCJtYXRjaF9pZCI6IjAxOWY5MGFmLWFmMjctNzMyYy05MGMwLWViMGQ1MGE3MGEwNiIsImJpZF90cmFja2luZ19kYXRhIjoiQUFIOUpGVlNqeVk3NjAxc2JSLVlDZjhYbGtHaTFJelB1aDlFR3Y2aFdUeUNaRTVnN3hrSVJrb0pRNmJmMk1QWGlXeEVfdGdxRTd3Iiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:39:39.103048+00:00",
-      "discoveryScore": 65
-    },
-    {
-      "id": "enkel-backoffice-solutions-ai-automation-digital-workforce-specialist-5a460e476d",
-      "company": "Enkel Backoffice Solutions",
-      "role": "AI Automation & Digital Workforce Specialist",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6InYta0Qyc0hUN0drSFBKQXpjRGk3QVEiLCJtYXRjaF9pZCI6IjAxOWY5MGFmLWFmMjctNzM4Mi1hZDk4LWYwM2M3NTEyOGQyNiIsImJpZF90cmFja2luZ19kYXRhIjoiQUFFMHVKZE10NFhrUncxY0RLYjk3UkZJWmlMNFRCdmZCMjR2RWpVOEEtTVFtWmlTbXhtZGpxWFVUM1MzNV95MlBNMnY2bXljWkRVIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:38:03.935689+00:00",
-      "discoveryScore": 60
-    },
-    {
-      "id": "quadreal-instructional-designer-ai-learning-8-month-contract-3efc23cd08",
-      "company": "Quadreal",
-      "role": "Instructional Designer - AI Learning - 8 Month Contract",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IkplVG9peGdHdmMtUUZZRFZrT3RTb2ciLCJtYXRjaF9pZCI6IjAxOWY5MGJhLTYyZTQtNzNmMy1hYzQyLTZlNjM2N2IyODFiNCIsImJpZF90cmFja2luZ19kYXRhIjoiQUFIRGFHb3VNLWdpNDRjSDZSWGkyazNua2dtY1pNVG5KRzVJTkVDWXIyNVhwZHh0aHlqa09PMEF3VXgwMWNpY0U1Q1VNeFdDOEFrIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:47:18.598365+00:00",
-      "discoveryScore": 58
-    },
-    {
-      "id": "houle-electric-limited-ai-technical-specialist-fca1b455ee",
-      "company": "Houle Electric Limited",
-      "role": "AI Technical Specialist",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6Im9uT0M4V1dFNzNlUmw5TVdSSC1wdmciLCJtYXRjaF9pZCI6IjAxOWY5MGE1LThhOTEtNzIyNS05N2FiLTc0ZmQzNWQzZDI2MSIsImJpZF90cmFja2luZ19kYXRhIjoiQUFIM1VfX1hDQnpfTEYyOWhaVG1kMGY5dXU1TlpSRHYxTElOR214RmZxaUZUVks4LXFNQnotdjdnT3hsV3RYTDRJQVVrNHdSWllNIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:28:07.234599+00:00",
-      "discoveryScore": 56
-    },
-    {
-      "id": "salesforce-inc-agentic-data-specialist-multiple-levels-8f94b6089b",
-      "company": "Salesforce, Inc.",
-      "role": "Agentic Data Specialist (Multiple Levels)",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6Imd2SFMwbTFuX2VnbGVJOW5rU3JIUlEiLCJtYXRjaF9pZCI6IjAxOWY5MGFiLWE4NGEtNzdlYS05YzQyLTk3YzM0ZmViNWM4NCIsImJpZF90cmFja2luZ19kYXRhIjoiQUFGc0ttVXBXLXIyOU5lRkk0c3I2LU5FSFlzaVFva3FmVkgtOHVsSnlpZ0ItcEZFc0pyYWdCMTR0WFN4bUJBSWJqMWZoTk5kTjQwIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:32:40.551762+00:00",
-      "discoveryScore": 56
-    },
-    {
-      "id": "ubc-software-and-ai-research-coordinator-819e84e9ce",
-      "company": "Ubc",
-      "role": "Software and AI Research Coordinator",
-      "location": "Unspecified",
-      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6ImtDRVVGRXZYa0JXQ1Nid1ZQSEtxOVEiLCJtYXRjaF9pZCI6IjAxOWY5MGFiLWE4NGEtNzdmMi1hMWUwLTMzNTRmZmE4ZjM2MyIsImJpZF90cmFja2luZ19kYXRhIjoiQUFIWlRJaE15d2JQUlFmV3pYOVhUUkRsQ2tUbHMyYXNmckVQQWhCTE1LSV9naUFmN1lnaWUwLU9IZENFTmYza0JHdG03ZlRobUVRIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
-      "postedDate": null,
-      "firstSeenAt": "2026-07-23T20:31:05.200151+00:00",
-      "discoveryScore": 49
     }
   ]
 }
