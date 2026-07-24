@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -11,6 +12,19 @@ from workflow_store import WorkflowStore
 from write_resume_with_codex import find_workspace
 
 ROOT = Path(__file__).resolve().parent.parent
+PROVIDER_FILE = ROOT / "data/analysis_provider.txt"
+PROVIDER_SCRIPTS = {
+    "codex": "scripts/build_resume_plan_with_codex.py",
+    "claude": "scripts/build_resume_plan_with_claude.py",
+}
+
+
+def resolve_script() -> str:
+    provider = os.environ.get("JOB_ANALYSIS_PROVIDER")
+    if not provider and PROVIDER_FILE.exists():
+        provider = PROVIDER_FILE.read_text(encoding="utf-8").strip()
+    return PROVIDER_SCRIPTS.get((provider or "codex").strip().lower(), PROVIDER_SCRIPTS["codex"])
+
 
 def main() -> int:
     run_id = sys.argv[1]
@@ -32,7 +46,7 @@ def main() -> int:
         except (FileNotFoundError, subprocess.CalledProcessError):
             pass
         completed = subprocess.run(
-            [sys.executable, "scripts/build_resume_plan_with_codex.py", run["lead_id"]],
+            [sys.executable, resolve_script(), run["lead_id"]],
             cwd=ROOT, check=True, capture_output=True, text=True, timeout=900,
         )
         path = completed.stdout.strip().splitlines()[-1]
