@@ -80,11 +80,7 @@ def planned_record_id(item, plan_name=None):
         return item["verified_record_id"]
     singular = plan_name.removesuffix("_plan") if isinstance(plan_name, str) else None
     key = f"{singular}_id" if singular else None
-    if key and isinstance(item.get(key), str):
-        return item[key]
-    if isinstance(item.get("id"), str):
-        return item["id"]
-    return None
+    return item.get(key) if key else None
 
 CANONICAL_SECTION_ORDER = [
     "header", "professional_summary", "core_skills", "education", "certifications",

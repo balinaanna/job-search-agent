@@ -97,7 +97,7 @@ def main() -> int:
 
     resume = strategy.get("resume_strategy", {})
     if isinstance(resume, dict):
-        check_many(errors, resume.get("top_skill_ids"), skill_ids | tech_ids, "top_skill_ids")
+        check_many(errors, resume.get("top_skill_ids"), skill_ids, "top_skill_ids")
         check_many(errors, resume.get("evidence_order"), evidence_ids, "evidence_order")
 
         for i, item in enumerate(resume.get("role_treatments", [])):
