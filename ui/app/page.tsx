@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import initialData from "./dashboard-data.json";
 import { JobsView } from "./JobsView";
 import { FindJobsButton } from "./FindJobsButton";
-import { SearchSettings } from "./SearchSettings";
 
 function updatedLabel(value: string) { return new Intl.DateTimeFormat("en-CA", { hour: "numeric", minute: "2-digit", timeZone: "America/Vancouver" }).format(new Date(value)); }
 
@@ -36,7 +35,7 @@ export default function Home() {
       <section className="workspace">
         <header className="topbar">
           <div><p className="eyebrow">JOB SEARCH WORKSPACE</p><h1 id="overview">Good afternoon, Anna</h1></div>
-          <div className="search-controls"><FindJobsButton /><SearchSettings /></div>
+          <div className="search-controls"><FindJobsButton /></div>
         </header>
 
         <section className="attention-card">
