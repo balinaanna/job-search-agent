@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-30T20:40:18.944257+00:00",
+  "generatedAt": "2026-07-30T21:56:38.939337+00:00",
   "summary": {
-    "discovered": 313,
-    "awaitingAnalysis": 22,
+    "discovered": 344,
+    "awaitingAnalysis": 23,
     "readyToPursue": 8,
     "stretch": 9,
     "applicationsInProgress": 0
@@ -1064,6 +1064,16 @@
       "postingUrl": "https://job-boards.greenhouse.io/grafanalabs/jobs/6007413004",
       "postedDate": "2026-05-28",
       "firstSeenAt": "2026-07-20T00:35:51.613986+00:00",
+      "discoveryScore": 70
+    },
+    {
+      "id": "robots-pencils-staff-full-stack-engineer-091db680bc",
+      "company": "Robots & Pencils",
+      "role": "Staff Full Stack Engineer",
+      "location": "US Remote",
+      "postingUrl": "https://job-boards.greenhouse.io/robotsandpencils/jobs/5372981008",
+      "postedDate": "2026-07-28",
+      "firstSeenAt": "2026-07-30T21:56:25.510145+00:00",
       "discoveryScore": 70
     }
   ]
