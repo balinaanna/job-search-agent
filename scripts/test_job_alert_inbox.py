@@ -32,6 +32,23 @@ class JobAlertInboxTests(unittest.TestCase):
         self.assertEqual(canonicalize_url(first_visit[0]["posting_url"]), "https://www.ziprecruiter.com/jobs/v2/listing/123")
         self.assertEqual(canonicalize_url(first_visit[0]["posting_url"]), canonicalize_url(second_visit[0]["posting_url"]))
 
+    def test_recognizes_ziprecruiter_v2_blob_requiring_base64_padding(self):
+        # The v2 blob's length isn't always a multiple of 4, so the URL literally
+        # contains a trailing "=" padding character. The regex matching /jobs/v2/<blob>
+        # must accept "=" or it silently fails to recognize the URL as ZipRecruiter at all.
+        padded_url = (
+            "https://www.ziprecruiter.com/jobs/v2/"
+            "eyJsaXN0aW5nX2tleSI6IndMb3JER25RaGZvenNacDhVUTZLZUEiLCJtYXRjaF9pZCI6ImEifQ=="
+            "?tsid=100000404"
+        )
+        self.assertTrue(padded_url.split("/jobs/v2/")[1].split("?")[0].endswith("="))
+        visit = parse_alert("ziprecruiter", f'<a href="{padded_url}">AI Implementation Consultant</a>')
+        self.assertEqual(visit[0]["posting_url"], padded_url)
+        self.assertEqual(
+            canonicalize_url(visit[0]["posting_url"]),
+            "https://www.ziprecruiter.com/jobs/v2/listing/wLorDGnQhfozsZp8UQ6KeA",
+        )
+
     def test_canonicalizes_linkedin_email_and_browser_urls_identically(self):
         email_job = parse_alert("linkedin", '<a href="https://www.linkedin.com/comm/jobs/view/software-engineer-12345?tracking=x">Software Engineer</a>')
         browser_job = parse_alert("linkedin", '<a href="https://www.linkedin.com/jobs/view/12345/">Software Engineer</a>')

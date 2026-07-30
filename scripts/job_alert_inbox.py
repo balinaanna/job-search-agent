@@ -135,7 +135,7 @@ def ziprecruiter_v2_stable_url(path: str) -> str | None:
     only -- ZipRecruiter's server requires the original full blob to actually
     load the posting, so this URL is not itself navigable.
     """
-    v2 = re.match(r"^/jobs/v2/([\w-]+)$", path)
+    v2 = re.match(r"^/jobs/v2/([\w=-]+)$", path)
     if not v2:
         return None
     try:

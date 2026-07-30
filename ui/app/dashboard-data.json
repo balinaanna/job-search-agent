@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-07-24T06:31:28.043187+00:00",
+  "generatedAt": "2026-07-30T20:40:18.944257+00:00",
   "summary": {
-    "discovered": 311,
-    "awaitingAnalysis": 21,
-    "readyToPursue": 7,
+    "discovered": 313,
+    "awaitingAnalysis": 22,
+    "readyToPursue": 8,
     "stretch": 9,
     "applicationsInProgress": 0
   },
@@ -83,6 +83,25 @@
       ],
       "risk": "The posting expects architecture-level ownership and engineering mentorship that Anna cannot claim, while the role's coding-heavy focus is not her preferred career direction.",
       "nextAction": "Apply if Anna is genuinely open to a predominantly hands-on frontend engineering role, positioning the application around React product delivery, design systems, cross-layer troubleshooting, and requirements translation while leaving architecture ownership and mentoring unclaimed."
+    },
+    {
+      "id": "orion-digital-operations-analyst-systems-automation-f0c121773c",
+      "company": "Orion Digital",
+      "role": "Operations Analyst, Systems & Automation",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6Ii10c3NDdWh0LXZ6cUN3TmgxcVVSVUEiLCJtYXRjaF9pZCI6IjAxOWZiNGJiLTU3OWItN2JlNy1hZjBmLTNlMGVjMDBmYjAyMiIsImJpZF90cmFja2luZ19kYXRhIjoiQUFGY3J3eGd4ZFVWRlY1c1dwV3FXemFZM3I4ZkkyUkVoT1U5NUZHWHU4REVrWnM5RkVGek1ZUUhBRGVMUkRrUXV0aTNpd0x3NHZBIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-30T20:34:38.837727+00:00",
+      "discoveryScore": 47,
+      "fitScore": 73,
+      "recommendation": "apply",
+      "reasons": [
+        "Direct, strong SQL and repeated hands-on API/data-transformation evidence (Dooly Salesforce investigation, NYC collision data cleaning) map closely to the posting's data-handling and reconciliation needs.",
+        "Anna has personally built and deployed two full automation applications end-to-end using Python and AI coding agents (Codex, Claude Code) with testing and documentation, directly mirroring the posting's core 'own automation end to end' expectation.",
+        "Remote, Canadian, CAD-salaried role that fits Anna's location, work-authorization, and target-role direction well."
+      ],
+      "risk": "No verified migration/cutover or financial-services experience, and Power Query (an explicitly required tool) has no supporting evidence in the profile, which could be a screening blocker if the employer weighs these specific gaps heavily.",
+      "nextAction": "Apply, positioning the AI Job Search Agent, Dive Conditions Assistant, and Dooly Salesforce investigation as the strongest evidence of automation-building and data-reconciliation skill, while being prepared to honestly address the Power Query and migration-terminology gaps if raised during screening."
     },
     {
       "id": "saltworks-technologies-full-stack-developer-5edc545254",
@@ -827,6 +846,16 @@
     }
   ],
   "awaitingAnalysis": [
+    {
+      "id": "mistywest-it-automation-engineer-contractor-b4e0ebea8e",
+      "company": "MistyWest",
+      "role": "IT & Automation Engineer - Contractor",
+      "location": "Unspecified",
+      "postingUrl": "https://www.ziprecruiter.com/jobs/v2/eyJsaXN0aW5nX2tleSI6IlZlNjZYa3puaGJYTmk3MGpDNFJkSUEiLCJtYXRjaF9pZCI6IjAxOWZiNGJmLWE2NmMtN2M4NC04MTE1LTgxNDEyZWIyYmNjMyIsImJpZF90cmFja2luZ19kYXRhIjoiQUFHVmtYNkp6bGJGYmVWdmthWlVkUGhJX19ETW1zUGJ4dkNsdmc2NHRTdFF2YmxoY0xGVjVQc0Q5b3lLWF96cTJfOXdBM0JuUlVrIiwic291cmNlX3BsYWNlbWVudF9pZCI6NDQwNzJ9?tsid=100000404",
+      "postedDate": null,
+      "firstSeenAt": "2026-07-30T20:40:09.857510+00:00",
+      "discoveryScore": 90
+    },
     {
       "id": "grafana-labs-staff-ai-engineer-canada-remote-fe491b18cf",
       "company": "Grafana Labs",

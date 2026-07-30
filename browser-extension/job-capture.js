@@ -14,7 +14,7 @@
     if (host.endsWith("ziprecruiter.com")) {
       const jid = url.searchParams.get("jid");
       if (jid) return `https://www.ziprecruiter.com${url.pathname}?jid=${encodeURIComponent(jid)}`;
-      const v2 = url.pathname.match(/^\/jobs\/v2\/([\w-]+)$/);
+      const v2 = url.pathname.match(/^\/jobs\/v2\/([\w=-]+)$/);
       if (v2) {
         try {
           const decoded = JSON.parse(atob(v2[1] + "=".repeat((4 - (v2[1].length % 4)) % 4)));
@@ -28,7 +28,7 @@
   function sourceForUrl(value) { const normalized = postingUrl(value); if (!normalized) return null; const host = new URL(normalized).hostname; return host.includes("linkedin") ? "linkedin" : host.includes("indeed") ? "indeed" : host.includes("ziprecruiter") ? "ziprecruiter" : "eluta"; }
   function navigableUrl(value) {
     const url = new URL(value); const host = url.hostname.replace(/^www\./, "");
-    if (host.endsWith("ziprecruiter.com") && /^\/jobs\/v2\/([\w-]+)$/.test(url.pathname) && !url.searchParams.get("jid")) {
+    if (host.endsWith("ziprecruiter.com") && /^\/jobs\/v2\/([\w=-]+)$/.test(url.pathname) && !url.searchParams.get("jid")) {
       // The /jobs/v2/<blob> path only loads with its original tracking data intact;
       // the stable listing-key form derived by postingUrl() 404s when visited directly.
       return value;
@@ -72,7 +72,7 @@
     const description = text(posting?.description) || firstText(document, fields.description) || semanticDescription(document);
     const location = locationValue(posting?.jobLocation) || firstText(document, fields.location);
     const missing = [!title && "title", !company && "employer", description.length < 200 && "complete description"].filter(Boolean);
-    if (missing.length) throw new Error(`Adapter 0.5.10 could not identify: ${missing.join(", ")}. Expand the job description, then try again.`);
+    if (missing.length) throw new Error(`Adapter 0.5.11 could not identify: ${missing.join(", ")}. Expand the job description, then try again.`);
     const realUrl = navigableUrl(url);
     return { source, company, role: title, posting_url: realUrl, application_url: text(posting?.url) || realUrl, description_text: description, location_raw: location || null, workplace_type_raw: posting?.jobLocationType === "TELECOMMUTE" ? "Remote" : null, employment_type_raw: text(posting?.employmentType) || null, posted_date: text(posting?.datePosted) || null };
   }
