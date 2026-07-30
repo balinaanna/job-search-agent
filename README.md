@@ -1,53 +1,37 @@
 # AI Job Search Agent
 
-A full-stack, evidence-grounded job-search platform: it discovers postings,
-scores fit against a verified career record, drafts a tailored application
-strategy, resume, and cover letter, and only submits after explicit human
-review. Every generated claim traces back to a specific, verifiable piece of
-career evidence — the system is built to make it structurally hard for an AI
-step to invent or exaggerate something on your behalf.
+I built this to run my own job search. It pulls in postings, checks how well
+each one actually fits my background, and for the ones worth pursuing, drafts
+a strategy, a resume, and a cover letter. Nothing goes out without me
+reviewing it first.
 
-Built solo, end to end: product requirements, workflow design, full-stack
-implementation, and 180+ automated tests.
+The part I care about most is the evidence chain. Every resume bullet or
+cover letter line has to trace back to something specific and true in a
+structured record of my actual work. If a generation step tries to cite
+something that isn't in that record, validation catches it before it ever
+reaches me.
+
+I built the whole thing solo: the workflow design, the full-stack app, and
+180+ tests.
 
 ![Overview dashboard](docs/screenshots/overview.png)
 
-## Why this exists
+## Why it works this way
 
-Most "AI job application" tools optimize for volume — blast a resume at
-hundreds of postings. This one optimizes for defensibility: every fact on a
-generated resume or cover letter has to resolve to a specific piece of
-evidence in a personal, structured career record, and nothing gets submitted
-without a human looking at it first.
+Most "AI job application" tools optimize for volume: generate a resume,
+blast it at a few hundred postings. I wanted fewer applications and more
+confidence in each one. So every claim on a generated document has to
+resolve to a real piece of evidence, and a human looks at everything before
+it's submitted.
 
-## Highlights
+## What it actually does
 
-- **Evidence-grounded generation.** Every AI-authored resume bullet, cover
-  letter claim, or interview talking point is validated against a library of
-  verified career evidence (`profile/evidence.yaml`). Generation that
-  references an evidence ID that doesn't exist fails validation and is
-  rejected before it reaches the user.
-- **Human-in-the-loop by design.** A SQLite-backed workflow state machine
-  (`Discover → Analyze → Decide → Strategy → Draft → Review → Apply → Track`)
-  gates every consequential step — salary commitments, submissions, and legal
-  declarations always stop for explicit approval.
-- **Safe capture mode.** The agent never automates LinkedIn, Indeed, or
-  Eluta, never touches job-board credentials or sessions, and never bypasses
-  rate limits or bot protection. Automatic collection is allow-listed to
-  reviewed public ATS APIs (Greenhouse, Lever); everything else — including a
-  companion Chrome extension — is manual, user-initiated capture.
-- **Swappable AI providers.** Every generation step (analysis, strategy,
-  resume, cover letter, review, revision) can run on Codex or Claude Code,
-  selected per-run with no restart required — useful when one provider hits a
-  usage limit mid-workflow.
-- **17 structured AI skills, not one giant prompt.** Each pipeline stage
-  (job-fit analysis, candidate strategy, resume planning/writing/review/
-  revision, cover-letter planning/writing/review/revision, interview prep) is
-  its own schema-validated skill under `hermes-skills/`, so a change to one
-  step can't silently corrupt another.
-- **112 backend scripts, 180+ automated tests.** Discovery, deduplication,
-  capture-policy enforcement, workflow transitions, and document validation
-  all have direct test coverage.
+- Scores fit against a verified career record instead of matching keywords, with reasoning attached to the score.
+- Runs a full pipeline for jobs worth pursuing: strategy, resume plan, draft, review, revision.
+- Stops for explicit approval before anything consequential: salary numbers, submissions, legal declarations.
+- Never automates LinkedIn, Indeed, or Eluta, and never touches job-board credentials or sessions. Automatic collection only happens through allow-listed public ATS APIs (Greenhouse, Lever). Everything else, including a companion Chrome extension, requires me to click something first.
+- Runs each generation step on either Codex or Claude Code, switchable mid-workflow. Useful the moment one provider hits a usage limit.
+- Splits the pipeline into 17 separate, schema-validated skills instead of one long prompt, so a bad output in one step doesn't quietly corrupt the next one.
 
 ## How it works
 
@@ -92,13 +76,13 @@ flowchart LR
 `Discover → Analyze → Decide → Build → Review and approve → Apply → Track`
 
 The Python workflow lives in `scripts/` and the product interface lives in
-`ui/`. Generated job, analysis, and application records remain separate from
+`ui/`. Generated job, analysis, and application records stay separate from
 the immutable career evidence library in `profile/`.
 
 ## Running it locally
 
-Live career-profile YAML files are intentionally excluded from Git — this is
-a personal tool, and the career data is private. After a fresh clone, create
+I keep live career-profile YAML files out of Git on purpose. This is a
+personal tool, and the career data is private. After a fresh clone, create
 private working copies from the sanitized templates:
 
 ```bash
@@ -140,7 +124,7 @@ python3 scripts/set_analysis_provider.py claude   # or: codex
 ```
 
 This writes `data/analysis_provider.txt`, which the workers read fresh on
-every run — the change applies to the next click, no restart needed.
+every run. The change applies to the next click, no restart needed.
 `JOB_ANALYSIS_PROVIDER` (env var) takes precedence over the file if set, and
 `JOB_ANALYSIS_COMMAND` remains available as a full override for another
 approved command that accepts a lead ID and prints the resulting artifact
