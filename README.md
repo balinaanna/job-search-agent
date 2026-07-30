@@ -1,18 +1,19 @@
 # AI Job Search Agent
 
-I built this to run my own job search. It pulls in postings, checks how well
-each one actually fits my background, and for the ones worth pursuing, drafts
-a strategy, a resume, and a cover letter. Nothing goes out without me
-reviewing it first.
+An AI agent that runs my job search, end to end, on my own machine. It finds
+postings, scores fit against a verified record of my actual work, and for
+the ones worth pursuing, drafts a strategy, resume, and cover letter.
+Nothing goes out without me reviewing it first.
 
 The part I care about most is the evidence chain. Every resume bullet or
 cover letter line has to trace back to something specific and true in a
-structured record of my actual work. If a generation step tries to cite
+structured record of my career. If a generation step tries to cite
 something that isn't in that record, validation catches it before it ever
 reaches me.
 
-I built the whole thing solo: the workflow design, the full-stack app, and
-180+ tests.
+Built solo: the agent's skill design, the full-stack app, and 180+ tests.
+Runs locally, no hosted backend, no data leaving my machine except the AI
+provider calls themselves.
 
 ![Overview dashboard](docs/screenshots/overview.png)
 
@@ -20,18 +21,18 @@ I built the whole thing solo: the workflow design, the full-stack app, and
 
 Most "AI job application" tools optimize for volume: generate a resume,
 blast it at a few hundred postings. I wanted fewer applications and more
-confidence in each one. So every claim on a generated document has to
-resolve to a real piece of evidence, and a human looks at everything before
-it's submitted.
+confidence in each one. Every claim on a generated document has to resolve
+to a real piece of evidence, and a human looks at everything before it's
+submitted.
 
 ## What it actually does
 
 - Scores fit against a verified career record instead of matching keywords, with reasoning attached to the score.
 - Runs a full pipeline for jobs worth pursuing: strategy, resume plan, draft, review, revision.
 - Stops for explicit approval before anything consequential: salary numbers, submissions, legal declarations.
-- Never automates LinkedIn, Indeed, or Eluta, and never touches job-board credentials or sessions. Automatic collection only happens through allow-listed public ATS APIs (Greenhouse, Lever). Everything else, including a companion Chrome extension, requires me to click something first.
+- Captures postings safely (see below), never by automating a job board directly.
 - Runs each generation step on either Codex or Claude Code, switchable mid-workflow. Useful the moment one provider hits a usage limit.
-- Splits the pipeline into 17 separate, schema-validated skills instead of one long prompt, so a bad output in one step doesn't quietly corrupt the next one.
+- Splits the pipeline into 17 separate skills built on the Hermes skill format (`hermes-skills/`), instead of one long prompt, so a bad output in one step doesn't quietly corrupt the next one.
 
 ## How it works
 
@@ -54,16 +55,25 @@ flowchart LR
     K -.grounds.-> H
 ```
 
+Generated job, analysis, and application records stay separate from the
+immutable career evidence library in `profile/`.
+
 - **Frontend:** React + TypeScript (`ui/`)
 - **Backend:** Python `http.server` API, SQLite-backed workflow store, background workers
   for long-running AI steps (`scripts/`)
-- **AI generation:** Codex CLI or Claude Code CLI, invoked per-step with strict JSON-schema
-  output contracts
+- **AI agent:** Codex CLI or Claude Code CLI, invoked per-step with strict JSON-schema
+  output contracts, running 17 Hermes-format skills (`hermes-skills/`)
 - **Document output:** PDF/DOCX generation for resumes and cover letters (ReportLab, python-docx)
 - **Capture:** Manifest V3 Chrome extension for LinkedIn, Indeed, Eluta, and ZipRecruiter
   (`browser-extension/`)
 
 ## Screenshots
+
+Fit analysis, the generated application strategy, and the 6-stage pipeline
+(Analysis → Strategy → Resume → Cover letter → Package → Apply), caught live
+mid-run while the resume plan was generating in the background:
+
+![Fit analysis and application pipeline](docs/screenshots/workflow.png)
 
 | Overview | Jobs workspace | Career profile |
 |---|---|---|
@@ -71,18 +81,14 @@ flowchart LR
 
 *(See `docs/screenshots/README.md` for what to capture if these are placeholders.)*
 
-## Product workflow
-
-`Discover → Analyze → Decide → Build → Review and approve → Apply → Track`
-
-The Python workflow lives in `scripts/` and the product interface lives in
-`ui/`. Generated job, analysis, and application records stay separate from
-the immutable career evidence library in `profile/`.
-
 ## Running it locally
 
-I keep live career-profile YAML files out of Git on purpose. This is a
-personal tool, and the career data is private. After a fresh clone, create
+Everything runs on your machine: the UI, the API, the SQLite store, the
+workers. The only network calls are to the AI provider CLI you pick (Codex
+or Claude Code) and to allow-listed public ATS APIs during capture.
+
+Live career-profile YAML files are intentionally excluded from Git. This is
+a personal tool, and the career data is private. After a fresh clone, create
 private working copies from the sanitized templates:
 
 ```bash

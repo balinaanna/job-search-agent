@@ -52,7 +52,13 @@ Assign section_plan order strictly as: 1 header, 2 professional_summary, 3 core_
 4 education, 5 certifications, 6 professional_experience, 7 selected_projects,
 8 additional_information. Do not reorder this sequence even though professional experience
 before education is more conventional; this candidate's resumes intentionally lead with
-skills and credentials before the work history.
+skills and credentials before the work history. Sort education_plan and certification_plan
+entries strictly most-recent-to-oldest by completion/end date (e.g. an entry completed
+2026-04 must come before one completed 2026-01, which must come before one completed
+2025-11) — do not leave them in the order the source records happen to appear in.
+Each experience_plan and project_plan entry's bullet array must be named
+"planned_bullets" (not "bullets" or any other name) and each bullet object must
+have a "bullet_id" field, matching every existing resume_plan.json in applications/.
 """.strip()
     strict_schema = strict_output_schema(load_json(PLAN_SCHEMA))
     strict_schema.pop("$schema", None)

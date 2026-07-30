@@ -17,6 +17,13 @@ class ResumePlanCompatibilityTests(unittest.TestCase):
         self.assertEqual(planned_record_id({"verified_record_id": "javascript"}), "javascript")
         self.assertEqual(planned_record_id({"education_id": "masters"}, "education_plan"), "masters")
 
+    def test_falls_back_to_plain_id_field(self):
+        # Neither record_id, verified_record_id, nor {singular}_id are specified anywhere
+        # (the schema leaves education_plan/certification_plan items unstructured), and one
+        # generation provider used a plain "id" field instead of the historical conventions.
+        self.assertEqual(planned_record_id({"id": "masters_mechanical_engineering"}, "education_plan"), "masters_mechanical_engineering")
+        self.assertEqual(planned_record_id({"id": "npower_junior_data_analyst"}, "certification_plan"), "npower_junior_data_analyst")
+
 
 if __name__ == "__main__":
     unittest.main()
